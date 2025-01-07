@@ -22,6 +22,10 @@
 #include <SDL3/SDL_rect.h>
 
 #include "./assets/textures/constants.h"
+#include "./assets/textures/bricks/brick-a/brick-a.h"
+#include "./assets/textures/bricks/brick-b/brick-b.h"
+#include "./assets/textures/bricks/brick-c/brick-c.h"
+#include "./assets/textures/bricks/brick-d/brick-d.h"
 #include "./config/constants.h"
 #include "./data/grid/constants.h"
 #include "./data/grid/types.h"
