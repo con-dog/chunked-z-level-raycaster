@@ -2,8 +2,5 @@
 #define GRID_CONSTANTS_H
 
 #define GRID_CELL_SIZE 64.0f
-#define MAX_GRID_ROWS 100
-#define MAX_GRID_COLS 100
-#define MAX_GRID_SIZE (MAX_GRID_ROWS * MAX_GRID_COLS)
 
 #endif

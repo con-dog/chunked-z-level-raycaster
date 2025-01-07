@@ -5,14 +5,14 @@
 
 typedef struct
 {
-  int length;          // How many elements in this row
-  Wall_Type *elements; // Pointer to the elements
+  int length;
+  Wall_Type *elements;
 } Jagged_Row;
 
 typedef struct
 {
-  int num_rows;     // Total number of rows
-  Jagged_Row *rows; // Array of Jagged_Rows
+  int num_rows;
+  Jagged_Row *rows;
 } Jagged_Grid;
 
 #endif
