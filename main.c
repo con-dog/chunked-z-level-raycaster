@@ -2162,7 +2162,6 @@ static void cast_rays_from_player(void)
 
     ray.start.x = player.rect.x + (PLAYER_W / 2);
     ray.start.y = player.rect.y + (PLAYER_H / 2);
-    // print_text(radians, ray, dda);
 
     Vector_1D x_direction = cos(radians);
     Vector_1D y_direction = sin(radians);
@@ -2184,9 +2183,11 @@ static void cast_rays_from_player(void)
 
     Point_1D world_next_wall_intersection_x;
     Point_1D world_next_wall_intersection_y;
+    Wall_Surface surface_hit;
+    Wall_Type current_grid_cell_value;
+    Jagged_Row *current_grid_row;
 
     bool is_surface_hit = false;
-    Wall_Surface surface_hit;
     while (!is_surface_hit)
     {
       if (x_distance_to_next_vertical_cell_edge_normalized < y_distance_to_next_horizontal_cell_edge_normalized)
@@ -2213,18 +2214,19 @@ static void cast_rays_from_player(void)
       ray.end.x = world_next_wall_intersection_x;
       ray.end.y = world_next_wall_intersection_y;
 
-      unsigned int grid_1D_array_index = (grid_y * 8) + grid_x;
-      Wall_Type grid_1D_array_value = grid_walls[grid_1D_array_index];
+      current_grid_row = &wall_grid->rows[grid_y];
+      current_grid_cell_value = current_grid_row->elements[grid_x];
 
-      if (grid_1D_array_value != 'z')
+      if (current_grid_cell_value != 'z')
       {
         is_surface_hit = 1;
         break;
       }
     }
 
-    SDL_SetRenderDrawColor(renderer, r, g, b, a);
-    SDL_RenderLine(renderer, ray.start.x, ray.start.y, ray.end.x, ray.end.y);
+    // Ray lines
+    // SDL_SetRenderDrawColor(renderer, r, g, b, a);
+    // SDL_RenderLine(renderer, ray.start.x, ray.start.y, ray.end.x, ray.end.y);
 
     /*
      * 2.5D Rendering
@@ -2260,9 +2262,8 @@ static void cast_rays_from_player(void)
       Point_1D wall_x_normalized = wall_x / GRID_CELL_SIZE;
       Point_1D wall_x_offset_normalized = wall_x_normalized - floorf(wall_x_normalized);
       texture_x = roundf(wall_x_offset_normalized * TEXTURE_PIXEL_W);
-
-      unsigned int grid_1D_array_index = (grid_y * 8) + grid_x;
     }
+
     // Brightness transformations
     // Uint8 brightness = (Uint8)(255.0f * (1.0f - (perpendicular_distance / (64 * 16))));
     Uint8 brightness = (Uint8)(255.0f * (1.0f - log10f(1.0f + (9.0f * perpendicular_distance / (64 * 16)))));
@@ -2270,8 +2271,7 @@ static void cast_rays_from_player(void)
     SDL_SetTextureColorMod(leaves_texture, brightness, brightness, brightness);
     SDL_SetTextureColorMod(flowers_texture, brightness, brightness, brightness);
 
-    unsigned int grid_1D_array_index = (grid_y * 8) + grid_x;
-    switch (grid_walls[grid_1D_array_index])
+    switch (current_grid_cell_value)
     {
     case 'A':
     {
@@ -2305,7 +2305,7 @@ static void cast_rays_from_player(void)
     }
     default:
     {
-      SDL_SetRenderDrawColor(renderer, 255, 20, 0, 255);
+      SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
       SDL_RenderFillRect(renderer, &wall_rect);
     }
     }
@@ -2472,9 +2472,9 @@ void update_display(void)
 {
   SDL_SetRenderDrawColor(renderer, 225, 225, 225, 255); // White background
   SDL_RenderClear(renderer);
-  draw_jagged_grid();
+  // draw_jagged_grid();
   draw_player();
-  // cast_rays_from_player();
+  cast_rays_from_player();
   SDL_RenderPresent(renderer);
 }
 
@@ -2511,9 +2511,9 @@ int main(int argc, char *argv[])
   print_jagged_grid(wall_grid);
   // print_jagged_grid(wall_grid);
 
-  // brick_texture_init();
-  // leaves_texture_init();
-  // flowers_texture_init();
+  brick_texture_init();
+  leaves_texture_init();
+  flowers_texture_init();
   // font_init();
   player_init();
   keyboard_state = SDL_GetKeyboardState(NULL);
