@@ -8,18 +8,11 @@ SDL_Renderer *renderer;
 // SDL_Texture *flowers_texture;
 
 //
-Pixel_Image_Asset brick_a;
-Pixel_Image_Asset brick_b;
-Pixel_Image_Asset brick_c;
-Pixel_Image_Asset brick_d;
+Pixel_Image_Asset brick_a, brick_b, brick_c, brick_d;
+Pixel_Image_Asset mud_brick_a, mud_brick_b, mud_brick_c;
 
-SDL_Texture *brick_a_texture;
-SDL_Texture *brick_b_texture;
-SDL_Texture *brick_c_texture;
-SDL_Texture *brick_d_texture;
-
-SDL_Texture *leaves_texture;
-SDL_Texture *flowers_texture;
+SDL_Texture *brick_a_texture, *brick_b_texture, *brick_c_texture, *brick_d_texture;
+SDL_Texture *mud_brick_a_texture, *mud_brick_b_texture, *mud_brick_c_texture;
 
 Jagged_Grid *wall_grid;
 
@@ -100,47 +93,28 @@ static int brick_texture_init(void)
     return 3;
   }
 
+  mud_brick_a_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
+  mud_brick_b_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
+  mud_brick_c_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
+
   SDL_SetTextureScaleMode(brick_a_texture, SDL_SCALEMODE_NEAREST);
   SDL_SetTextureScaleMode(brick_b_texture, SDL_SCALEMODE_NEAREST);
   SDL_SetTextureScaleMode(brick_c_texture, SDL_SCALEMODE_NEAREST);
   SDL_SetTextureScaleMode(brick_d_texture, SDL_SCALEMODE_NEAREST);
+  SDL_SetTextureScaleMode(mud_brick_a_texture, SDL_SCALEMODE_NEAREST);
+  SDL_SetTextureScaleMode(mud_brick_b_texture, SDL_SCALEMODE_NEAREST);
+  SDL_SetTextureScaleMode(mud_brick_c_texture, SDL_SCALEMODE_NEAREST);
 
   SDL_UpdateTexture(brick_a_texture, NULL, brick_a.pixel_data, TEXTURE_PIXEL_W * 4);
   SDL_UpdateTexture(brick_b_texture, NULL, brick_b.pixel_data, TEXTURE_PIXEL_W * 4);
   SDL_UpdateTexture(brick_c_texture, NULL, brick_c.pixel_data, TEXTURE_PIXEL_W * 4);
   SDL_UpdateTexture(brick_d_texture, NULL, brick_d.pixel_data, TEXTURE_PIXEL_W * 4);
+  SDL_UpdateTexture(mud_brick_a_texture, NULL, mud_brick_a.pixel_data, TEXTURE_PIXEL_W * 4);
+  SDL_UpdateTexture(mud_brick_b_texture, NULL, mud_brick_b.pixel_data, TEXTURE_PIXEL_W * 4);
+  SDL_UpdateTexture(mud_brick_c_texture, NULL, mud_brick_c.pixel_data, TEXTURE_PIXEL_W * 4);
 
   return 0;
 }
-
-// static int leaves_texture_init(void)
-// {
-//   leaves_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
-//   if (leaves_texture == NULL)
-//   {
-//     SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_Texture could not initialize! SDL_Texture Error: %s\n", SDL_GetError());
-//     return 3;
-//   }
-//   SDL_SetTextureScaleMode(leaves_texture, SDL_SCALEMODE_NEAREST);
-//   SDL_UpdateTexture(leaves_texture, NULL, leaves_pixel_image.pixel_data, TEXTURE_PIXEL_W * 4);
-
-//   return 0;
-// }
-
-// static int flowers_texture_init(void)
-// {
-//   flowers_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
-//   if (flowers_texture == NULL)
-//   {
-//     SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_Texture could not initialize! SDL_Texture Error: %s\n", SDL_GetError());
-//     return 3;
-//   }
-
-//   SDL_SetTextureScaleMode(flowers_texture, SDL_SCALEMODE_NEAREST);
-//   SDL_UpdateTexture(flowers_texture, NULL, flower_pixel_image.pixel_data, TEXTURE_PIXEL_W * 4);
-
-//   return 0;
-// }
 
 static void player_init(void)
 {
@@ -295,14 +269,14 @@ static void cast_rays_from_player(void)
     }
 
     // Brightness transformations
-    // Uint8 brightness = (Uint8)(255.0f * (1.0f - (perpendicular_distance / (64 * 16))));
     Uint8 brightness = (Uint8)(255.0f * (1.0f - log10f(1.0f + (9.0f * perpendicular_distance / (64 * 16)))));
     SDL_SetTextureColorMod(brick_a_texture, brightness, brightness, brightness);
     SDL_SetTextureColorMod(brick_b_texture, brightness, brightness, brightness);
     SDL_SetTextureColorMod(brick_c_texture, brightness, brightness, brightness);
     SDL_SetTextureColorMod(brick_d_texture, brightness, brightness, brightness);
-    SDL_SetTextureColorMod(leaves_texture, brightness, brightness, brightness);
-    SDL_SetTextureColorMod(flowers_texture, brightness, brightness, brightness);
+    SDL_SetTextureColorMod(mud_brick_a_texture, brightness, brightness, brightness);
+    SDL_SetTextureColorMod(mud_brick_b_texture, brightness, brightness, brightness);
+    SDL_SetTextureColorMod(mud_brick_c_texture, brightness, brightness, brightness);
 
     switch (current_grid_cell_value)
     {
@@ -344,6 +318,36 @@ static void cast_rays_from_player(void)
           .w = 1,
           .h = TEXTURE_PIXEL_H};
       SDL_RenderTexture(renderer, brick_d_texture, &src_rect, &wall_rect);
+      break;
+    }
+    case 'E':
+    {
+      SDL_FRect src_rect = {
+          .x = texture_x,
+          .y = 0,
+          .w = 1,
+          .h = TEXTURE_PIXEL_H};
+      SDL_RenderTexture(renderer, mud_brick_a_texture, &src_rect, &wall_rect);
+      break;
+    }
+    case 'F':
+    {
+      SDL_FRect src_rect = {
+          .x = texture_x,
+          .y = 0,
+          .w = 1,
+          .h = TEXTURE_PIXEL_H};
+      SDL_RenderTexture(renderer, mud_brick_b_texture, &src_rect, &wall_rect);
+      break;
+    }
+    case 'G':
+    {
+      SDL_FRect src_rect = {
+          .x = texture_x,
+          .y = 0,
+          .w = 1,
+          .h = TEXTURE_PIXEL_H};
+      SDL_RenderTexture(renderer, mud_brick_c_texture, &src_rect, &wall_rect);
       break;
     }
     default:
@@ -516,7 +520,7 @@ void update_display(void)
   SDL_SetRenderDrawColor(renderer, 225, 225, 225, 255); // White background
   SDL_RenderClear(renderer);
   // draw_jagged_grid();
-  draw_player();
+  // draw_player();
   cast_rays_from_player();
   SDL_RenderPresent(renderer);
 }
