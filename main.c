@@ -10,9 +10,11 @@ SDL_Renderer *renderer;
 //
 Pixel_Image_Asset brick_a, brick_b, brick_c, brick_d;
 Pixel_Image_Asset mud_brick_a, mud_brick_b, mud_brick_c;
+Pixel_Image_Asset overgrown_a, overgrown_b;
 
 SDL_Texture *brick_a_texture, *brick_b_texture, *brick_c_texture, *brick_d_texture;
 SDL_Texture *mud_brick_a_texture, *mud_brick_b_texture, *mud_brick_c_texture;
+SDL_Texture *overgrown_a_texture, *overgrown_b_texture;
 
 Jagged_Grid *wall_grid;
 
@@ -97,6 +99,9 @@ static int brick_texture_init(void)
   mud_brick_b_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
   mud_brick_c_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
 
+  overgrown_a_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
+  overgrown_b_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
+
   SDL_SetTextureScaleMode(brick_a_texture, SDL_SCALEMODE_NEAREST);
   SDL_SetTextureScaleMode(brick_b_texture, SDL_SCALEMODE_NEAREST);
   SDL_SetTextureScaleMode(brick_c_texture, SDL_SCALEMODE_NEAREST);
@@ -104,6 +109,8 @@ static int brick_texture_init(void)
   SDL_SetTextureScaleMode(mud_brick_a_texture, SDL_SCALEMODE_NEAREST);
   SDL_SetTextureScaleMode(mud_brick_b_texture, SDL_SCALEMODE_NEAREST);
   SDL_SetTextureScaleMode(mud_brick_c_texture, SDL_SCALEMODE_NEAREST);
+  SDL_SetTextureScaleMode(overgrown_a_texture, SDL_SCALEMODE_NEAREST);
+  SDL_SetTextureScaleMode(overgrown_b_texture, SDL_SCALEMODE_NEAREST);
 
   SDL_UpdateTexture(brick_a_texture, NULL, brick_a.pixel_data, TEXTURE_PIXEL_W * 4);
   SDL_UpdateTexture(brick_b_texture, NULL, brick_b.pixel_data, TEXTURE_PIXEL_W * 4);
@@ -112,6 +119,8 @@ static int brick_texture_init(void)
   SDL_UpdateTexture(mud_brick_a_texture, NULL, mud_brick_a.pixel_data, TEXTURE_PIXEL_W * 4);
   SDL_UpdateTexture(mud_brick_b_texture, NULL, mud_brick_b.pixel_data, TEXTURE_PIXEL_W * 4);
   SDL_UpdateTexture(mud_brick_c_texture, NULL, mud_brick_c.pixel_data, TEXTURE_PIXEL_W * 4);
+  SDL_UpdateTexture(overgrown_a_texture, NULL, overgrown_a.pixel_data, TEXTURE_PIXEL_W * 4);
+  SDL_UpdateTexture(overgrown_b_texture, NULL, overgrown_b.pixel_data, TEXTURE_PIXEL_W * 4);
 
   return 0;
 }
@@ -277,6 +286,8 @@ static void cast_rays_from_player(void)
     SDL_SetTextureColorMod(mud_brick_a_texture, brightness, brightness, brightness);
     SDL_SetTextureColorMod(mud_brick_b_texture, brightness, brightness, brightness);
     SDL_SetTextureColorMod(mud_brick_c_texture, brightness, brightness, brightness);
+    SDL_SetTextureColorMod(overgrown_a_texture, brightness, brightness, brightness);
+    SDL_SetTextureColorMod(overgrown_b_texture, brightness, brightness, brightness);
 
     switch (current_grid_cell_value)
     {
@@ -297,7 +308,7 @@ static void cast_rays_from_player(void)
           .y = 0,
           .w = 1,
           .h = TEXTURE_PIXEL_H};
-      SDL_RenderTexture(renderer, brick_b_texture, &src_rect, &wall_rect);
+      SDL_RenderTexture(renderer, overgrown_a_texture, &src_rect, &wall_rect);
       break;
     }
     case 'C':
@@ -317,7 +328,7 @@ static void cast_rays_from_player(void)
           .y = 0,
           .w = 1,
           .h = TEXTURE_PIXEL_H};
-      SDL_RenderTexture(renderer, brick_d_texture, &src_rect, &wall_rect);
+      SDL_RenderTexture(renderer, overgrown_b_texture, &src_rect, &wall_rect);
       break;
     }
     case 'E':

@@ -29,6 +29,9 @@
 #include "./assets/textures/bricks/mud-brick-a/mud-brick-a.h"
 #include "./assets/textures/bricks/mud-brick-b/mud-brick-b.h"
 #include "./assets/textures/bricks/mud-brick-c/mud-brick-c.h"
+#include "./assets/textures/overgrown/overgrown-a/overgrown-a.h"
+#include "./assets/textures/overgrown/overgrown-b/overgrown-b.h"
+
 #include "./config/constants.h"
 #include "./data/grid/constants.h"
 #include "./data/grid/types.h"

@@ -1,8 +1,8 @@
 #ifndef CONFIG_CONSTANTS_H
 #define CONFIG_CONSTANTS_H
 
-#define WINDOW_W 2048
-#define WINDOW_H 1024
+#define WINDOW_W 1024
+#define WINDOW_H 512
 #define FONT_SMALL 12
 
 #endif
