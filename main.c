@@ -268,9 +268,8 @@ static void cast_rays_from_player(void)
       // Scale by the player's height (distance to projection plane)
       distance *= GRID_CELL_SIZE; // Adjust this factor as needed
 
-      // Calculate real world coordinates of the point on the floor
-      Point_1D floor_world_x = player.rect.x + (x_direction / cos(theta)) * distance;
-      Point_1D floor_world_y = player.rect.y + (y_direction / cos(theta)) * distance;
+      Point_1D floor_world_x = (player.rect.x + PLAYER_W / 2) + (x_direction / cos(theta)) * distance;
+      Point_1D floor_world_y = (player.rect.y + PLAYER_H / 2) + (y_direction / cos(theta)) * distance;
 
       // Fix grid position calculation using floorf()
       Grid_Point_1D floor_grid_x = floorf(floor_world_x / GRID_CELL_SIZE);
