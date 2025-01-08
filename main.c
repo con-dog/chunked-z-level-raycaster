@@ -4,15 +4,17 @@ SDL_Window *win;
 SDL_Renderer *renderer;
 
 Pixel_Image_Asset brick_a, brick_b, brick_c, brick_d;
-Pixel_Image_Asset lava_a, lava_b;
+Pixel_Image_Asset lava_a, lava_b, lava_c;
 Pixel_Image_Asset mud_brick_a, mud_brick_b, mud_brick_c;
 Pixel_Image_Asset overgrown_a, overgrown_b;
+Pixel_Image_Asset water_b, water_c;
 Pixel_Image_Asset wood_vertical;
 
 SDL_Texture *brick_a_texture, *brick_b_texture, *brick_c_texture, *brick_d_texture;
-SDL_Texture *lava_a_texture, *lava_b_texture;
+SDL_Texture *lava_a_texture, *lava_b_texture, *lava_c_texture;
 SDL_Texture *mud_brick_a_texture, *mud_brick_b_texture, *mud_brick_c_texture;
 SDL_Texture *overgrown_a_texture, *overgrown_b_texture;
+SDL_Texture *water_b_texture, *water_c_texture;
 SDL_Texture *wood_vertical_texture;
 
 Jagged_Grid *floor_grid;
@@ -86,6 +88,7 @@ static int brick_texture_init(void)
 
   lava_a_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
   lava_b_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
+  lava_c_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
 
   mud_brick_a_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
   mud_brick_b_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
@@ -93,6 +96,9 @@ static int brick_texture_init(void)
 
   overgrown_a_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
   overgrown_b_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
+
+  water_b_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
+  water_c_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
 
   wood_vertical_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
 
@@ -102,11 +108,14 @@ static int brick_texture_init(void)
   SDL_SetTextureScaleMode(brick_d_texture, SDL_SCALEMODE_NEAREST);
   SDL_SetTextureScaleMode(lava_a_texture, SDL_SCALEMODE_NEAREST);
   SDL_SetTextureScaleMode(lava_b_texture, SDL_SCALEMODE_NEAREST);
+  SDL_SetTextureScaleMode(lava_c_texture, SDL_SCALEMODE_NEAREST);
   SDL_SetTextureScaleMode(mud_brick_a_texture, SDL_SCALEMODE_NEAREST);
   SDL_SetTextureScaleMode(mud_brick_b_texture, SDL_SCALEMODE_NEAREST);
   SDL_SetTextureScaleMode(mud_brick_c_texture, SDL_SCALEMODE_NEAREST);
   SDL_SetTextureScaleMode(overgrown_a_texture, SDL_SCALEMODE_NEAREST);
   SDL_SetTextureScaleMode(overgrown_b_texture, SDL_SCALEMODE_NEAREST);
+  SDL_SetTextureScaleMode(water_b_texture, SDL_SCALEMODE_NEAREST);
+  SDL_SetTextureScaleMode(water_c_texture, SDL_SCALEMODE_NEAREST);
   SDL_SetTextureScaleMode(wood_vertical_texture, SDL_SCALEMODE_NEAREST);
 
   SDL_UpdateTexture(brick_a_texture, NULL, brick_a.pixel_data, TEXTURE_PIXEL_W * 4);
@@ -115,11 +124,14 @@ static int brick_texture_init(void)
   SDL_UpdateTexture(brick_d_texture, NULL, brick_d.pixel_data, TEXTURE_PIXEL_W * 4);
   SDL_UpdateTexture(lava_a_texture, NULL, lava_a.pixel_data, TEXTURE_PIXEL_W * 4);
   SDL_UpdateTexture(lava_b_texture, NULL, lava_b.pixel_data, TEXTURE_PIXEL_W * 4);
+  SDL_UpdateTexture(lava_c_texture, NULL, lava_c.pixel_data, TEXTURE_PIXEL_W * 4);
   SDL_UpdateTexture(mud_brick_a_texture, NULL, mud_brick_a.pixel_data, TEXTURE_PIXEL_W * 4);
   SDL_UpdateTexture(mud_brick_b_texture, NULL, mud_brick_b.pixel_data, TEXTURE_PIXEL_W * 4);
   SDL_UpdateTexture(mud_brick_c_texture, NULL, mud_brick_c.pixel_data, TEXTURE_PIXEL_W * 4);
   SDL_UpdateTexture(overgrown_a_texture, NULL, overgrown_a.pixel_data, TEXTURE_PIXEL_W * 4);
   SDL_UpdateTexture(overgrown_b_texture, NULL, overgrown_b.pixel_data, TEXTURE_PIXEL_W * 4);
+  SDL_UpdateTexture(water_b_texture, NULL, water_b.pixel_data, TEXTURE_PIXEL_W * 4);
+  SDL_UpdateTexture(water_c_texture, NULL, water_c.pixel_data, TEXTURE_PIXEL_W * 4);
   SDL_UpdateTexture(wood_vertical_texture, NULL, wood_vertical.pixel_data, TEXTURE_PIXEL_W * 4);
 
   return 0;
@@ -317,6 +329,24 @@ static void cast_rays_from_player(void)
       {
         // Render the floor pixel
         SDL_RenderTexture(renderer, lava_b_texture, &src_rect, &dst_rect);
+        break;
+      }
+      case 'D':
+      {
+        // Render the floor pixel
+        SDL_RenderTexture(renderer, water_b_texture, &src_rect, &dst_rect);
+        break;
+      }
+      case 'E':
+      {
+        // Render the floor pixel
+        SDL_RenderTexture(renderer, water_c_texture, &src_rect, &dst_rect);
+        break;
+      }
+      case 'F':
+      {
+        // Render the floor pixel
+        SDL_RenderTexture(renderer, lava_c_texture, &src_rect, &dst_rect);
         break;
       }
       default:
