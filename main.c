@@ -295,36 +295,36 @@ static void cast_rays_from_player(void)
       Uint8 floor_brightness = (Uint8)(255.0f * (1.0f - log10f(1.0f + (9.0f * distance / (64 * 16)))));
       // Calculate brightness based on distance (similar to walls)
       SDL_SetTextureColorMod(wood_vertical_texture, floor_brightness, floor_brightness, floor_brightness);
-      SDL_SetTextureColorMod(lava_a_texture, floor_brightness, floor_brightness, floor_brightness);
-      SDL_SetTextureColorMod(lava_b_texture, floor_brightness, floor_brightness, floor_brightness);
+      // SDL_SetTextureColorMod(lava_a_texture, floor_brightness, floor_brightness, floor_brightness);
+      // SDL_SetTextureColorMod(lava_b_texture, floor_brightness, floor_brightness, floor_brightness);
 
-      SDL_RenderTexture(renderer, wood_vertical_texture, &src_rect, &dst_rect);
-      // switch (floor_grid->rows[floor_grid_y].elements[floor_grid_x])
-      // {
-      // case 'A':
-      // {
-      //   // Render the floor pixel
-      //   SDL_RenderTexture(renderer, wood_vertical_texture, &src_rect, &dst_rect);
-      //   break;
-      // }
-      // case 'B':
-      // {
-      //   // Render the floor pixel
-      //   SDL_RenderTexture(renderer, lava_a_texture, &src_rect, &dst_rect);
-      //   break;
-      // }
-      // case 'C':
-      // {
-      //   // Render the floor pixel
-      //   SDL_RenderTexture(renderer, lava_b_texture, &src_rect, &dst_rect);
-      //   break;
-      // }
-      // default:
-      // {
-      //   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-      //   SDL_RenderFillRect(renderer, &dst_rect);
-      // }
-      // }
+      // SDL_RenderTexture(renderer, wood_vertical_texture, &src_rect, &dst_rect);
+      switch (floor_grid->rows[floor_grid_y].elements[floor_grid_x])
+      {
+      case 'A':
+      {
+        // Render the floor pixel
+        SDL_RenderTexture(renderer, wood_vertical_texture, &src_rect, &dst_rect);
+        break;
+      }
+      case 'B':
+      {
+        // Render the floor pixel
+        SDL_RenderTexture(renderer, lava_a_texture, &src_rect, &dst_rect);
+        break;
+      }
+      case 'C':
+      {
+        // Render the floor pixel
+        SDL_RenderTexture(renderer, lava_b_texture, &src_rect, &dst_rect);
+        break;
+      }
+      default:
+      {
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderFillRect(renderer, &dst_rect);
+      }
+      }
     }
 
     /*
