@@ -152,6 +152,7 @@ static void cast_rays_from_player(void)
   Degrees end_angle = player.angle + PLAYER_FOV_DEG / 2;
   Uint8 r = 255, g = 0, b = 0, a = 255;
 
+  // WALLS
   for (Degrees current_angle = start_angle; current_angle <= end_angle; current_angle += PLAYER_FOV_DEG_INC)
   {
     Radians radians = convert_deg_to_rads(current_angle);
@@ -232,34 +233,88 @@ static void cast_rays_from_player(void)
     Scalar ray_length = sqrt(pow(ray.start.x - ray.end.x, 2) + pow(ray.start.y - ray.end.y, 2));
     Point_1D ray_screen_position_x = ((current_angle - start_angle) / PLAYER_FOV_DEG) * (WINDOW_W / 2) + WINDOW_W / 4;
     Scalar perpendicular_distance = ray_length * cos(theta);
-    Scalar vertical_strip_height = (GRID_CELL_SIZE * WINDOW_H) / perpendicular_distance;
-    Scalar vertical_strip_width = (WINDOW_W / 2) / ((end_angle - start_angle) / PLAYER_FOV_DEG_INC);
+    Scalar vertical_strip_width = (GRID_CELL_SIZE * WINDOW_H) / perpendicular_distance;
+    Scalar wall_vertical_strip_width = (WINDOW_W / 2) / ((end_angle - start_angle) / PLAYER_FOV_DEG_INC);
 
     // Center line vertically
-    Scalar vertical_offset = (WINDOW_H - vertical_strip_height) / 2;
+    Scalar wall_vertical_offset = (WINDOW_H - vertical_strip_width) / 2;
+
+    // ADD FLOOR DRAWING CODE HERE
+    // This is where you'll want to calculate and draw the floor for this vertical strip
+    // before rendering the wall segment
+    /*
+     * DRAW FLOORS
+     */
+    Scalar floor_start_y = wall_vertical_offset + vertical_strip_width;
+    Scalar floor_vertical_strip_height = WINDOW_H - floor_start_y;
+
+    for (int screen_y = floor_start_y; screen_y < WINDOW_H; screen_y++)
+    {
+      // Distance to point on floor
+      Scalar distance = (WINDOW_H / 2.0f) / (screen_y - WINDOW_H / 2.0f);
+
+      // Scale by players height (distance to projection plane)
+      distance *= GRID_CELL_SIZE / 2;
+
+      // Calculate real world coordinates of point on floor
+      Point_1D floor_world_x = player.rect.x + x_direction * distance;
+      Point_1D floor_world_y = player.rect.y + y_direction * distance;
+
+      Point_1D floor_texture_x = (int)(floor_world_x) % TEXTURE_PIXEL_W;
+      Point_1D floor_texture_y = (int)(floor_world_y) % TEXTURE_PIXEL_H;
+
+      // Create source and destination rectangles for this pixel
+      SDL_FRect src_rect = {
+          .x = floor_texture_x,
+          .y = floor_texture_y,
+          .w = 1,
+          .h = 1};
+
+      SDL_FRect dst_rect = {
+          .x = ray_screen_position_x,
+          .y = screen_y,
+          .w = vertical_strip_width,
+          .h = 1};
+
+      SDL_RenderTexture(renderer, brick_a_texture, &src_rect, &dst_rect);
+    }
+
+    // SDL_FRect floor_rect = {
+    //     .x = ray_screen_position_x,
+    //     .y = floor_start_y,
+    //     .w = wall_vertical_strip_width,
+    //     .h = floor_vertical_strip_height,
+    // };
+
+    // Point_1D floor_x = world_next_wall_intersection_x;
+    // Point_1D floor_y = world_next_wall_intersection_y;
+
+    /*
+     * DRAW WALLS
+     */
 
     SDL_FRect wall_rect = {
         .x = ray_screen_position_x,
-        .y = vertical_offset,
-        .w = vertical_strip_width,
-        .h = vertical_strip_height,
+        .y = wall_vertical_offset,
+        .w = wall_vertical_strip_width,
+        .h = vertical_strip_width,
     };
 
     Point_1D wall_x;
-    Point_1D texture_x;
+    Point_1D wall_texture_x;
     if (surface_hit == WS_VERTICAL)
     {
       wall_x = world_next_wall_intersection_y;
       Point_1D wall_x_normalized = wall_x / GRID_CELL_SIZE;
       Point_1D wall_x_offset_normalized = wall_x_normalized - floorf(wall_x_normalized);
-      texture_x = roundf(wall_x_offset_normalized * TEXTURE_PIXEL_W);
+      wall_texture_x = roundf(wall_x_offset_normalized * TEXTURE_PIXEL_W);
     }
     else
     {
       wall_x = world_next_wall_intersection_x;
       Point_1D wall_x_normalized = wall_x / GRID_CELL_SIZE;
       Point_1D wall_x_offset_normalized = wall_x_normalized - floorf(wall_x_normalized);
-      texture_x = roundf(wall_x_offset_normalized * TEXTURE_PIXEL_W);
+      wall_texture_x = roundf(wall_x_offset_normalized * TEXTURE_PIXEL_W);
     }
 
     // Brightness transformations
@@ -279,7 +334,7 @@ static void cast_rays_from_player(void)
     case 'A':
     {
       SDL_FRect src_rect = {
-          .x = texture_x,
+          .x = wall_texture_x,
           .y = 0,
           .w = 1,
           .h = TEXTURE_PIXEL_H};
@@ -289,7 +344,7 @@ static void cast_rays_from_player(void)
     case 'B':
     {
       SDL_FRect src_rect = {
-          .x = texture_x,
+          .x = wall_texture_x,
           .y = 0,
           .w = 1,
           .h = TEXTURE_PIXEL_H};
@@ -299,7 +354,7 @@ static void cast_rays_from_player(void)
     case 'C':
     {
       SDL_FRect src_rect = {
-          .x = texture_x,
+          .x = wall_texture_x,
           .y = 0,
           .w = 1,
           .h = TEXTURE_PIXEL_H};
@@ -309,7 +364,7 @@ static void cast_rays_from_player(void)
     case 'D':
     {
       SDL_FRect src_rect = {
-          .x = texture_x,
+          .x = wall_texture_x,
           .y = 0,
           .w = 1,
           .h = TEXTURE_PIXEL_H};
@@ -319,7 +374,7 @@ static void cast_rays_from_player(void)
     case 'E':
     {
       SDL_FRect src_rect = {
-          .x = texture_x,
+          .x = wall_texture_x,
           .y = 0,
           .w = 1,
           .h = TEXTURE_PIXEL_H};
@@ -329,7 +384,7 @@ static void cast_rays_from_player(void)
     case 'F':
     {
       SDL_FRect src_rect = {
-          .x = texture_x,
+          .x = wall_texture_x,
           .y = 0,
           .w = 1,
           .h = TEXTURE_PIXEL_H};
@@ -339,7 +394,7 @@ static void cast_rays_from_player(void)
     case 'G':
     {
       SDL_FRect src_rect = {
-          .x = texture_x,
+          .x = wall_texture_x,
           .y = 0,
           .w = 1,
           .h = TEXTURE_PIXEL_H};
