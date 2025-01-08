@@ -11,6 +11,7 @@ SDL_Texture *brick_a_texture, *brick_b_texture, *brick_c_texture, *brick_d_textu
 SDL_Texture *mud_brick_a_texture, *mud_brick_b_texture, *mud_brick_c_texture;
 SDL_Texture *overgrown_a_texture, *overgrown_b_texture;
 
+Jagged_Grid *floor_grid;
 Jagged_Grid *wall_grid;
 
 Player player;
@@ -40,16 +41,16 @@ static int sdl_init()
   return 0;
 }
 
-static int font_init(void)
-{
-  font = TTF_OpenFont("./fonts/PressStart2P-Regular.ttf", FONT_SMALL);
-  if (!font)
-  {
-    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to load font! TTF_Error: %s\n", SDL_GetError());
-    return 3;
-  }
-  return 0;
-}
+// static int font_init(void)
+// {
+//   font = TTF_OpenFont("./fonts/PressStart2P-Regular.ttf", FONT_SMALL);
+//   if (!font)
+//   {
+//     SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to load font! TTF_Error: %s\n", SDL_GetError());
+//     return 3;
+//   }
+//   return 0;
+// }
 
 static int brick_texture_init(void)
 {
@@ -549,8 +550,9 @@ int main(int argc, char *argv[])
 {
   sdl_init();
 
-  wall_grid = read_grid_csv_file("./assets/levels/level-1.csv");
-  print_jagged_grid(wall_grid);
+  wall_grid = read_grid_csv_file("./assets/levels/level-1-wall.csv");
+  floor_grid = read_grid_csv_file("./assets/levels/level-1-floor.csv");
+  print_jagged_grid(floor_grid);
   // print_jagged_grid(wall_grid);
 
   brick_texture_init();
@@ -566,7 +568,7 @@ int main(int argc, char *argv[])
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(win);
 
-  TTF_CloseFont(font);
+  // TTF_CloseFont(font);
   TTF_Quit();
 
   SDL_Quit();
