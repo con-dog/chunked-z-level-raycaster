@@ -304,11 +304,14 @@ static void cast_rays_from_player(void)
           .w = vertical_strip_width,
           .h = 1};
 
-      Uint8 floor_brightness = (Uint8)(255.0f * (1.0f - log10f(1.0f + (9.0f * distance / (64 * 16)))));
+      Uint8 floor_brightness = (Uint8)(255.0f * (1.0f - log10f(1.0f + (12.0f * distance / (64 * 16)))));
+      Uint8 floor_brightness_b = (Uint8)(255.0f * (1.0f - log10f(1.0f + (3.0f * distance / (64 * 16)))));
+
       // Calculate brightness based on distance (similar to walls)
       SDL_SetTextureColorMod(wood_vertical_texture, floor_brightness, floor_brightness, floor_brightness);
-      // SDL_SetTextureColorMod(lava_a_texture, floor_brightness, floor_brightness, floor_brightness);
-      // SDL_SetTextureColorMod(lava_b_texture, floor_brightness, floor_brightness, floor_brightness);
+      SDL_SetTextureColorMod(lava_a_texture, floor_brightness_b, floor_brightness, floor_brightness);
+      SDL_SetTextureColorMod(lava_b_texture, floor_brightness_b, floor_brightness, floor_brightness);
+      SDL_SetTextureColorMod(lava_c_texture, floor_brightness_b, floor_brightness, floor_brightness);
 
       // SDL_RenderTexture(renderer, wood_vertical_texture, &src_rect, &dst_rect);
       switch (floor_grid->rows[floor_grid_y].elements[floor_grid_x])
@@ -390,7 +393,7 @@ static void cast_rays_from_player(void)
     }
 
     // Brightness transformations
-    Uint8 brightness = (Uint8)(255.0f * (1.0f - log10f(1.0f + (9.0f * perpendicular_distance / (64 * 16)))));
+    Uint8 brightness = (Uint8)(255.0f * (1.0f - log10f(1.0f + (6.0f * perpendicular_distance / (8 * 64)))));
     SDL_SetTextureColorMod(brick_a_texture, brightness, brightness, brightness);
     SDL_SetTextureColorMod(brick_b_texture, brightness, brightness, brightness);
     SDL_SetTextureColorMod(brick_c_texture, brightness, brightness, brightness);
