@@ -6,10 +6,12 @@ SDL_Renderer *renderer;
 Pixel_Image_Asset brick_a, brick_b, brick_c, brick_d;
 Pixel_Image_Asset mud_brick_a, mud_brick_b, mud_brick_c;
 Pixel_Image_Asset overgrown_a, overgrown_b;
+Pixel_Image_Asset wood_vertical;
 
 SDL_Texture *brick_a_texture, *brick_b_texture, *brick_c_texture, *brick_d_texture;
 SDL_Texture *mud_brick_a_texture, *mud_brick_b_texture, *mud_brick_c_texture;
 SDL_Texture *overgrown_a_texture, *overgrown_b_texture;
+SDL_Texture *wood_vertical_texture;
 
 Jagged_Grid *floor_grid;
 Jagged_Grid *wall_grid;
@@ -87,6 +89,8 @@ static int brick_texture_init(void)
   overgrown_a_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
   overgrown_b_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
 
+  wood_vertical_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
+
   SDL_SetTextureScaleMode(brick_a_texture, SDL_SCALEMODE_NEAREST);
   SDL_SetTextureScaleMode(brick_b_texture, SDL_SCALEMODE_NEAREST);
   SDL_SetTextureScaleMode(brick_c_texture, SDL_SCALEMODE_NEAREST);
@@ -96,6 +100,7 @@ static int brick_texture_init(void)
   SDL_SetTextureScaleMode(mud_brick_c_texture, SDL_SCALEMODE_NEAREST);
   SDL_SetTextureScaleMode(overgrown_a_texture, SDL_SCALEMODE_NEAREST);
   SDL_SetTextureScaleMode(overgrown_b_texture, SDL_SCALEMODE_NEAREST);
+  SDL_SetTextureScaleMode(wood_vertical_texture, SDL_SCALEMODE_NEAREST);
 
   SDL_UpdateTexture(brick_a_texture, NULL, brick_a.pixel_data, TEXTURE_PIXEL_W * 4);
   SDL_UpdateTexture(brick_b_texture, NULL, brick_b.pixel_data, TEXTURE_PIXEL_W * 4);
@@ -106,6 +111,7 @@ static int brick_texture_init(void)
   SDL_UpdateTexture(mud_brick_c_texture, NULL, mud_brick_c.pixel_data, TEXTURE_PIXEL_W * 4);
   SDL_UpdateTexture(overgrown_a_texture, NULL, overgrown_a.pixel_data, TEXTURE_PIXEL_W * 4);
   SDL_UpdateTexture(overgrown_b_texture, NULL, overgrown_b.pixel_data, TEXTURE_PIXEL_W * 4);
+  SDL_UpdateTexture(wood_vertical_texture, NULL, wood_vertical.pixel_data, TEXTURE_PIXEL_W * 4);
 
   return 0;
 }
@@ -233,29 +239,58 @@ static void cast_rays_from_player(void)
     Point_1D ray_screen_position_x = ((current_angle - start_angle) / PLAYER_FOV_DEG) * (WINDOW_W / 2) + WINDOW_W / 4;
     Scalar perpendicular_distance = ray_length * cos(theta);
     Scalar wall_vertical_strip_height = (GRID_CELL_SIZE * WINDOW_H) / perpendicular_distance;
-    Scalar wall_vertical_strip_width = (WINDOW_W / 2) / ((end_angle - start_angle) / PLAYER_FOV_DEG_INC);
+    Scalar vertical_strip_width = (WINDOW_W / 2) / ((end_angle - start_angle) / PLAYER_FOV_DEG_INC);
 
     // Center line vertically
     Scalar wall_vertical_offset = (WINDOW_H - wall_vertical_strip_height) / 2;
 
-    // ADD FLOOR DRAWING CODE HERE
-    // This is where you'll want to calculate and draw the floor for this vertical strip
-    // before rendering the wall segment
     /*
      * DRAW FLOORS
      */
     Scalar floor_start_y = wall_vertical_offset + wall_vertical_strip_height;
     Scalar floor_vertical_strip_height = WINDOW_H - floor_start_y;
 
-    SDL_FRect floor_rect = {
-        .x = ray_screen_position_x,
-        .y = floor_start_y,
-        .w = wall_vertical_strip_width,
-        .h = floor_vertical_strip_height,
-    };
+    // For each vertical pixel in the floor strip
+    for (int screen_y = floor_start_y; screen_y < WINDOW_H; screen_y++)
+    {
+      // Calculate distance to the point on the floor
+      Scalar distance = (WINDOW_H / 2.0f) / (screen_y - WINDOW_H / 2.0f);
 
-    SDL_SetRenderDrawColor(renderer, 125, 37, 33, 255);
-    SDL_RenderFillRect(renderer, &floor_rect);
+      // Scale by the player's height (distance to projection plane)
+      distance *= GRID_CELL_SIZE; // Adjust this factor as needed
+
+      // Calculate real world coordinates of the point on the floor
+      Point_1D floor_world_x = player.rect.x + (x_direction / cos(theta)) * distance;
+      Point_1D floor_world_y = player.rect.y + (y_direction / cos(theta)) * distance;
+
+      // Calculate texture coordinates
+      Point_1D texture_x = (int)(floor_world_x) % TEXTURE_PIXEL_W;
+      Point_1D texture_y = (int)(floor_world_y) % TEXTURE_PIXEL_H;
+
+      // Create source and destination rectangles for this pixel
+      SDL_FRect src_rect = {
+          .x = texture_x,
+          .y = texture_y,
+          .w = 1,
+          .h = 1};
+
+      SDL_FRect dst_rect = {
+          .x = ray_screen_position_x,
+          .y = screen_y,
+          .w = vertical_strip_width,
+          .h = 1};
+
+      // Calculate brightness based on distance (similar to walls)
+      Uint8 floor_brightness = (Uint8)(255.0f * (1.0f - log10f(1.0f + (9.0f * distance / (64 * 16)))));
+      SDL_SetTextureColorMod(wood_vertical_texture, floor_brightness, floor_brightness, floor_brightness);
+
+      // Render the floor pixel
+      SDL_RenderTexture(renderer, wood_vertical_texture, &src_rect, &dst_rect);
+    }
+
+    /*
+     *
+     */
 
     /*
      * DRAW WALLS
@@ -264,7 +299,7 @@ static void cast_rays_from_player(void)
     SDL_FRect wall_rect = {
         .x = ray_screen_position_x,
         .y = wall_vertical_offset,
-        .w = wall_vertical_strip_width,
+        .w = vertical_strip_width,
         .h = wall_vertical_strip_height,
     };
 

@@ -3,6 +3,7 @@
 
 #include <SDL3/SDL_render.h>
 
+#include "../../config/constants.h"
 #include "../../types/algebraic-types.h"
 #include "../../utils/math-utils.h"
 
