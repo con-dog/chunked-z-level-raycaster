@@ -146,13 +146,14 @@ static int brick_texture_init(void)
   SDL_UpdateTexture(water_c_texture, NULL, water_c.pixel_data, TEXTURE_PIXEL_W * 4);
   SDL_UpdateTexture(wood_vertical_texture, NULL, wood_vertical.pixel_data, TEXTURE_PIXEL_W * 4);
 
+  SDL_SetTextureScaleMode(weapon_texture, SDL_SCALEMODE_NEAREST);
   SDL_Surface *weapon_surface = IMG_Load("./assets/sprites/shotgun/shotgun-1.png");
   weapon_texture = SDL_CreateTextureFromSurface(renderer, weapon_surface);
   SDL_DestroySurface(weapon_surface);
 
   weapon.texture = weapon_texture;
-  weapon.height = 64;
-  weapon.width = 64;
+  weapon.height = 176;
+  weapon.width = 256;
 
   return 0;
 }
@@ -667,15 +668,15 @@ void update_display(void)
   SDL_RenderClear(renderer);
   // draw_jagged_grid();
   // draw_player();
-  // cast_rays_from_player();
+  cast_rays_from_player();
 
-  float center_weapon_x = (WINDOW_W / 2) - (1.5f * weapon.width);
+  float center_weapon_x = floorf((WINDOW_W / 2) - (0.5f * weapon.width));
 
   SDL_FRect weapon_rect = {
       .x = center_weapon_x,
-      .y = WINDOW_H - (weapon.height * 3),
-      .w = weapon.width * 3,
-      .h = weapon.height * 3,
+      .y = WINDOW_H - (weapon.height),
+      .w = weapon.width,
+      .h = weapon.height,
   };
 
   SDL_RenderTexture(renderer, weapon.texture, NULL, &weapon_rect);
