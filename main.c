@@ -2,12 +2,7 @@
 
 SDL_Window *win;
 SDL_Renderer *renderer;
-//
-// SDL_Texture *brick_texture;
-// SDL_Texture *leaves_texture;
-// SDL_Texture *flowers_texture;
 
-//
 Pixel_Image_Asset brick_a, brick_b, brick_c, brick_d;
 Pixel_Image_Asset mud_brick_a, mud_brick_b, mud_brick_c;
 Pixel_Image_Asset overgrown_a, overgrown_b;
@@ -19,19 +14,8 @@ SDL_Texture *overgrown_a_texture, *overgrown_b_texture;
 Jagged_Grid *wall_grid;
 
 Player player;
-//
 
-TTF_Font *font;
-//
-
-//
 const bool *keyboard_state;
-
-// clang-format off
-const static Wall_Type grid_walls[10] = {
-  'A'
-};
-// clang-format on
 
 static int sdl_init()
 {
@@ -245,7 +229,7 @@ static void cast_rays_from_player(void)
      * 2.5D Rendering
      */
     Scalar ray_length = sqrt(pow(ray.start.x - ray.end.x, 2) + pow(ray.start.y - ray.end.y, 2));
-    Point_1D ray_screen_position_x = ((current_angle - start_angle) / PLAYER_FOV_DEG) * (WINDOW_W / 2) + WINDOW_W / 2;
+    Point_1D ray_screen_position_x = ((current_angle - start_angle) / PLAYER_FOV_DEG) * (WINDOW_W / 2) + WINDOW_W / 4;
     Scalar perpendicular_distance = ray_length * cos(theta);
     Scalar vertical_strip_height = (GRID_CELL_SIZE * WINDOW_H) / perpendicular_distance;
     Scalar vertical_strip_width = (WINDOW_W / 2) / ((end_angle - start_angle) / PLAYER_FOV_DEG_INC);
@@ -528,7 +512,7 @@ void handle_player_movement(float delta_time)
 
 void update_display(void)
 {
-  SDL_SetRenderDrawColor(renderer, 225, 225, 225, 255); // White background
+  SDL_SetRenderDrawColor(renderer, 30, 0, 30, 255); // White background
   SDL_RenderClear(renderer);
   // draw_jagged_grid();
   // draw_player();
