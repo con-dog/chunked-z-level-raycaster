@@ -36,40 +36,6 @@ Player player;
 
 const bool *keyboard_state;
 
-static int sdl_init()
-{
-  if (!SDL_Init(SDL_INIT_VIDEO))
-  {
-    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize SDL: %s", SDL_GetError());
-    return 3;
-  }
-
-  if (!TTF_Init())
-  {
-    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_ttf could not initialize! TTF_Error: %s\n", SDL_GetError());
-    return 3;
-  }
-
-  if (!SDL_CreateWindowAndRenderer("2.5D Raycaster", WINDOW_W, WINDOW_H, SDL_WINDOW_RESIZABLE, &win, &renderer))
-  {
-    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create window and renderer: %s", SDL_GetError());
-    return 3;
-  }
-
-  return 0;
-}
-
-// static int font_init(void)
-// {
-//   font = TTF_OpenFont("./fonts/PressStart2P-Regular.ttf", FONT_SMALL);
-//   if (!font)
-//   {
-//     SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to load font! TTF_Error: %s\n", SDL_GetError());
-//     return 3;
-//   }
-//   return 0;
-// }
-
 static int brick_texture_init(void)
 {
 
@@ -711,7 +677,9 @@ void run_game_loop(void)
 
 int main(int argc, char *argv[])
 {
-  sdl_init();
+  const char *title = "2.5D Raycasting Game Engine";
+
+  setup_sdl(title, WINDOW_W, WINDOW_H, SDL_WINDOW_RESIZABLE, &win, &renderer);
 
   wall_grid = read_grid_csv_file("./assets/levels/level-1-wall.csv");
   floor_grid = read_grid_csv_file("./assets/levels/level-1-floor.csv");

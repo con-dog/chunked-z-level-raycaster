@@ -40,6 +40,7 @@
 #include "./assets/textures/wood/wood-vertical/wood-vertical.h"
 
 #include "./config/constants.h"
+#include "./config/sdl/sdl.h"
 #include "./data/grid/constants.h"
 #include "./data/grid/types.h"
 #include "./data/wall/types.h"
