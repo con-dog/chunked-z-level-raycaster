@@ -1,7 +1,25 @@
-# SDL3 2.5D Raycasting Engine With Textures
+# A 2.5D Raycasting Game Engine
 
-![Preview](https://github.com/con-dog/sdl-textured/blob/88a4a451aa799864a2b6c6f975da92f160baa858/media/phase-3/Screen%20Recording%202025-01-06%20at%207.53.50%E2%80%AFPM.gif)
+## Currently in Phase 4:
 
-![Preview](https://github.com/con-dog/sdl-textured/blob/88a4a451aa799864a2b6c6f975da92f160baa858/media/phase-3/phase-3.png)
+![Phase 4 Preview](https://github.com/con-dog/2.5D-raycasting-engine/blob/1401433f57d4c0c732b924adf9c13507f07d32c8/_media/phase-4/phase-4.gif)
+![Phase 4 image](https://github.com/con-dog/2.5D-raycasting-engine/blob/1401433f57d4c0c732b924adf9c13507f07d32c8/_media/phase-4/phase-4.png)
 
-Levels are represented in memory as Jagged Arrays
+- Levels are represented in memory as Jagged Arrays (to save memory)
+- Wall and Floor maps are just CSV's (So I can quickly make levels in Excel)
+- Wall and Floor textures are represented by char's so I can very quickly make maps with a variety of textures
+- Wall/Floor file io
+
+## Previous phases
+### Phase 3
+- Fixed visual artifacts and pixel densities
+
+### Phase 2
+- Wall collision detection
+- Basic texture mapping for walls
+- Very warped tetures with many artifacts
+
+### Phase 1
+- Very basic ray-casting
+- No collision detection
+  
