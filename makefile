@@ -1,7 +1,7 @@
 # Compiler and flags
 CC = gcc
-CFLAGS = -Wall -Wextra $(shell pkg-config sdl3 sdl3-ttf --cflags)
-LIBS = $(shell pkg-config sdl3 sdl3-ttf --libs)
+CFLAGS = -Wall -Wextra $(shell pkg-config sdl3 sdl3-ttf sdl3-image --cflags)
+LIBS = $(shell pkg-config sdl3 sdl3-ttf sdl3-image --libs)
 
 # Directory structure
 ASSETS_DIR = assets

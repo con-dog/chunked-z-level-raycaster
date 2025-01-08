@@ -1,6 +1,6 @@
 #include "./water-c.h"
 
-Pixel_Image_Asset water_c = {
+Pixel_Image_Texture_Asset water_c = {
     64,
     64,
     4,

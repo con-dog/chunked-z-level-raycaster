@@ -5,3 +5,4 @@
 !makefile
 *.o
 .~lock.*.csv
+.DS_store

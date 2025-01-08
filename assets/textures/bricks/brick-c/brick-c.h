@@ -3,6 +3,6 @@
 
 #include "../../types.h"
 
-extern Pixel_Image_Asset brick_c;
+extern Pixel_Image_Texture_Asset brick_c;
 
 #endif

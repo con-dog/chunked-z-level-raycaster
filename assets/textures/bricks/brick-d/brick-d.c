@@ -1,6 +1,6 @@
 #include "./brick-d.h"
 
-Pixel_Image_Asset brick_d = {
+Pixel_Image_Texture_Asset brick_d = {
     64,
     64,
     4,

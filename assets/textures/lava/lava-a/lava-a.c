@@ -1,6 +1,6 @@
 #include "./lava-a.h"
 
-Pixel_Image_Asset lava_a = {
+Pixel_Image_Texture_Asset lava_a = {
     64,
     64,
     4,

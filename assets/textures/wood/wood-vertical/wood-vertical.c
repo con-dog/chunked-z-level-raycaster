@@ -1,6 +1,6 @@
 #include "./wood-vertical.h"
 
-Pixel_Image_Asset wood_vertical = {
+Pixel_Image_Texture_Asset wood_vertical = {
     64,
     64,
     4,

@@ -3,6 +3,6 @@
 
 #include "../../types.h"
 
-extern Pixel_Image_Asset lava_b;
+extern Pixel_Image_Texture_Asset lava_b;
 
 #endif

@@ -3,6 +3,6 @@
 
 #include "../../types.h"
 
-extern Pixel_Image_Asset mud_brick_a;
+extern Pixel_Image_Texture_Asset mud_brick_a;
 
 #endif

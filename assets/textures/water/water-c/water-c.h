@@ -3,6 +3,6 @@
 
 #include "../../types.h"
 
-extern Pixel_Image_Asset water_c;
+extern Pixel_Image_Texture_Asset water_c;
 
 #endif

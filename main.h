@@ -14,13 +14,15 @@
 #include <string.h>
 
 #include <SDL3/SDL.h>
-#include <SDL3_ttf/SDL_ttf.h>
 #include <SDL3/SDL_hints.h>
 #include <SDL3/SDL_keyboard.h>
 #include <SDL3/SDL_main.h>
 #include <SDL3/SDL_render.h>
 #include <SDL3/SDL_rect.h>
+#include <SDL3_image/SDL_image.h>
+#include <SDL3_ttf/SDL_ttf.h>
 
+#include "./assets/sprites/shotgun/shotgun-1.h"
 #include "./assets/textures/constants.h"
 #include "./assets/textures/bricks/brick-a/brick-a.h"
 #include "./assets/textures/bricks/brick-b/brick-b.h"

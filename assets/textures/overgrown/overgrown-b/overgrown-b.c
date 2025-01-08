@@ -1,6 +1,6 @@
 #include "./overgrown-b.h"
 
-Pixel_Image_Asset overgrown_b = {
+Pixel_Image_Texture_Asset overgrown_b = {
     64,
     64,
     4,

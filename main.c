@@ -3,12 +3,12 @@
 SDL_Window *win;
 SDL_Renderer *renderer;
 
-Pixel_Image_Asset brick_a, brick_b, brick_c, brick_d;
-Pixel_Image_Asset lava_a, lava_b, lava_c;
-Pixel_Image_Asset mud_brick_a, mud_brick_b, mud_brick_c;
-Pixel_Image_Asset overgrown_a, overgrown_b;
-Pixel_Image_Asset water_b, water_c;
-Pixel_Image_Asset wood_vertical;
+Pixel_Image_Texture_Asset brick_a, brick_b, brick_c, brick_d;
+Pixel_Image_Texture_Asset lava_a, lava_b, lava_c;
+Pixel_Image_Texture_Asset mud_brick_a, mud_brick_b, mud_brick_c;
+Pixel_Image_Texture_Asset overgrown_a, overgrown_b;
+Pixel_Image_Texture_Asset water_b, water_c;
+Pixel_Image_Texture_Asset wood_vertical;
 
 SDL_Texture *brick_a_texture, *brick_b_texture, *brick_c_texture, *brick_d_texture;
 SDL_Texture *lava_a_texture, *lava_b_texture, *lava_c_texture;
@@ -16,6 +16,18 @@ SDL_Texture *mud_brick_a_texture, *mud_brick_b_texture, *mud_brick_c_texture;
 SDL_Texture *overgrown_a_texture, *overgrown_b_texture;
 SDL_Texture *water_b_texture, *water_c_texture;
 SDL_Texture *wood_vertical_texture;
+
+SDL_Texture *weapon_texture;
+
+typedef struct Weapon
+{
+  SDL_Texture *texture;
+  int width;
+  int height;
+  float bobOffset; // for weapon bobbing
+} Weapon;
+
+Weapon weapon;
 
 Jagged_Grid *floor_grid;
 Jagged_Grid *wall_grid;
@@ -133,6 +145,14 @@ static int brick_texture_init(void)
   SDL_UpdateTexture(water_b_texture, NULL, water_b.pixel_data, TEXTURE_PIXEL_W * 4);
   SDL_UpdateTexture(water_c_texture, NULL, water_c.pixel_data, TEXTURE_PIXEL_W * 4);
   SDL_UpdateTexture(wood_vertical_texture, NULL, wood_vertical.pixel_data, TEXTURE_PIXEL_W * 4);
+
+  SDL_Surface *weapon_surface = IMG_Load("./assets/sprites/shotgun/shotgun-1.png");
+  weapon_texture = SDL_CreateTextureFromSurface(renderer, weapon_surface);
+  SDL_DestroySurface(weapon_surface);
+
+  weapon.texture = weapon_texture;
+  weapon.height = 64;
+  weapon.width = 64;
 
   return 0;
 }
@@ -647,7 +667,19 @@ void update_display(void)
   SDL_RenderClear(renderer);
   // draw_jagged_grid();
   // draw_player();
-  cast_rays_from_player();
+  // cast_rays_from_player();
+
+  float center_weapon_x = (WINDOW_W / 2) - (1.5f * weapon.width);
+
+  SDL_FRect weapon_rect = {
+      .x = center_weapon_x,
+      .y = WINDOW_H - (weapon.height * 3),
+      .w = weapon.width * 3,
+      .h = weapon.height * 3,
+  };
+
+  SDL_RenderTexture(renderer, weapon.texture, NULL, &weapon_rect);
+
   SDL_RenderPresent(renderer);
 }
 

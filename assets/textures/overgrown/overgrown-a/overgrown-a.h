@@ -3,6 +3,6 @@
 
 #include "../../types.h"
 
-extern Pixel_Image_Asset overgrown_a;
+extern Pixel_Image_Texture_Asset overgrown_a;
 
 #endif

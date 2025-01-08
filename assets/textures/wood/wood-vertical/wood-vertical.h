@@ -3,6 +3,6 @@
 
 #include "../../types.h"
 
-extern Pixel_Image_Asset wood_vertical;
+extern Pixel_Image_Texture_Asset wood_vertical;
 
 #endif

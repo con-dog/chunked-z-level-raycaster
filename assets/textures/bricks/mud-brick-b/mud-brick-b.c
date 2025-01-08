@@ -1,6 +1,6 @@
 #include "./mud-brick-b.h"
 
-Pixel_Image_Asset mud_brick_b = {
+Pixel_Image_Texture_Asset mud_brick_b = {
     64,
     64,
     4,
