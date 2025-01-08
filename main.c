@@ -17,7 +17,7 @@ SDL_Texture *overgrown_a_texture, *overgrown_b_texture;
 SDL_Texture *water_b_texture, *water_c_texture;
 SDL_Texture *wood_vertical_texture;
 
-SDL_Texture *weapon_texture;
+SDL_Texture *shotgun_1_texture;
 
 typedef struct Weapon
 {
@@ -27,7 +27,7 @@ typedef struct Weapon
   float bobOffset; // for weapon bobbing
 } Weapon;
 
-Weapon weapon;
+Weapon shotgun_1;
 
 Jagged_Grid *floor_grid;
 Jagged_Grid *wall_grid;
@@ -146,14 +146,14 @@ static int brick_texture_init(void)
   SDL_UpdateTexture(water_c_texture, NULL, water_c.pixel_data, TEXTURE_PIXEL_W * 4);
   SDL_UpdateTexture(wood_vertical_texture, NULL, wood_vertical.pixel_data, TEXTURE_PIXEL_W * 4);
 
-  SDL_SetTextureScaleMode(weapon_texture, SDL_SCALEMODE_NEAREST);
-  SDL_Surface *weapon_surface = IMG_Load("./assets/sprites/shotgun/shotgun-1/shotgun-1.png");
-  weapon_texture = SDL_CreateTextureFromSurface(renderer, weapon_surface);
-  SDL_DestroySurface(weapon_surface);
+  SDL_SetTextureScaleMode(shotgun_1_texture, SDL_SCALEMODE_NEAREST);
+  SDL_Surface *shotgun_1_surface = IMG_Load("./assets/sprites/shotgun/shotgun-1/shotgun-1.png");
+  shotgun_1_texture = SDL_CreateTextureFromSurface(renderer, shotgun_1_surface);
+  SDL_DestroySurface(shotgun_1_surface);
 
-  weapon.texture = weapon_texture;
-  weapon.height = 304;
-  weapon.width = 444;
+  shotgun_1.texture = shotgun_1_texture;
+  shotgun_1.height = 304;
+  shotgun_1.width = 444;
 
   return 0;
 }
@@ -670,16 +670,16 @@ void update_display(void)
   // draw_player();
   cast_rays_from_player();
 
-  float center_weapon_x = floorf((WINDOW_W / 2) - (0.5f * weapon.width));
+  float center_weapon_x = floorf((WINDOW_W / 2) - (0.5f * shotgun_1.width));
 
   SDL_FRect weapon_rect = {
       .x = center_weapon_x,
-      .y = WINDOW_H - (weapon.height),
-      .w = weapon.width,
-      .h = weapon.height,
+      .y = WINDOW_H - (shotgun_1.height),
+      .w = shotgun_1.width,
+      .h = shotgun_1.height,
   };
 
-  SDL_RenderTexture(renderer, weapon.texture, NULL, &weapon_rect);
+  SDL_RenderTexture(renderer, shotgun_1.texture, NULL, &weapon_rect);
 
   SDL_RenderPresent(renderer);
 }
