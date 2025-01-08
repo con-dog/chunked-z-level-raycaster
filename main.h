@@ -22,7 +22,6 @@
 #include <SDL3_image/SDL_image.h>
 #include <SDL3_ttf/SDL_ttf.h>
 
-#include "./assets/sprites/shotgun/shotgun-1.h"
 #include "./assets/textures/constants.h"
 #include "./assets/textures/bricks/brick-a/brick-a.h"
 #include "./assets/textures/bricks/brick-b/brick-b.h"

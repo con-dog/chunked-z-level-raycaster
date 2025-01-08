@@ -147,13 +147,13 @@ static int brick_texture_init(void)
   SDL_UpdateTexture(wood_vertical_texture, NULL, wood_vertical.pixel_data, TEXTURE_PIXEL_W * 4);
 
   SDL_SetTextureScaleMode(weapon_texture, SDL_SCALEMODE_NEAREST);
-  SDL_Surface *weapon_surface = IMG_Load("./assets/sprites/shotgun/shotgun-1.png");
+  SDL_Surface *weapon_surface = IMG_Load("./assets/sprites/shotgun/shotgun-1/shotgun-1.png");
   weapon_texture = SDL_CreateTextureFromSurface(renderer, weapon_surface);
   SDL_DestroySurface(weapon_surface);
 
   weapon.texture = weapon_texture;
-  weapon.height = 176;
-  weapon.width = 256;
+  weapon.height = 304;
+  weapon.width = 444;
 
   return 0;
 }
