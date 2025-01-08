@@ -1,6 +1,9 @@
 #include "main.h"
 
-SDL_Window *win;
+/*
+ * GLOBALS
+ */
+SDL_Window *window;
 SDL_Renderer *renderer;
 
 Pixel_Image_Texture_Asset brick_a, brick_b, brick_c, brick_d;
@@ -679,17 +682,15 @@ int main(int argc, char *argv[])
 {
   const char *title = "2.5D Raycasting Game Engine";
 
-  setup_sdl(title, WINDOW_W, WINDOW_H, SDL_WINDOW_RESIZABLE, &win, &renderer);
+  setup_sdl(title, WINDOW_W, WINDOW_H, SDL_WINDOW_RESIZABLE, &window, &renderer);
+
+  // setup_textures
 
   wall_grid = read_grid_csv_file("./assets/levels/level-1-wall.csv");
   floor_grid = read_grid_csv_file("./assets/levels/level-1-floor.csv");
-  // print_jagged_grid(floor_grid);
-  // print_jagged_grid(wall_grid);
 
   brick_texture_init();
-  // leaves_texture_init();
-  // flowers_texture_init();
-  // font_init();
+
   player_init();
   keyboard_state = SDL_GetKeyboardState(NULL);
   run_game_loop();
@@ -697,7 +698,7 @@ int main(int argc, char *argv[])
   free_jagged_grid(wall_grid);
 
   SDL_DestroyRenderer(renderer);
-  SDL_DestroyWindow(win);
+  SDL_DestroyWindow(window);
 
   // TTF_CloseFont(font);
   TTF_Quit();
