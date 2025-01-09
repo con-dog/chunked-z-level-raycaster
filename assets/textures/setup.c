@@ -72,8 +72,8 @@ static bool process_textures(SDL_Renderer *renderer, Texture_Array_List *out_arr
     SDL_Surface *temp_surface = IMG_Load(out_array_list->data[i]->path);
     if (!temp_surface)
     {
-      fprintf(stderr, "Failed to load image %s: %s\n",
-              out_array_list->data[i]->path, IMG_GetError());
+      fprintf(stderr, "Failed to load image %s\n",
+              out_array_list->data[i]->path);
       return false;
     }
 
@@ -91,7 +91,7 @@ static bool process_textures(SDL_Renderer *renderer, Texture_Array_List *out_arr
                                    ? SDL_SCALEMODE_NEAREST
                                    : SDL_SCALEMODE_LINEAR;
 
-    if (SDL_SetTextureScaleMode(temp_texture, scale_mode) < 0)
+    if (!SDL_SetTextureScaleMode(temp_texture, scale_mode))
     {
       fprintf(stderr, "Failed to set texture scale mode: %s\n", SDL_GetError());
       SDL_DestroyTexture(temp_texture);

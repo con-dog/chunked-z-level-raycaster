@@ -1,6 +1,6 @@
 # A 2.5D Raycasting Game Engine
 
-A brand-new, old-school game-engine inspired by the likes of [Wolfenstein 3D (1992)](https://en.wikipedia.org/wiki/Wolfenstein_3D) and [Ultima Underworld: The Stygian Abyss (1992)](https://en.wikipedia.org/wiki/Ultima_Underworld:_The_Stygian_Abyss). Uses simple raycasting techniques and a uniform cell grid to render 3D. 
+A brand-new, old-school game-engine inspired by the likes of [Wolfenstein 3D (1992)](https://en.wikipedia.org/wiki/Wolfenstein_3D) and [Ultima Underworld: The Stygian Abyss (1992)](https://en.wikipedia.org/wiki/Ultima_Underworld:_The_Stygian_Abyss). Uses simple raycasting techniques and a uniform cell grid to render 3D.
 
 ## Currently in Phase 4:
 
@@ -13,6 +13,21 @@ A brand-new, old-school game-engine inspired by the likes of [Wolfenstein 3D (19
 - Wall/Floor file io
 
 ![Example level](https://github.com/con-dog/2.5D-raycasting-engine/blob/5c857ba532ab42b13a76408c7c08f4a9628c7d98/_media/phase-4/example-level.png)
+
+## TODO
+
+- Remake / Demake a Pokemon town in this engine
+- Texture animations
+  - Src directory
+  - Frames (must have at least 1)
+  - Frame rate
+  - Looping
+  - Random start frame
+  - Random frame order
+- Texture transparency (ray pass-through to next texture)
+- texture collision enabled bitfield for floor wall or ceiling via 0bXXX (similar to texture surface type) so you can have hotbox detection for walls, floors, and ceilings
+- Sprites are all square/rectangular like minecraft and always face the player, but can "change direction" by changing the texture currently displayed
+
 
 ## Previous phases
 ### Phase 3
@@ -37,4 +52,3 @@ A brand-new, old-school game-engine inspired by the likes of [Wolfenstein 3D (19
 
 - Very basic ray-casting
 - No collision detection
-  

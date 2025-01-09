@@ -10,7 +10,8 @@
     "setup.h": "c",
     "math-utils.h": "c",
     "constants.h": "c",
-    "types.h": "c"
+    "types.h": "c",
+    "sdl_image.h": "c"
   },
   "editor.semanticTokenColorCustomizations": {
     "rules": {
