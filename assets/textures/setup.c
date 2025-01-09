@@ -8,11 +8,9 @@ static bool validate_texture_fields(const cJSON *name, const cJSON *path,
                                     const cJSON *width, const cJSON *height);
 static bool parse_binary_string(const char *str, uint8_t *result);
 
-static void process_textures(Texture_Array_List *out_array_list)
-{
-}
+static bool process_textures(SDL_Renderer *renderer, Texture_Array_List *out_array_list);
 
-extern Texture_Array_List *setup_engine_textures(const char *root_manifest_file)
+extern Texture_Array_List *setup_engine_textures(SDL_Renderer *renderer, char *root_manifest_file)
 {
   const char *manifest_json_string = read_asset_manifest_file(root_manifest_file);
   if (!manifest_json_string)
@@ -36,11 +34,11 @@ extern Texture_Array_List *setup_engine_textures(const char *root_manifest_file)
 
   free((void *)manifest_json_string);
 
-  // if (!process_textures(textures_list))
-  // {
-  //   cleanup_textures(textures_list);
-  //   return NULL;
-  // }
+  if (!process_textures(renderer, textures_list))
+  {
+    cleanup_textures(textures_list);
+    return NULL;
+  }
 
   return textures_list;
 }
@@ -62,6 +60,48 @@ extern void cleanup_textures(Texture_Array_List *textures)
     free(textures->data);
   }
   free(textures);
+}
+
+static bool process_textures(SDL_Renderer *renderer, Texture_Array_List *out_array_list)
+{
+  if (!renderer || !out_array_list)
+    return false;
+
+  for (int i = 0; i < out_array_list->length; i++)
+  {
+    SDL_Surface *temp_surface = IMG_Load(out_array_list->data[i]->path);
+    if (!temp_surface)
+    {
+      fprintf(stderr, "Failed to load image %s: %s\n",
+              out_array_list->data[i]->path, IMG_GetError());
+      return false;
+    }
+
+    SDL_Texture *temp_texture = SDL_CreateTextureFromSurface(renderer, temp_surface);
+    SDL_DestroySurface(temp_surface);
+
+    if (!temp_texture)
+    {
+      fprintf(stderr, "Failed to create texture from %s: %s\n",
+              out_array_list->data[i]->path, SDL_GetError());
+      return false;
+    }
+
+    SDL_ScaleMode scale_mode = out_array_list->data[i]->use_scale_mode_nearest
+                                   ? SDL_SCALEMODE_NEAREST
+                                   : SDL_SCALEMODE_LINEAR;
+
+    if (SDL_SetTextureScaleMode(temp_texture, scale_mode) < 0)
+    {
+      fprintf(stderr, "Failed to set texture scale mode: %s\n", SDL_GetError());
+      SDL_DestroyTexture(temp_texture);
+      return false;
+    }
+
+    out_array_list->data[i]->texture = temp_texture;
+  }
+
+  return true;
 }
 
 static bool parse_asset_manifest_json_string(Texture_Array_List *out_array_list, const char *json_string)
