@@ -24,6 +24,8 @@
 #include <SDL3_ttf/SDL_ttf.h>
 
 #include "./assets/textures/constants.h"
+#include "./assets/textures/setup.h"
+
 // #include "./assets/textures/bricks/brick-a/brick-a.h"
 // #include "./assets/textures/bricks/brick-b/brick-b.h"
 // #include "./assets/textures/bricks/brick-c/brick-c.h"

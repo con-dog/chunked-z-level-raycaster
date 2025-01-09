@@ -691,6 +691,9 @@ int main(int argc, char *argv[])
 
   // brick_texture_init();
 
+  const char *manifest_json_string = read_asset_manifest_file("./assets/textures/texture_manifest.json");
+  parse_asset_manifest_json_string(manifest_json_string);
+
   player_init();
   keyboard_state = SDL_GetKeyboardState(NULL);
   run_game_loop();

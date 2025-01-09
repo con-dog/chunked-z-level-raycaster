@@ -1,22 +1,56 @@
-#include <cjson/cJSON.h>
-#include <SDL3/SDL_render.h>
-
-#include "./constants.h"
 #include "./setup.h"
-#include "./types.h"
 
-// typedef struct Texture
-// {
-//   char *name;
-//   char *path;
-//   char *category;
-//   Byte surface_type;
-//   int expected_pixel_width;
-//   int expected_pixel_height;
-//   bool scale_mode;
-//   bool collision_enabled;
-//   SDL_Texture *texture;
-// } Texture;
+typedef struct Texture
+{
+  char *name;
+  char *path;
+  char *category;
+  Uint8 surface_type;
+  int expected_pixel_width;
+  int expected_pixel_height;
+  bool scale_mode;
+  bool is_collision_enabled;
+  SDL_Texture *texture;
+} Texture;
+
+void parse_asset_manifest_json_string(const char *json_string)
+{
+  const cJSON *texture = NULL;
+  const cJSON *textures = NULL;
+  cJSON *root = cJSON_Parse(json_string);
+  if (!root)
+  {
+    const char *error = cJSON_GetErrorPtr();
+    if (error)
+    {
+      fprintf(stderr, "Error parsing JSON: %s\n", error);
+    }
+  }
+
+  // Process data array
+  textures = cJSON_GetObjectItemCaseSensitive(root, "data");
+  int texture_count = cJSON_GetArraySize(textures);
+  printf("Array length is: %d\n", texture_count);
+
+  cJSON_ArrayForEach(texture, textures)
+  {
+    cJSON *name = cJSON_GetObjectItemCaseSensitive(texture, "name");
+    cJSON *path = cJSON_GetObjectItemCaseSensitive(texture, "path");
+    cJSON *category = cJSON_GetObjectItemCaseSensitive(texture, "category");
+    cJSON *surface_type = cJSON_GetObjectItemCaseSensitive(texture, "surface_type");
+    cJSON *expected_pixel_width = cJSON_GetObjectItemCaseSensitive(texture, "expected_pixel_width");
+    cJSON *expected_pixel_height = cJSON_GetObjectItemCaseSensitive(texture, "expected_pixel_height");
+    cJSON *scale_mode = cJSON_GetObjectItemCaseSensitive(texture, "scale_mode");
+    cJSON *is_collision_enabled = cJSON_GetObjectItemCaseSensitive(texture, "is_collision_enabled");
+
+    // validation
+    if (cJSON_IsString(name) && name->valuestring != NULL)
+    {
+    }
+  }
+
+  cJSON_Delete(root);
+}
 
 // void parse_texture_manifest()
 // {

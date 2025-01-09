@@ -13,13 +13,32 @@
       "name": "",
       "path": "",
       "category": "",
-      "surface_type": ["<wall | floor | ceiling>"],
-      "pixel_width": 64,
-      "pixel_height": 64,
-      "scale_mode": "",
-      "collision_enabled": true
+      "surface_type": 110,
+      "expected_pixel_width": 64,
+      "expected_pixel_height": 64,
+      "scale_mode": true,
+      "is_collision_enabled": true
     },
-    {...}
+    {
+      "name": "",
+      "path": "",
+      "category": "",
+      "surface_type": 110,
+      "expected_pixel_width": 64,
+      "expected_pixel_height": 64,
+      "scale_mode": true,
+      "is_collision_enabled": true
+    },
+    {
+      "name": "",
+      "path": "",
+      "category": "",
+      "surface_type": 110,
+      "expected_pixel_width": 64,
+      "expected_pixel_height": 64,
+      "scale_mode": true,
+      "is_collision_enabled": true
+    }
   ],
   "external_manifests": [
     {"name": "...", "version": "", "path": "..."}
