@@ -15,7 +15,7 @@
       "frame_src_files": ["brick-a"],
       "category": "bricks",
       "surface_type": "0b010",
-      "collision_type": "0b010",
+      "collision_mode": "0b010",
       "expected_pixel_width": 64,
       "expected_pixel_height": 64,
       "use_scale_mode_nearest": true

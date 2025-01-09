@@ -14,7 +14,7 @@
       "src_directory": "assets/textures/64x64/bricks",
       "frame_src_files": ["brick-a"],
       "category": "bricks",
-      "collision_type": "0b010",
+      "collision_mode": "0b010",
       "surface_type": "0b010",
       "expected_pixel_width": 64,
       "expected_pixel_height": 64,
