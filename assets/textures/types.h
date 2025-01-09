@@ -19,6 +19,14 @@ typedef struct Texture
   SDL_Texture *texture;
 } Texture;
 
+#include <stddef.h>
+
+typedef struct Texture_Array_List
+{
+  Texture **data;
+  size_t length;
+} Texture_Array_List;
+
 typedef const struct Pixel_Image_Texture_Asset
 {
   unsigned int width;

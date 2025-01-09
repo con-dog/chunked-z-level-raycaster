@@ -1,16 +1,23 @@
 #include "./setup.h"
 
-static Texture *parse_asset_manifest_json_string(const char *json_string);
+static void parse_asset_manifest_json_string(Texture_Array_List *out_array_list, const char *json_string);
 static bool parse_binary_string(const char *str, uint8_t *result);
 
-extern Texture *setup_engine_textures(const char *root_manifest_file)
+static void process_textures(Texture_Array_List *out_array_list)
 {
-  const char *manifest_json_string = read_asset_manifest_file(root_manifest_file);
-  Texture *textures = parse_asset_manifest_json_string(manifest_json_string);
-  return textures;
 }
 
-static Texture *parse_asset_manifest_json_string(const char *json_string)
+extern Texture_Array_List *setup_engine_textures(const char *root_manifest_file)
+{
+  const char *manifest_json_string = read_asset_manifest_file(root_manifest_file);
+  Texture_Array_List textures_list;
+  parse_asset_manifest_json_string(&textures_list, manifest_json_string);
+  process_textures(&textures_list);
+
+  return &textures_list;
+}
+
+static void parse_asset_manifest_json_string(Texture_Array_List *out_array_list, const char *json_string)
 {
   const cJSON *texture = NULL;
   const cJSON *texture_data_array = NULL;
@@ -34,10 +41,11 @@ static Texture *parse_asset_manifest_json_string(const char *json_string)
     // TODO fail.
   }
 
-  // Maybe pass this in as an out_param?
   Texture *textures[texture_count];
-  int index = 0;
+  out_array_list->data = &textures;
+  out_array_list->length = texture_count;
 
+  int index = 0;
   cJSON_ArrayForEach(texture, texture_data_array)
   {
     cJSON *name = cJSON_GetObjectItemCaseSensitive(texture, "name");
@@ -76,8 +84,6 @@ static Texture *parse_asset_manifest_json_string(const char *json_string)
     cJSON_Delete(root);
   }
   printf("Texture 0 data %s\n%s\n%s\n%d\n%d\n", textures[0]->name, textures[0]->path, textures[0]->category, textures[0]->surface_type, textures[0]->use_scale_mode_nearest);
-
-  return *textures;
 }
 
 static bool parse_binary_string(const char *str, uint8_t *result)
@@ -107,36 +113,6 @@ static bool parse_binary_string(const char *str, uint8_t *result)
   *result = value;
   return true;
 }
-// void parse_texture_manifest()
-// {
-//   char *manifest_version = NULL;
-
-//   cJSON *metadata = cJSON_CreateObject();
-//   if (metadata == NULL)
-//   {
-//     // TODO update
-//     printf("Couldn't create metadata");
-//   }
-// }
-
-// Get passed root manifest
-// Parse manifest
-// Parse pngs
-// Create data structures
-
-// Pixel_Image_Texture_Asset brick_a, brick_b, brick_c, brick_d;
-// Pixel_Image_Texture_Asset lava_a, lava_b, lava_c;
-// Pixel_Image_Texture_Asset mud_brick_a, mud_brick_b, mud_brick_c;
-// Pixel_Image_Texture_Asset overgrown_a, overgrown_b;
-// Pixel_Image_Texture_Asset water_b, water_c;
-// Pixel_Image_Texture_Asset wood_vertical;
-
-// SDL_Texture *brick_a_texture, *brick_b_texture, *brick_c_texture, *brick_d_texture;
-// SDL_Texture *lava_a_texture, *lava_b_texture, *lava_c_texture;
-// SDL_Texture *mud_brick_a_texture, *mud_brick_b_texture, *mud_brick_c_texture;
-// SDL_Texture *overgrown_a_texture, *overgrown_b_texture;
-// SDL_Texture *water_b_texture, *water_c_texture;
-// SDL_Texture *wood_vertical_texture;
 
 // SDL_Texture *shotgun_1_texture;
 

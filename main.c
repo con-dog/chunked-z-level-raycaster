@@ -6,7 +6,7 @@
 SDL_Window *window;
 SDL_Renderer *renderer;
 
-Texture *textures;
+Texture_Array_List *textures_list;
 
 // Pixel_Image_Texture_Asset brick_a, brick_b, brick_c, brick_d;
 // Pixel_Image_Texture_Asset lava_a, lava_b, lava_c;
@@ -685,9 +685,7 @@ int main(int argc, char *argv[])
   const char *title = "2.5D Raycasting Game Engine";
 
   setup_sdl(title, WINDOW_W, WINDOW_H, SDL_WINDOW_RESIZABLE, &window, &renderer);
-  textures = setup_engine_textures("./manifests/texture_manifest.json");
-
-  // setup_textures
+  textures_list = setup_engine_textures("./manifests/texture_manifest.json");
 
   wall_grid = read_grid_csv_file("./assets/levels/level-1-wall.csv");
   floor_grid = read_grid_csv_file("./assets/levels/level-1-floor.csv");
