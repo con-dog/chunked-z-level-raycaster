@@ -1,8 +1,34 @@
+#include <cjson/cJSON.h>
 #include <SDL3/SDL_render.h>
 
 #include "./constants.h"
 #include "./setup.h"
 #include "./types.h"
+
+// typedef struct Texture
+// {
+//   char *name;
+//   char *path;
+//   char *category;
+//   Byte surface_type;
+//   int expected_pixel_width;
+//   int expected_pixel_height;
+//   bool scale_mode;
+//   bool collision_enabled;
+//   SDL_Texture *texture;
+// } Texture;
+
+// void parse_texture_manifest()
+// {
+//   char *manifest_version = NULL;
+
+//   cJSON *metadata = cJSON_CreateObject();
+//   if (metadata == NULL)
+//   {
+//     // TODO update
+//     printf("Couldn't create metadata");
+//   }
+// }
 
 // Get passed root manifest
 // Parse manifest

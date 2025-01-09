@@ -8,7 +8,20 @@
     "contact": "",
     "homepage_url": ""
   },
-  "data": {
-
-  }
+  "data": [
+    {
+      "name": "",
+      "path": "",
+      "category": "",
+      "surface_type": ["<wall | floor | ceiling>"],
+      "pixel_width": 64,
+      "pixel_height": 64,
+      "scale_mode": "",
+      "collision_enabled": true
+    },
+    {...}
+  ],
+  "external_manifests": [
+    {"name": "...", "version": "", "path": "..."}
+  ]
 }
