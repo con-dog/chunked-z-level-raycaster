@@ -1,6 +1,11 @@
 #include "./setup.h"
 
-static void parse_asset_manifest_json_string(Texture_Array_List *out_array_list, const char *json_string);
+static bool parse_asset_manifest_json_string(Texture_Array_List *out_array_list, const char *json_string);
+static bool parse_texture_fields(Texture *texture, const cJSON *json);
+static void cleanup_texture(Texture *texture);
+static bool validate_texture_fields(const cJSON *name, const cJSON *path,
+                                    const cJSON *category, const cJSON *surface_type,
+                                    const cJSON *width, const cJSON *height);
 static bool parse_binary_string(const char *str, uint8_t *result);
 
 static void process_textures(Texture_Array_List *out_array_list)
@@ -10,17 +15,57 @@ static void process_textures(Texture_Array_List *out_array_list)
 extern Texture_Array_List *setup_engine_textures(const char *root_manifest_file)
 {
   const char *manifest_json_string = read_asset_manifest_file(root_manifest_file);
-  Texture_Array_List textures_list;
-  parse_asset_manifest_json_string(&textures_list, manifest_json_string);
-  process_textures(&textures_list);
+  if (!manifest_json_string)
+  {
+    return NULL;
+  }
 
-  return &textures_list;
+  Texture_Array_List *textures_list = malloc(sizeof(Texture_Array_List));
+  if (!textures_list)
+  {
+    free((void *)manifest_json_string);
+    return NULL;
+  }
+
+  if (!parse_asset_manifest_json_string(textures_list, manifest_json_string))
+  {
+    free((void *)manifest_json_string);
+    free(textures_list);
+    return NULL;
+  }
+
+  free((void *)manifest_json_string);
+
+  // if (!process_textures(textures_list))
+  // {
+  //   cleanup_textures(textures_list);
+  //   return NULL;
+  // }
+
+  return textures_list;
 }
 
-static void parse_asset_manifest_json_string(Texture_Array_List *out_array_list, const char *json_string)
+extern void cleanup_textures(Texture_Array_List *textures)
 {
-  const cJSON *texture = NULL;
-  const cJSON *texture_data_array = NULL;
+  if (!textures)
+    return;
+  if (textures->data)
+  {
+    for (size_t i = 0; i < textures->length; i++)
+    {
+      if (textures->data[i])
+      {
+        cleanup_texture(textures->data[i]);
+        free(textures->data[i]);
+      }
+    }
+    free(textures->data);
+  }
+  free(textures);
+}
+
+static bool parse_asset_manifest_json_string(Texture_Array_List *out_array_list, const char *json_string)
+{
   cJSON *root = cJSON_Parse(json_string);
   if (!root)
   {
@@ -29,61 +74,134 @@ static void parse_asset_manifest_json_string(Texture_Array_List *out_array_list,
     {
       fprintf(stderr, "Error parsing JSON: %s\n", error);
     }
+    return false;
   }
 
-  // Process data array
-  texture_data_array = cJSON_GetObjectItemCaseSensitive(root, "data");
-  int texture_count = cJSON_GetArraySize(texture_data_array);
-  printf("Array length is: %d\n", texture_count);
+  cJSON *texture_data_array = cJSON_GetObjectItemCaseSensitive(root, "data");
+  if (!texture_data_array || !cJSON_IsArray(texture_data_array))
+  {
+    cJSON_Delete(root);
+    return false;
+  }
 
+  int texture_count = cJSON_GetArraySize(texture_data_array);
   if (texture_count <= 0)
   {
-    // TODO fail.
+    cJSON_Delete(root);
+    return false;
   }
 
-  Texture *textures[texture_count];
-  out_array_list->data = &textures;
+  out_array_list->data = malloc(texture_count * sizeof(Texture *));
+  if (!out_array_list->data)
+  {
+    cJSON_Delete(root);
+    return false;
+  }
   out_array_list->length = texture_count;
 
+  // Initialize all pointers to NULL for safe cleanup on failure
+  for (int i = 0; i < texture_count; i++)
+  {
+    out_array_list->data[i] = NULL;
+  }
+
+  cJSON *texture = NULL;
   int index = 0;
   cJSON_ArrayForEach(texture, texture_data_array)
   {
-    cJSON *name = cJSON_GetObjectItemCaseSensitive(texture, "name");
-    cJSON *path = cJSON_GetObjectItemCaseSensitive(texture, "path");
-    cJSON *category = cJSON_GetObjectItemCaseSensitive(texture, "category");
-    cJSON *surface_type = cJSON_GetObjectItemCaseSensitive(texture, "surface_type");
-    cJSON *expected_pixel_width = cJSON_GetObjectItemCaseSensitive(texture, "expected_pixel_width");
-    cJSON *expected_pixel_height = cJSON_GetObjectItemCaseSensitive(texture, "expected_pixel_height");
-    cJSON *use_scale_mode_nearest = cJSON_GetObjectItemCaseSensitive(texture, "use_scale_mode_nearest");
-    cJSON *is_collision_enabled = cJSON_GetObjectItemCaseSensitive(texture, "is_collision_enabled");
-
-    // TODO! validation for all members of object....
-    if (!(cJSON_IsString(name) && name->valuestring != NULL))
+    Texture *current_texture = malloc(sizeof(Texture));
+    if (!current_texture)
     {
+      cJSON_Delete(root);
+      cleanup_textures(out_array_list);
+      return false;
     }
+    out_array_list->data[index] = current_texture;
 
-    // TODO handle textures and texture pointer freeing
-    textures[index] = malloc(sizeof(Texture));
+    // Initialize texture fields to NULL/0
+    current_texture->name = NULL;
+    current_texture->path = NULL;
+    current_texture->category = NULL;
+    current_texture->texture = NULL;
 
-    // After validation
+    if (!parse_texture_fields(current_texture, texture))
     {
-      textures[index]->name = strdup(name->valuestring);         // TODO! Handle allocation failures
-      textures[index]->path = strdup(path->valuestring);         // TODO! Handle allocation failures
-      textures[index]->category = strdup(category->valuestring); // TODO! Handle allocation failures
-      // textures[index]->surface_type = strdup(surface_type->valuestring); // TODO! Handle allocation failures
-      const char *binary_str = surface_type->valuestring;
-      Uint8 result;
-      parse_binary_string(binary_str, &result);
-      textures[index]->surface_type = result;
-      textures[index]->expected_pixel_height = expected_pixel_height->valuedouble;
-      textures[index]->expected_pixel_width = expected_pixel_width->valuedouble;
-      textures[index]->use_scale_mode_nearest = cJSON_IsTrue(use_scale_mode_nearest);
-      textures[index]->is_collision_enabled = cJSON_IsTrue(is_collision_enabled);
+      cJSON_Delete(root);
+      cleanup_textures(out_array_list);
+      return false;
     }
-
-    cJSON_Delete(root);
+    index++;
   }
-  printf("Texture 0 data %s\n%s\n%s\n%d\n%d\n", textures[0]->name, textures[0]->path, textures[0]->category, textures[0]->surface_type, textures[0]->use_scale_mode_nearest);
+
+  cJSON_Delete(root);
+  return true;
+}
+
+static bool parse_texture_fields(Texture *texture, const cJSON *json)
+{
+  cJSON *name = cJSON_GetObjectItemCaseSensitive(json, "name");
+  cJSON *path = cJSON_GetObjectItemCaseSensitive(json, "path");
+  cJSON *category = cJSON_GetObjectItemCaseSensitive(json, "category");
+  cJSON *surface_type = cJSON_GetObjectItemCaseSensitive(json, "surface_type");
+  cJSON *expected_pixel_width = cJSON_GetObjectItemCaseSensitive(json, "expected_pixel_width");
+  cJSON *expected_pixel_height = cJSON_GetObjectItemCaseSensitive(json, "expected_pixel_height");
+  cJSON *use_scale_mode_nearest = cJSON_GetObjectItemCaseSensitive(json, "use_scale_mode_nearest");
+  cJSON *is_collision_enabled = cJSON_GetObjectItemCaseSensitive(json, "is_collision_enabled");
+
+  if (!validate_texture_fields(name, path, category, surface_type,
+                               expected_pixel_width, expected_pixel_height))
+  {
+    return false;
+  }
+
+  texture->name = strdup(name->valuestring);
+  texture->path = strdup(path->valuestring);
+  texture->category = strdup(category->valuestring);
+
+  if (!texture->name || !texture->path || !texture->category)
+  {
+    cleanup_texture(texture);
+    return false;
+  }
+
+  Uint8 result;
+  if (!parse_binary_string(surface_type->valuestring, &result))
+  {
+    cleanup_texture(texture);
+    return false;
+  }
+
+  texture->surface_type = result;
+  texture->expected_pixel_height = expected_pixel_height->valuedouble;
+  texture->expected_pixel_width = expected_pixel_width->valuedouble;
+  texture->use_scale_mode_nearest = cJSON_IsTrue(use_scale_mode_nearest);
+  texture->is_collision_enabled = cJSON_IsTrue(is_collision_enabled);
+
+  return true;
+}
+
+static void cleanup_texture(Texture *texture)
+{
+  if (!texture)
+    return;
+  free(texture->name);
+  free(texture->path);
+  free(texture->category);
+  if (texture->texture)
+  {
+    SDL_DestroyTexture(texture->texture);
+  }
+}
+
+static bool validate_texture_fields(const cJSON *name, const cJSON *path,
+                                    const cJSON *category, const cJSON *surface_type,
+                                    const cJSON *width, const cJSON *height)
+{
+  return (cJSON_IsString(name) && name->valuestring &&
+          cJSON_IsString(path) && path->valuestring &&
+          cJSON_IsString(category) && category->valuestring &&
+          cJSON_IsString(surface_type) && surface_type->valuestring &&
+          cJSON_IsNumber(width) && cJSON_IsNumber(height));
 }
 
 static bool parse_binary_string(const char *str, uint8_t *result)
