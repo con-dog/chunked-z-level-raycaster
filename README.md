@@ -20,6 +20,7 @@ A brand-new, old-school game-engine inspired by the likes of [Wolfenstein 3D (19
 - Texture animations
   - Src directory
   - Frames (must have at least 1)
+  - Store current frame index tracker
   - Frame rate
   - Looping
   - Random start frame
@@ -27,6 +28,7 @@ A brand-new, old-school game-engine inspired by the likes of [Wolfenstein 3D (19
 - Texture transparency (ray pass-through to next texture)
 - texture collision enabled bitfield for floor wall or ceiling via 0bXXX (similar to texture surface type) so you can have hotbox detection for walls, floors, and ceilings
 - Sprites are all square/rectangular like minecraft and always face the player, but can "change direction" by changing the texture currently displayed
+- Separate drawing/raycasting logic from window width and height
 
 
 ## Previous phases
