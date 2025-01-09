@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <cjson/cJSON.h>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_hints.h>
 #include <SDL3/SDL_keyboard.h>
@@ -23,21 +24,21 @@
 #include <SDL3_ttf/SDL_ttf.h>
 
 #include "./assets/textures/constants.h"
-#include "./assets/textures/bricks/brick-a/brick-a.h"
-#include "./assets/textures/bricks/brick-b/brick-b.h"
-#include "./assets/textures/bricks/brick-c/brick-c.h"
-#include "./assets/textures/bricks/brick-d/brick-d.h"
-#include "./assets/textures/bricks/mud-brick-a/mud-brick-a.h"
-#include "./assets/textures/bricks/mud-brick-b/mud-brick-b.h"
-#include "./assets/textures/bricks/mud-brick-c/mud-brick-c.h"
-#include "./assets/textures/lava/lava-a/lava-a.h"
-#include "./assets/textures/lava/lava-b/lava-b.h"
-#include "./assets/textures/lava/lava-c/lava-c.h"
-#include "./assets/textures/overgrown/overgrown-a/overgrown-a.h"
-#include "./assets/textures/overgrown/overgrown-b/overgrown-b.h"
-#include "./assets/textures/water/water-b/water-b.h"
-#include "./assets/textures/water/water-c/water-c.h"
-#include "./assets/textures/wood/wood-vertical/wood-vertical.h"
+// #include "./assets/textures/bricks/brick-a/brick-a.h"
+// #include "./assets/textures/bricks/brick-b/brick-b.h"
+// #include "./assets/textures/bricks/brick-c/brick-c.h"
+// #include "./assets/textures/bricks/brick-d/brick-d.h"
+// #include "./assets/textures/bricks/mud-brick-a/mud-brick-a.h"
+// #include "./assets/textures/bricks/mud-brick-b/mud-brick-b.h"
+// #include "./assets/textures/bricks/mud-brick-c/mud-brick-c.h"
+// #include "./assets/textures/lava/lava-a/lava-a.h"
+// #include "./assets/textures/lava/lava-b/lava-b.h"
+// #include "./assets/textures/lava/lava-c/lava-c.h"
+// #include "./assets/textures/overgrown/overgrown-a/overgrown-a.h"
+// #include "./assets/textures/overgrown/overgrown-b/overgrown-b.h"
+// #include "./assets/textures/water/water-b/water-b.h"
+// #include "./assets/textures/water/water-c/water-c.h"
+// #include "./assets/textures/wood/wood-vertical/wood-vertical.h"
 
 #include "./config/constants.h"
 #include "./config/sdl/sdl.h"

@@ -5,7 +5,8 @@
     "math.h": "c",
     "complex": "c",
     "sdl_ttf.h": "c",
-    "vector": "c"
+    "vector": "c",
+    "main.h": "c"
   },
   "editor.semanticTokenColorCustomizations": {
     "rules": {

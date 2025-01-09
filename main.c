@@ -6,21 +6,21 @@
 SDL_Window *window;
 SDL_Renderer *renderer;
 
-Pixel_Image_Texture_Asset brick_a, brick_b, brick_c, brick_d;
-Pixel_Image_Texture_Asset lava_a, lava_b, lava_c;
-Pixel_Image_Texture_Asset mud_brick_a, mud_brick_b, mud_brick_c;
-Pixel_Image_Texture_Asset overgrown_a, overgrown_b;
-Pixel_Image_Texture_Asset water_b, water_c;
-Pixel_Image_Texture_Asset wood_vertical;
+// Pixel_Image_Texture_Asset brick_a, brick_b, brick_c, brick_d;
+// Pixel_Image_Texture_Asset lava_a, lava_b, lava_c;
+// Pixel_Image_Texture_Asset mud_brick_a, mud_brick_b, mud_brick_c;
+// Pixel_Image_Texture_Asset overgrown_a, overgrown_b;
+// Pixel_Image_Texture_Asset water_b, water_c;
+// Pixel_Image_Texture_Asset wood_vertical;
 
-SDL_Texture *brick_a_texture, *brick_b_texture, *brick_c_texture, *brick_d_texture;
-SDL_Texture *lava_a_texture, *lava_b_texture, *lava_c_texture;
-SDL_Texture *mud_brick_a_texture, *mud_brick_b_texture, *mud_brick_c_texture;
-SDL_Texture *overgrown_a_texture, *overgrown_b_texture;
-SDL_Texture *water_b_texture, *water_c_texture;
-SDL_Texture *wood_vertical_texture;
+// SDL_Texture *brick_a_texture, *brick_b_texture, *brick_c_texture, *brick_d_texture;
+// SDL_Texture *lava_a_texture, *lava_b_texture, *lava_c_texture;
+// SDL_Texture *mud_brick_a_texture, *mud_brick_b_texture, *mud_brick_c_texture;
+// SDL_Texture *overgrown_a_texture, *overgrown_b_texture;
+// SDL_Texture *water_b_texture, *water_c_texture;
+// SDL_Texture *wood_vertical_texture;
 
-SDL_Texture *shotgun_1_texture;
+// SDL_Texture *shotgun_1_texture;
 
 typedef struct Weapon
 {
@@ -39,93 +39,93 @@ Player player;
 
 const bool *keyboard_state;
 
-static int brick_texture_init(void)
-{
+// static int brick_texture_init(void)
+// {
 
-  brick_a_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
-  if (brick_a_texture == NULL)
-  {
-    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_Texture could not initialize! SDL_Texture Error: %s\n", SDL_GetError());
-    return 3;
-  }
-  brick_b_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
-  if (brick_b_texture == NULL)
-  {
-    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_Texture could not initialize! SDL_Texture Error: %s\n", SDL_GetError());
-    return 3;
-  }
-  brick_c_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
-  if (brick_c_texture == NULL)
-  {
-    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_Texture could not initialize! SDL_Texture Error: %s\n", SDL_GetError());
-    return 3;
-  }
-  brick_d_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
-  if (brick_d_texture == NULL)
-  {
-    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_Texture could not initialize! SDL_Texture Error: %s\n", SDL_GetError());
-    return 3;
-  }
+//   brick_a_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
+//   if (brick_a_texture == NULL)
+//   {
+//     SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_Texture could not initialize! SDL_Texture Error: %s\n", SDL_GetError());
+//     return 3;
+//   }
+//   brick_b_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
+//   if (brick_b_texture == NULL)
+//   {
+//     SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_Texture could not initialize! SDL_Texture Error: %s\n", SDL_GetError());
+//     return 3;
+//   }
+//   brick_c_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
+//   if (brick_c_texture == NULL)
+//   {
+//     SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_Texture could not initialize! SDL_Texture Error: %s\n", SDL_GetError());
+//     return 3;
+//   }
+//   brick_d_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
+//   if (brick_d_texture == NULL)
+//   {
+//     SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_Texture could not initialize! SDL_Texture Error: %s\n", SDL_GetError());
+//     return 3;
+//   }
 
-  lava_a_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
-  lava_b_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
-  lava_c_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
+//   lava_a_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
+//   lava_b_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
+//   lava_c_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
 
-  mud_brick_a_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
-  mud_brick_b_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
-  mud_brick_c_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
+//   mud_brick_a_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
+//   mud_brick_b_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
+//   mud_brick_c_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
 
-  overgrown_a_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
-  overgrown_b_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
+//   overgrown_a_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
+//   overgrown_b_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
 
-  water_b_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
-  water_c_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
+//   water_b_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
+//   water_c_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
 
-  wood_vertical_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
+//   wood_vertical_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
 
-  SDL_SetTextureScaleMode(brick_a_texture, SDL_SCALEMODE_NEAREST);
-  SDL_SetTextureScaleMode(brick_b_texture, SDL_SCALEMODE_NEAREST);
-  SDL_SetTextureScaleMode(brick_c_texture, SDL_SCALEMODE_NEAREST);
-  SDL_SetTextureScaleMode(brick_d_texture, SDL_SCALEMODE_NEAREST);
-  SDL_SetTextureScaleMode(lava_a_texture, SDL_SCALEMODE_NEAREST);
-  SDL_SetTextureScaleMode(lava_b_texture, SDL_SCALEMODE_NEAREST);
-  SDL_SetTextureScaleMode(lava_c_texture, SDL_SCALEMODE_NEAREST);
-  SDL_SetTextureScaleMode(mud_brick_a_texture, SDL_SCALEMODE_NEAREST);
-  SDL_SetTextureScaleMode(mud_brick_b_texture, SDL_SCALEMODE_NEAREST);
-  SDL_SetTextureScaleMode(mud_brick_c_texture, SDL_SCALEMODE_NEAREST);
-  SDL_SetTextureScaleMode(overgrown_a_texture, SDL_SCALEMODE_NEAREST);
-  SDL_SetTextureScaleMode(overgrown_b_texture, SDL_SCALEMODE_NEAREST);
-  SDL_SetTextureScaleMode(water_b_texture, SDL_SCALEMODE_NEAREST);
-  SDL_SetTextureScaleMode(water_c_texture, SDL_SCALEMODE_NEAREST);
-  SDL_SetTextureScaleMode(wood_vertical_texture, SDL_SCALEMODE_NEAREST);
+//   SDL_SetTextureScaleMode(brick_a_texture, SDL_SCALEMODE_NEAREST);
+//   SDL_SetTextureScaleMode(brick_b_texture, SDL_SCALEMODE_NEAREST);
+//   SDL_SetTextureScaleMode(brick_c_texture, SDL_SCALEMODE_NEAREST);
+//   SDL_SetTextureScaleMode(brick_d_texture, SDL_SCALEMODE_NEAREST);
+//   SDL_SetTextureScaleMode(lava_a_texture, SDL_SCALEMODE_NEAREST);
+//   SDL_SetTextureScaleMode(lava_b_texture, SDL_SCALEMODE_NEAREST);
+//   SDL_SetTextureScaleMode(lava_c_texture, SDL_SCALEMODE_NEAREST);
+//   SDL_SetTextureScaleMode(mud_brick_a_texture, SDL_SCALEMODE_NEAREST);
+//   SDL_SetTextureScaleMode(mud_brick_b_texture, SDL_SCALEMODE_NEAREST);
+//   SDL_SetTextureScaleMode(mud_brick_c_texture, SDL_SCALEMODE_NEAREST);
+//   SDL_SetTextureScaleMode(overgrown_a_texture, SDL_SCALEMODE_NEAREST);
+//   SDL_SetTextureScaleMode(overgrown_b_texture, SDL_SCALEMODE_NEAREST);
+//   SDL_SetTextureScaleMode(water_b_texture, SDL_SCALEMODE_NEAREST);
+//   SDL_SetTextureScaleMode(water_c_texture, SDL_SCALEMODE_NEAREST);
+//   SDL_SetTextureScaleMode(wood_vertical_texture, SDL_SCALEMODE_NEAREST);
 
-  SDL_UpdateTexture(brick_a_texture, NULL, brick_a.pixel_data, TEXTURE_PIXEL_W * 4);
-  SDL_UpdateTexture(brick_b_texture, NULL, brick_b.pixel_data, TEXTURE_PIXEL_W * 4);
-  SDL_UpdateTexture(brick_c_texture, NULL, brick_c.pixel_data, TEXTURE_PIXEL_W * 4);
-  SDL_UpdateTexture(brick_d_texture, NULL, brick_d.pixel_data, TEXTURE_PIXEL_W * 4);
-  SDL_UpdateTexture(lava_a_texture, NULL, lava_a.pixel_data, TEXTURE_PIXEL_W * 4);
-  SDL_UpdateTexture(lava_b_texture, NULL, lava_b.pixel_data, TEXTURE_PIXEL_W * 4);
-  SDL_UpdateTexture(lava_c_texture, NULL, lava_c.pixel_data, TEXTURE_PIXEL_W * 4);
-  SDL_UpdateTexture(mud_brick_a_texture, NULL, mud_brick_a.pixel_data, TEXTURE_PIXEL_W * 4);
-  SDL_UpdateTexture(mud_brick_b_texture, NULL, mud_brick_b.pixel_data, TEXTURE_PIXEL_W * 4);
-  SDL_UpdateTexture(mud_brick_c_texture, NULL, mud_brick_c.pixel_data, TEXTURE_PIXEL_W * 4);
-  SDL_UpdateTexture(overgrown_a_texture, NULL, overgrown_a.pixel_data, TEXTURE_PIXEL_W * 4);
-  SDL_UpdateTexture(overgrown_b_texture, NULL, overgrown_b.pixel_data, TEXTURE_PIXEL_W * 4);
-  SDL_UpdateTexture(water_b_texture, NULL, water_b.pixel_data, TEXTURE_PIXEL_W * 4);
-  SDL_UpdateTexture(water_c_texture, NULL, water_c.pixel_data, TEXTURE_PIXEL_W * 4);
-  SDL_UpdateTexture(wood_vertical_texture, NULL, wood_vertical.pixel_data, TEXTURE_PIXEL_W * 4);
+//   SDL_UpdateTexture(brick_a_texture, NULL, brick_a.pixel_data, TEXTURE_PIXEL_W * 4);
+//   SDL_UpdateTexture(brick_b_texture, NULL, brick_b.pixel_data, TEXTURE_PIXEL_W * 4);
+//   SDL_UpdateTexture(brick_c_texture, NULL, brick_c.pixel_data, TEXTURE_PIXEL_W * 4);
+//   SDL_UpdateTexture(brick_d_texture, NULL, brick_d.pixel_data, TEXTURE_PIXEL_W * 4);
+//   SDL_UpdateTexture(lava_a_texture, NULL, lava_a.pixel_data, TEXTURE_PIXEL_W * 4);
+//   SDL_UpdateTexture(lava_b_texture, NULL, lava_b.pixel_data, TEXTURE_PIXEL_W * 4);
+//   SDL_UpdateTexture(lava_c_texture, NULL, lava_c.pixel_data, TEXTURE_PIXEL_W * 4);
+//   SDL_UpdateTexture(mud_brick_a_texture, NULL, mud_brick_a.pixel_data, TEXTURE_PIXEL_W * 4);
+//   SDL_UpdateTexture(mud_brick_b_texture, NULL, mud_brick_b.pixel_data, TEXTURE_PIXEL_W * 4);
+//   SDL_UpdateTexture(mud_brick_c_texture, NULL, mud_brick_c.pixel_data, TEXTURE_PIXEL_W * 4);
+//   SDL_UpdateTexture(overgrown_a_texture, NULL, overgrown_a.pixel_data, TEXTURE_PIXEL_W * 4);
+//   SDL_UpdateTexture(overgrown_b_texture, NULL, overgrown_b.pixel_data, TEXTURE_PIXEL_W * 4);
+//   SDL_UpdateTexture(water_b_texture, NULL, water_b.pixel_data, TEXTURE_PIXEL_W * 4);
+//   SDL_UpdateTexture(water_c_texture, NULL, water_c.pixel_data, TEXTURE_PIXEL_W * 4);
+//   SDL_UpdateTexture(wood_vertical_texture, NULL, wood_vertical.pixel_data, TEXTURE_PIXEL_W * 4);
 
-  SDL_SetTextureScaleMode(shotgun_1_texture, SDL_SCALEMODE_NEAREST);
-  SDL_Surface *shotgun_1_surface = IMG_Load("./assets/sprites/shotgun/shotgun-1/shotgun-1.png");
-  shotgun_1_texture = SDL_CreateTextureFromSurface(renderer, shotgun_1_surface);
-  SDL_DestroySurface(shotgun_1_surface);
+//   SDL_SetTextureScaleMode(shotgun_1_texture, SDL_SCALEMODE_NEAREST);
+//   SDL_Surface *shotgun_1_surface = IMG_Load("./assets/sprites/shotgun/shotgun-1/shotgun-1.png");
+//   shotgun_1_texture = SDL_CreateTextureFromSurface(renderer, shotgun_1_surface);
+//   SDL_DestroySurface(shotgun_1_surface);
 
-  shotgun_1.texture = shotgun_1_texture;
-  shotgun_1.height = 304;
-  shotgun_1.width = 444;
+//   shotgun_1.texture = shotgun_1_texture;
+//   shotgun_1.height = 304;
+//   shotgun_1.width = 444;
 
-  return 0;
-}
+//   return 0;
+// }
 
 static void player_init(void)
 {
@@ -298,56 +298,56 @@ static void cast_rays_from_player(void)
       Uint8 floor_brightness_b = (Uint8)(255.0f * (1.0f - log10f(1.0f + (3.0f * distance / (64 * 16)))));
 
       // Calculate brightness based on distance (similar to walls)
-      SDL_SetTextureColorMod(wood_vertical_texture, floor_brightness, floor_brightness, floor_brightness);
-      SDL_SetTextureColorMod(lava_a_texture, floor_brightness_b, floor_brightness, floor_brightness);
-      SDL_SetTextureColorMod(lava_b_texture, floor_brightness_b, floor_brightness, floor_brightness);
-      SDL_SetTextureColorMod(lava_c_texture, floor_brightness_b, floor_brightness, floor_brightness);
+      // SDL_SetTextureColorMod(wood_vertical_texture, floor_brightness, floor_brightness, floor_brightness);
+      // SDL_SetTextureColorMod(lava_a_texture, floor_brightness_b, floor_brightness, floor_brightness);
+      // SDL_SetTextureColorMod(lava_b_texture, floor_brightness_b, floor_brightness, floor_brightness);
+      // SDL_SetTextureColorMod(lava_c_texture, floor_brightness_b, floor_brightness, floor_brightness);
 
       // SDL_RenderTexture(renderer, wood_vertical_texture, &src_rect, &dst_rect);
-      switch (floor_grid->rows[floor_grid_y].elements[floor_grid_x])
-      {
-      case 'A':
-      {
-        // Render the floor pixel
-        SDL_RenderTexture(renderer, wood_vertical_texture, &src_rect, &dst_rect);
-        break;
-      }
-      case 'B':
-      {
-        // Render the floor pixel
-        SDL_RenderTexture(renderer, lava_a_texture, &src_rect, &dst_rect);
-        break;
-      }
-      case 'C':
-      {
-        // Render the floor pixel
-        SDL_RenderTexture(renderer, lava_b_texture, &src_rect, &dst_rect);
-        break;
-      }
-      case 'D':
-      {
-        // Render the floor pixel
-        SDL_RenderTexture(renderer, water_b_texture, &src_rect, &dst_rect);
-        break;
-      }
-      case 'E':
-      {
-        // Render the floor pixel
-        SDL_RenderTexture(renderer, water_c_texture, &src_rect, &dst_rect);
-        break;
-      }
-      case 'F':
-      {
-        // Render the floor pixel
-        SDL_RenderTexture(renderer, lava_c_texture, &src_rect, &dst_rect);
-        break;
-      }
-      default:
-      {
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        SDL_RenderFillRect(renderer, &dst_rect);
-      }
-      }
+      // switch (floor_grid->rows[floor_grid_y].elements[floor_grid_x])
+      // {
+      // case 'A':
+      // {
+      //   // Render the floor pixel
+      //   SDL_RenderTexture(renderer, wood_vertical_texture, &src_rect, &dst_rect);
+      //   break;
+      // }
+      // case 'B':
+      // {
+      //   // Render the floor pixel
+      //   SDL_RenderTexture(renderer, lava_a_texture, &src_rect, &dst_rect);
+      //   break;
+      // }
+      // case 'C':
+      // {
+      //   // Render the floor pixel
+      //   SDL_RenderTexture(renderer, lava_b_texture, &src_rect, &dst_rect);
+      //   break;
+      // }
+      // case 'D':
+      // {
+      //   // Render the floor pixel
+      //   SDL_RenderTexture(renderer, water_b_texture, &src_rect, &dst_rect);
+      //   break;
+      // }
+      // case 'E':
+      // {
+      //   // Render the floor pixel
+      //   SDL_RenderTexture(renderer, water_c_texture, &src_rect, &dst_rect);
+      //   break;
+      // }
+      // case 'F':
+      // {
+      //   // Render the floor pixel
+      //   SDL_RenderTexture(renderer, lava_c_texture, &src_rect, &dst_rect);
+      //   break;
+      // }
+      // default:
+      // {
+      //   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+      //   SDL_RenderFillRect(renderer, &dst_rect);
+      // }
+      // }
     }
 
     /*
@@ -384,93 +384,93 @@ static void cast_rays_from_player(void)
 
     // Brightness transformations
     Uint8 brightness = (Uint8)(255.0f * (1.0f - log10f(1.0f + (6.0f * perpendicular_distance / (8 * 64)))));
-    SDL_SetTextureColorMod(brick_a_texture, brightness, brightness, brightness);
-    SDL_SetTextureColorMod(brick_b_texture, brightness, brightness, brightness);
-    SDL_SetTextureColorMod(brick_c_texture, brightness, brightness, brightness);
-    SDL_SetTextureColorMod(brick_d_texture, brightness, brightness, brightness);
-    SDL_SetTextureColorMod(mud_brick_a_texture, brightness, brightness, brightness);
-    SDL_SetTextureColorMod(mud_brick_b_texture, brightness, brightness, brightness);
-    SDL_SetTextureColorMod(mud_brick_c_texture, brightness, brightness, brightness);
-    SDL_SetTextureColorMod(overgrown_a_texture, brightness, brightness, brightness);
-    SDL_SetTextureColorMod(overgrown_b_texture, brightness, brightness, brightness);
+    // SDL_SetTextureColorMod(brick_a_texture, brightness, brightness, brightness);
+    // SDL_SetTextureColorMod(brick_b_texture, brightness, brightness, brightness);
+    // SDL_SetTextureColorMod(brick_c_texture, brightness, brightness, brightness);
+    // SDL_SetTextureColorMod(brick_d_texture, brightness, brightness, brightness);
+    // SDL_SetTextureColorMod(mud_brick_a_texture, brightness, brightness, brightness);
+    // SDL_SetTextureColorMod(mud_brick_b_texture, brightness, brightness, brightness);
+    // SDL_SetTextureColorMod(mud_brick_c_texture, brightness, brightness, brightness);
+    // SDL_SetTextureColorMod(overgrown_a_texture, brightness, brightness, brightness);
+    // SDL_SetTextureColorMod(overgrown_b_texture, brightness, brightness, brightness);
 
-    switch (current_grid_cell_value)
+    // switch (current_grid_cell_value)
     {
-    case 'A':
-    {
-      SDL_FRect src_rect = {
-          .x = texture_x,
-          .y = 0,
-          .w = 1,
-          .h = TEXTURE_PIXEL_H};
-      SDL_RenderTexture(renderer, brick_a_texture, &src_rect, &wall_rect);
-      break;
-    }
-    case 'B':
-    {
-      SDL_FRect src_rect = {
-          .x = texture_x,
-          .y = 0,
-          .w = 1,
-          .h = TEXTURE_PIXEL_H};
-      SDL_RenderTexture(renderer, overgrown_a_texture, &src_rect, &wall_rect);
-      break;
-    }
-    case 'C':
-    {
-      SDL_FRect src_rect = {
-          .x = texture_x,
-          .y = 0,
-          .w = 1,
-          .h = TEXTURE_PIXEL_H};
-      SDL_RenderTexture(renderer, brick_c_texture, &src_rect, &wall_rect);
-      break;
-    }
-    case 'D':
-    {
-      SDL_FRect src_rect = {
-          .x = texture_x,
-          .y = 0,
-          .w = 1,
-          .h = TEXTURE_PIXEL_H};
-      SDL_RenderTexture(renderer, overgrown_b_texture, &src_rect, &wall_rect);
-      break;
-    }
-    case 'E':
-    {
-      SDL_FRect src_rect = {
-          .x = texture_x,
-          .y = 0,
-          .w = 1,
-          .h = TEXTURE_PIXEL_H};
-      SDL_RenderTexture(renderer, mud_brick_a_texture, &src_rect, &wall_rect);
-      break;
-    }
-    case 'F':
-    {
-      SDL_FRect src_rect = {
-          .x = texture_x,
-          .y = 0,
-          .w = 1,
-          .h = TEXTURE_PIXEL_H};
-      SDL_RenderTexture(renderer, mud_brick_b_texture, &src_rect, &wall_rect);
-      break;
-    }
-    case 'G':
-    {
-      SDL_FRect src_rect = {
-          .x = texture_x,
-          .y = 0,
-          .w = 1,
-          .h = TEXTURE_PIXEL_H};
-      SDL_RenderTexture(renderer, mud_brick_c_texture, &src_rect, &wall_rect);
-      break;
-    }
-    default:
-    {
-      SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-      SDL_RenderFillRect(renderer, &wall_rect);
-    }
+      // case 'A':
+      // {
+      //   SDL_FRect src_rect = {
+      //       .x = texture_x,
+      //       .y = 0,
+      //       .w = 1,
+      //       .h = TEXTURE_PIXEL_H};
+      //   SDL_RenderTexture(renderer, brick_a_texture, &src_rect, &wall_rect);
+      //   break;
+      // }
+      // case 'B':
+      // {
+      //   SDL_FRect src_rect = {
+      //       .x = texture_x,
+      //       .y = 0,
+      //       .w = 1,
+      //       .h = TEXTURE_PIXEL_H};
+      //   SDL_RenderTexture(renderer, overgrown_a_texture, &src_rect, &wall_rect);
+      //   break;
+      // }
+      // case 'C':
+      // {
+      //   SDL_FRect src_rect = {
+      //       .x = texture_x,
+      //       .y = 0,
+      //       .w = 1,
+      //       .h = TEXTURE_PIXEL_H};
+      //   SDL_RenderTexture(renderer, brick_c_texture, &src_rect, &wall_rect);
+      //   break;
+      // }
+      // case 'D':
+      // {
+      //   SDL_FRect src_rect = {
+      //       .x = texture_x,
+      //       .y = 0,
+      //       .w = 1,
+      //       .h = TEXTURE_PIXEL_H};
+      //   SDL_RenderTexture(renderer, overgrown_b_texture, &src_rect, &wall_rect);
+      //   break;
+      // }
+      // case 'E':
+      // {
+      //   SDL_FRect src_rect = {
+      //       .x = texture_x,
+      //       .y = 0,
+      //       .w = 1,
+      //       .h = TEXTURE_PIXEL_H};
+      //   SDL_RenderTexture(renderer, mud_brick_a_texture, &src_rect, &wall_rect);
+      //   break;
+      // }
+      // case 'F':
+      // {
+      //   SDL_FRect src_rect = {
+      //       .x = texture_x,
+      //       .y = 0,
+      //       .w = 1,
+      //       .h = TEXTURE_PIXEL_H};
+      //   SDL_RenderTexture(renderer, mud_brick_b_texture, &src_rect, &wall_rect);
+      //   break;
+      // }
+      // case 'G':
+      // {
+      //   SDL_FRect src_rect = {
+      //       .x = texture_x,
+      //       .y = 0,
+      //       .w = 1,
+      //       .h = TEXTURE_PIXEL_H};
+      //   SDL_RenderTexture(renderer, mud_brick_c_texture, &src_rect, &wall_rect);
+      //   break;
+      // }
+      // default:
+      // {
+      //   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+      //   SDL_RenderFillRect(renderer, &wall_rect);
+      // }
     }
   }
 }
@@ -635,20 +635,20 @@ void update_display(void)
 {
   SDL_SetRenderDrawColor(renderer, 30, 0, 30, 255); // White background
   SDL_RenderClear(renderer);
-  // draw_jagged_grid();
-  // draw_player();
-  cast_rays_from_player();
+  draw_jagged_grid();
+  draw_player();
+  // cast_rays_from_player();
 
-  float center_weapon_x = floorf((WINDOW_W / 2) - (0.5f * shotgun_1.width));
+  // float center_weapon_x = floorf((WINDOW_W / 2) - (0.5f * shotgun_1.width));
 
-  SDL_FRect weapon_rect = {
-      .x = center_weapon_x,
-      .y = WINDOW_H - (shotgun_1.height),
-      .w = shotgun_1.width,
-      .h = shotgun_1.height,
-  };
+  // SDL_FRect weapon_rect = {
+  //     .x = center_weapon_x,
+  //     .y = WINDOW_H - (shotgun_1.height),
+  //     .w = shotgun_1.width,
+  //     .h = shotgun_1.height,
+  // };
 
-  SDL_RenderTexture(renderer, shotgun_1.texture, NULL, &weapon_rect);
+  // SDL_RenderTexture(renderer, shotgun_1.texture, NULL, &weapon_rect);
 
   SDL_RenderPresent(renderer);
 }
@@ -689,7 +689,7 @@ int main(int argc, char *argv[])
   wall_grid = read_grid_csv_file("./assets/levels/level-1-wall.csv");
   floor_grid = read_grid_csv_file("./assets/levels/level-1-floor.csv");
 
-  brick_texture_init();
+  // brick_texture_init();
 
   player_init();
   keyboard_state = SDL_GetKeyboardState(NULL);
