@@ -11,6 +11,6 @@
 #include "./setup.h"
 #include "./types.h"
 
-extern void parse_asset_manifest_json_string(const char *json_string);
+extern Texture *setup_engine_textures(const char *root_manifest_file);
 
 #endif

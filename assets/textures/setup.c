@@ -1,47 +1,16 @@
 #include "./setup.h"
 
-typedef struct Texture
+static Texture *parse_asset_manifest_json_string(const char *json_string);
+static bool parse_binary_string(const char *str, uint8_t *result);
+
+extern Texture *setup_engine_textures(const char *root_manifest_file)
 {
-  char *name;
-  char *path;
-  char *category;
-  Uint8 surface_type;
-  int expected_pixel_width;
-  int expected_pixel_height;
-  bool use_scale_mode_nearest;
-  bool is_collision_enabled;
-  SDL_Texture *texture;
-} Texture;
-
-bool parse_binary_string(const char *str, uint8_t *result)
-{
-  uint8_t value = 0;
-  size_t bits = 0;
-
-  if (str[0] != '0' || str[1] != 'b')
-  {
-    return false;
-  }
-
-  for (const char *p = str + 2; *p; p++)
-  {
-    if (*p != '0' && *p != '1')
-    {
-      return false;
-    }
-    if (bits >= 8)
-    {
-      return false; // Overflow
-    }
-    value = (value << 1) | (uint8_t)(*p - '0');
-    bits++;
-  }
-
-  *result = value;
-  return true;
+  const char *manifest_json_string = read_asset_manifest_file(root_manifest_file);
+  Texture *textures = parse_asset_manifest_json_string(manifest_json_string);
+  return textures;
 }
 
-void parse_asset_manifest_json_string(const char *json_string)
+static Texture *parse_asset_manifest_json_string(const char *json_string)
 {
   const cJSON *texture = NULL;
   const cJSON *texture_data_array = NULL;
@@ -106,10 +75,38 @@ void parse_asset_manifest_json_string(const char *json_string)
 
     cJSON_Delete(root);
   }
-
   printf("Texture 0 data %s\n%s\n%s\n%d\n%d\n", textures[0]->name, textures[0]->path, textures[0]->category, textures[0]->surface_type, textures[0]->use_scale_mode_nearest);
+
+  return *textures;
 }
 
+static bool parse_binary_string(const char *str, uint8_t *result)
+{
+  uint8_t value = 0;
+  size_t bits = 0;
+
+  if (str[0] != '0' || str[1] != 'b')
+  {
+    return false;
+  }
+
+  for (const char *p = str + 2; *p; p++)
+  {
+    if (*p != '0' && *p != '1')
+    {
+      return false;
+    }
+    if (bits >= 8)
+    {
+      return false; // Overflow
+    }
+    value = (value << 1) | (uint8_t)(*p - '0');
+    bits++;
+  }
+
+  *result = value;
+  return true;
+}
 // void parse_texture_manifest()
 // {
 //   char *manifest_version = NULL;
