@@ -1,16 +1,16 @@
 #include "./setup.h"
 
-static bool parse_asset_manifest_json_string(Texture_Array_List *out_array_list, const char *json_string);
-static bool parse_texture_fields(Texture *texture, const cJSON *json);
-static void cleanup_texture(Texture *texture);
+static bool parse_asset_manifest_json_string(World_Objects_Container *out_array_list, const char *json_string);
+static bool parse_texture_fields(World_Object *texture, const cJSON *json);
+static void cleanup_texture(World_Object *texture);
 static bool validate_texture_fields(const cJSON *name, const cJSON *path,
                                     const cJSON *category, const cJSON *surface_type,
                                     const cJSON *width, const cJSON *height);
 static bool parse_binary_string(const char *str, uint8_t *result);
 
-static bool process_textures(SDL_Renderer *renderer, Texture_Array_List *out_array_list);
+static bool process_textures(SDL_Renderer *renderer, World_Objects_Container *out_array_list);
 
-extern Texture_Array_List *setup_engine_textures(SDL_Renderer *renderer, char *root_manifest_file)
+extern World_Objects_Container *setup_engine_textures(SDL_Renderer *renderer, char *root_manifest_file)
 {
   const char *manifest_json_string = read_asset_manifest_file(root_manifest_file);
   if (!manifest_json_string)
@@ -18,7 +18,7 @@ extern Texture_Array_List *setup_engine_textures(SDL_Renderer *renderer, char *r
     return NULL;
   }
 
-  Texture_Array_List *textures_list = malloc(sizeof(Texture_Array_List));
+  World_Objects_Container *textures_list = malloc(sizeof(World_Objects_Container));
   if (!textures_list)
   {
     free((void *)manifest_json_string);
@@ -43,7 +43,7 @@ extern Texture_Array_List *setup_engine_textures(SDL_Renderer *renderer, char *r
   return textures_list;
 }
 
-extern void cleanup_textures(Texture_Array_List *textures)
+extern void cleanup_textures(World_Objects_Container *textures)
 {
   if (!textures)
     return;
@@ -62,7 +62,7 @@ extern void cleanup_textures(Texture_Array_List *textures)
   free(textures);
 }
 
-static bool process_textures(SDL_Renderer *renderer, Texture_Array_List *out_array_list)
+static bool process_textures(SDL_Renderer *renderer, World_Objects_Container *out_array_list)
 {
   if (!renderer || !out_array_list)
     return false;
@@ -104,7 +104,7 @@ static bool process_textures(SDL_Renderer *renderer, Texture_Array_List *out_arr
   return true;
 }
 
-static bool parse_asset_manifest_json_string(Texture_Array_List *out_array_list, const char *json_string)
+static bool parse_asset_manifest_json_string(World_Objects_Container *out_array_list, const char *json_string)
 {
   cJSON *root = cJSON_Parse(json_string);
   if (!root)
@@ -131,7 +131,7 @@ static bool parse_asset_manifest_json_string(Texture_Array_List *out_array_list,
     return false;
   }
 
-  out_array_list->data = malloc(texture_count * sizeof(Texture *));
+  out_array_list->data = malloc(texture_count * sizeof(World_Object *));
   if (!out_array_list->data)
   {
     cJSON_Delete(root);
@@ -149,7 +149,7 @@ static bool parse_asset_manifest_json_string(Texture_Array_List *out_array_list,
   int index = 0;
   cJSON_ArrayForEach(texture, texture_data_array)
   {
-    Texture *current_texture = malloc(sizeof(Texture));
+    World_Object *current_texture = malloc(sizeof(World_Object));
     if (!current_texture)
     {
       cJSON_Delete(root);
@@ -177,7 +177,7 @@ static bool parse_asset_manifest_json_string(Texture_Array_List *out_array_list,
   return true;
 }
 
-static bool parse_texture_fields(Texture *texture, const cJSON *json)
+static bool parse_texture_fields(World_Object *texture, const cJSON *json)
 {
   cJSON *name = cJSON_GetObjectItemCaseSensitive(json, "name");
   cJSON *path = cJSON_GetObjectItemCaseSensitive(json, "path");
@@ -220,7 +220,7 @@ static bool parse_texture_fields(Texture *texture, const cJSON *json)
   return true;
 }
 
-static void cleanup_texture(Texture *texture)
+static void cleanup_texture(World_Object *texture)
 {
   if (!texture)
     return;

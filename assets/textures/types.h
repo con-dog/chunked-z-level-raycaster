@@ -2,30 +2,31 @@
 #define TEXTURES_TYPES_H
 
 #include <stdbool.h>
+#include <stddef.h>
 
 #include <SDL3/SDL_render.h>
 #include <SDL3/SDL_stdinc.h>
 
-typedef struct Texture
+typedef struct World_Object
 {
   char *name;
-  char *path;
+  char *src_directory;
+  char **frame_src_files;
   char *category;
   Uint8 surface_type;
+  Uint8 collision_mode;
   int expected_pixel_width;
   int expected_pixel_height;
   bool use_scale_mode_nearest;
-  bool is_collision_enabled;
-  SDL_Texture *texture;
-} Texture;
+  SDL_Texture **textures;
+  int current_frame_index;
+} World_Object;
 
-#include <stddef.h>
-
-typedef struct Texture_Array_List
+typedef struct World_Objects_Container
 {
-  Texture **data;
+  World_Object **data;
   size_t length;
-} Texture_Array_List;
+} World_Objects_Container;
 
 typedef const struct Pixel_Image_Texture_Asset
 {
