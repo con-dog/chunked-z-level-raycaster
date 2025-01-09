@@ -10,9 +10,9 @@
   },
   "data": [
     {
-      "name": "name",
-      "path": "path",
-      "category": "category",
+      "name": "brick-a",
+      "path": "assets/textures/64x64/bricks/brick-a.png",
+      "category": "bricks",
       "surface_type": "0b110",
       "expected_pixel_width": 64,
       "expected_pixel_height": 64,
