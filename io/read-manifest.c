@@ -1,9 +1,5 @@
-#include <ctype.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include "./read-manifest.h"
 
-// Main function to read the file
 extern char *read_asset_manifest_file(const char *filename)
 {
   FILE *file = fopen(filename, "r");
