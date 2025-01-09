@@ -1,0 +1,26 @@
+{
+  "manifest_version": 1,
+  "metadata": {
+    "name": "",
+    "description": "",
+    "version": "1.0.0",
+    "author": "",
+    "contact": "",
+    "homepage_url": ""
+  },
+  "data": [
+    {
+      "name": "name",
+      "path": "path",
+      "category": "category",
+      "surface_type": "0b110",
+      "expected_pixel_width": 64,
+      "expected_pixel_height": 64,
+      "scale_mode": true,
+      "is_collision_enabled": true
+    }
+  ],
+  "external_manifests": [
+    {"name": "...", "version": "", "path": "..."}
+  ]
+}

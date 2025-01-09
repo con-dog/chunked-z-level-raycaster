@@ -13,10 +13,38 @@ typedef struct Texture
   SDL_Texture *texture;
 } Texture;
 
+bool parse_binary_string(const char *str, uint8_t *result)
+{
+  uint8_t value = 0;
+  size_t bits = 0;
+
+  if (str[0] != '0' || str[1] != 'b')
+  {
+    return false;
+  }
+
+  for (const char *p = str + 2; *p; p++)
+  {
+    if (*p != '0' && *p != '1')
+    {
+      return false;
+    }
+    if (bits >= 8)
+    {
+      return false; // Overflow
+    }
+    value = (value << 1) | (uint8_t)(*p - '0');
+    bits++;
+  }
+
+  *result = value;
+  return true;
+}
+
 void parse_asset_manifest_json_string(const char *json_string)
 {
   const cJSON *texture = NULL;
-  const cJSON *textures = NULL;
+  const cJSON *texture_data_array = NULL;
   cJSON *root = cJSON_Parse(json_string);
   if (!root)
   {
@@ -28,11 +56,20 @@ void parse_asset_manifest_json_string(const char *json_string)
   }
 
   // Process data array
-  textures = cJSON_GetObjectItemCaseSensitive(root, "data");
-  int texture_count = cJSON_GetArraySize(textures);
+  texture_data_array = cJSON_GetObjectItemCaseSensitive(root, "data");
+  int texture_count = cJSON_GetArraySize(texture_data_array);
   printf("Array length is: %d\n", texture_count);
 
-  cJSON_ArrayForEach(texture, textures)
+  if (texture_count <= 0)
+  {
+    // TODO fail.
+  }
+
+  // Maybe pass this in as an out_param?
+  Texture *textures[texture_count];
+  int index = 0;
+
+  cJSON_ArrayForEach(texture, texture_data_array)
   {
     cJSON *name = cJSON_GetObjectItemCaseSensitive(texture, "name");
     cJSON *path = cJSON_GetObjectItemCaseSensitive(texture, "path");
@@ -43,13 +80,34 @@ void parse_asset_manifest_json_string(const char *json_string)
     cJSON *scale_mode = cJSON_GetObjectItemCaseSensitive(texture, "scale_mode");
     cJSON *is_collision_enabled = cJSON_GetObjectItemCaseSensitive(texture, "is_collision_enabled");
 
-    // validation
-    if (cJSON_IsString(name) && name->valuestring != NULL)
+    // TODO! validation for all members of object....
+    if (!(cJSON_IsString(name) && name->valuestring != NULL))
     {
     }
+
+    // TODO handle textures and texture pointer freeing
+    textures[index] = malloc(sizeof(Texture));
+
+    // After validation
+    {
+      textures[index]->name = strdup(name->valuestring);         // TODO! Handle allocation failures
+      textures[index]->path = strdup(path->valuestring);         // TODO! Handle allocation failures
+      textures[index]->category = strdup(category->valuestring); // TODO! Handle allocation failures
+      // textures[index]->surface_type = strdup(surface_type->valuestring); // TODO! Handle allocation failures
+      const char *binary_str = surface_type->valuestring;
+      Uint8 result;
+      parse_binary_string(binary_str, &result);
+      textures[index]->surface_type = result;
+      textures[index]->expected_pixel_height = expected_pixel_height->valuedouble;
+      textures[index]->expected_pixel_width = expected_pixel_width->valuedouble;
+      textures[index]->scale_mode = cJSON_IsTrue(scale_mode);
+      textures[index]->is_collision_enabled = cJSON_IsTrue(is_collision_enabled);
+    }
+
+    cJSON_Delete(root);
   }
 
-  cJSON_Delete(root);
+  printf("Texture 0 data %s\n%s\n%s\n%d\n%d\n", textures[0]->name, textures[0]->path, textures[0]->category, textures[0]->surface_type, textures[0]->scale_mode);
 }
 
 // void parse_texture_manifest()

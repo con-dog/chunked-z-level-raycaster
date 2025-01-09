@@ -1,6 +1,8 @@
 #ifndef TEXTURES_SETUP
 #define TEXTURES_SETUP
 
+#include <string.h>
+
 #include <cjson/cJSON.h>
 #include <SDL3/SDL_render.h>
 
