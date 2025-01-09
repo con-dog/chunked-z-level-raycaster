@@ -1,20 +1,8 @@
-surface_type is a binary string bit field
+# Location
 
-eg: `"0b110"` means `Ceiling & Wall`
+Keep all manifests in the manifests folder, in a flat structure.
 
-See the following table:
-```markdown
-| Ceiling | Wall | Floor | Surface Type           |
-|---------|------|-------|------------------------|
-| 0       | 0    | 0     | None                   |
-| 0       | 0    | 1     | Floor                  |
-| 0       | 1    | 0     | Wall                   |
-| 0       | 1    | 1     | Wall & Floor           |
-| 1       | 0    | 0     | Ceiling                |
-| 1       | 0    | 1     | Ceiling & Floor        |
-| 1       | 1    | 0     | Ceiling & Wall         |
-| 1       | 1    | 1     | Ceiling & Wall & Floor |
-```
+## Format
 
 ```json
 {
@@ -43,4 +31,24 @@ See the following table:
     {"name": "...", "version": "", "path": "..."}
   ]
 }
+```
+
+### Fields
+
+surface_type is a binary string bit field
+
+eg: `"0b110"` means `Ceiling & Wall`
+
+See the following table:
+```markdown
+| Ceiling | Wall | Floor | Surface Type           |
+|---------|------|-------|------------------------|
+| 0       | 0    | 0     | None                   |
+| 0       | 0    | 1     | Floor                  |
+| 0       | 1    | 0     | Wall                   |
+| 0       | 1    | 1     | Wall & Floor           |
+| 1       | 0    | 0     | Ceiling                |
+| 1       | 0    | 1     | Ceiling & Floor        |
+| 1       | 1    | 0     | Ceiling & Wall         |
+| 1       | 1    | 1     | Ceiling & Wall & Floor |
 ```
