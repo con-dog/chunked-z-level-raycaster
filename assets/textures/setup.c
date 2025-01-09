@@ -18,29 +18,29 @@ extern World_Objects_Container *setup_engine_textures(SDL_Renderer *renderer, ch
     return NULL;
   }
 
-  World_Objects_Container *textures_list = malloc(sizeof(World_Objects_Container));
-  if (!textures_list)
+  World_Objects_Container *world_objects_container = malloc(sizeof(World_Objects_Container));
+  if (!world_objects_container)
   {
     free((void *)manifest_json_string);
     return NULL;
   }
 
-  if (!parse_asset_manifest_json_string(textures_list, manifest_json_string))
+  if (!parse_asset_manifest_json_string(world_objects_container, manifest_json_string))
   {
     free((void *)manifest_json_string);
-    free(textures_list);
+    free(world_objects_container);
     return NULL;
   }
 
   free((void *)manifest_json_string);
 
-  if (!process_textures(renderer, textures_list))
+  if (!process_textures(renderer, world_objects_container))
   {
-    cleanup_textures(textures_list);
+    cleanup_textures(world_objects_container);
     return NULL;
   }
 
-  return textures_list;
+  return world_objects_container;
 }
 
 extern void cleanup_textures(World_Objects_Container *textures)
