@@ -8,7 +8,7 @@ typedef struct Texture
   Uint8 surface_type;
   int expected_pixel_width;
   int expected_pixel_height;
-  bool scale_mode;
+  bool use_scale_mode_nearest;
   bool is_collision_enabled;
   SDL_Texture *texture;
 } Texture;
@@ -77,7 +77,7 @@ void parse_asset_manifest_json_string(const char *json_string)
     cJSON *surface_type = cJSON_GetObjectItemCaseSensitive(texture, "surface_type");
     cJSON *expected_pixel_width = cJSON_GetObjectItemCaseSensitive(texture, "expected_pixel_width");
     cJSON *expected_pixel_height = cJSON_GetObjectItemCaseSensitive(texture, "expected_pixel_height");
-    cJSON *scale_mode = cJSON_GetObjectItemCaseSensitive(texture, "scale_mode");
+    cJSON *use_scale_mode_nearest = cJSON_GetObjectItemCaseSensitive(texture, "use_scale_mode_nearest");
     cJSON *is_collision_enabled = cJSON_GetObjectItemCaseSensitive(texture, "is_collision_enabled");
 
     // TODO! validation for all members of object....
@@ -100,14 +100,14 @@ void parse_asset_manifest_json_string(const char *json_string)
       textures[index]->surface_type = result;
       textures[index]->expected_pixel_height = expected_pixel_height->valuedouble;
       textures[index]->expected_pixel_width = expected_pixel_width->valuedouble;
-      textures[index]->scale_mode = cJSON_IsTrue(scale_mode);
+      textures[index]->use_scale_mode_nearest = cJSON_IsTrue(use_scale_mode_nearest);
       textures[index]->is_collision_enabled = cJSON_IsTrue(is_collision_enabled);
     }
 
     cJSON_Delete(root);
   }
 
-  printf("Texture 0 data %s\n%s\n%s\n%d\n%d\n", textures[0]->name, textures[0]->path, textures[0]->category, textures[0]->surface_type, textures[0]->scale_mode);
+  printf("Texture 0 data %s\n%s\n%s\n%d\n%d\n", textures[0]->name, textures[0]->path, textures[0]->category, textures[0]->surface_type, textures[0]->use_scale_mode_nearest);
 }
 
 // void parse_texture_manifest()

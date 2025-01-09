@@ -23,7 +23,7 @@ Keep all manifests in the manifests folder, in a flat structure.
       "surface_type": "0b110",
       "expected_pixel_width": 64,
       "expected_pixel_height": 64,
-      "scale_mode": true,
+      "use_scale_mode_nearest": true,
       "is_collision_enabled": true
     }
   ],

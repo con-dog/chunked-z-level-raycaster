@@ -13,12 +13,22 @@
       "name": "brick-a",
       "path": "assets/textures/64x64/bricks/brick-a.png",
       "category": "bricks",
-      "surface_type": "0b110",
+      "surface_type": "0b010",
       "expected_pixel_width": 64,
       "expected_pixel_height": 64,
-      "scale_mode": true,
+      "use_scale_mode_nearest": true,
       "is_collision_enabled": true
-    }
+    },
+    {
+      "name": "brick-b",
+      "path": "assets/textures/64x64/bricks/brick-b.png",
+      "category": "bricks",
+      "surface_type": "0b010",
+      "expected_pixel_width": 64,
+      "expected_pixel_height": 64,
+      "use_scale_mode_nearest": true,
+      "is_collision_enabled": true
+    },
   ],
   "external_manifests": [
     {"name": "...", "version": "", "path": "..."}
