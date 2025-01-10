@@ -19,7 +19,17 @@
       "expected_pixel_width": 64,
       "expected_pixel_height": 64,
       "use_scale_mode_nearest": true
+    },
+    {
+      "name": "overgrown-a",
+      "src_directory": "assets/textures/64x64/overgrown",
+      "frame_src_files": ["overgrown-a.png"],
+      "category": "overgrown",
+      "surface_type": "0b010",
+      "collision_mode": "0b010",
+      "expected_pixel_width": 64,
+      "expected_pixel_height": 64,
+      "use_scale_mode_nearest": true
     }
-
   ]
 }
