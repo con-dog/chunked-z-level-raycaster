@@ -415,23 +415,11 @@ void handle_player_movement(float delta_time)
 
 void update_display(void)
 {
-  SDL_SetRenderDrawColor(renderer, 30, 0, 30, 255); // White background
+  SDL_SetRenderDrawColor(renderer, 30, 0, 30, 255);
   SDL_RenderClear(renderer);
   draw_jagged_grid();
   draw_player();
   cast_rays_from_player();
-
-  // float center_weapon_x = floorf((WINDOW_W / 2) - (0.5f * shotgun_1.width));
-
-  // SDL_FRect weapon_rect = {
-  //     .x = center_weapon_x,
-  //     .y = WINDOW_H - (shotgun_1.height),
-  //     .w = shotgun_1.width,
-  //     .h = shotgun_1.height,
-  // };
-
-  // SDL_RenderTexture(renderer, shotgun_1.texture, NULL, &weapon_rect);
-
   SDL_RenderPresent(renderer);
 }
 
