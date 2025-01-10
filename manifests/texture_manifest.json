@@ -12,7 +12,7 @@
     {
       "name": "brick-a",
       "src_directory": "assets/textures/64x64/bricks",
-      "frame_src_files": ["brick-a.png"],
+      "frame_src_files": ["brick-a.png", "brick-b.png"],
       "category": "bricks",
       "surface_type": "0b010",
       "collision_mode": "0b010",
@@ -20,5 +20,6 @@
       "expected_pixel_height": 64,
       "use_scale_mode_nearest": true
     }
+
   ]
 }

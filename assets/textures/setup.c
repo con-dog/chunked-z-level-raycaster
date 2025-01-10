@@ -24,7 +24,7 @@ extern World_Objects_Container *setup_engine_textures(SDL_Renderer *renderer, ch
 
   free((void *)manifest_json_string);
 
-  if (!process_textures(renderer, world_objects_container))
+  if (!process_world_objects(renderer, world_objects_container))
   {
     cleanup_world_objects(world_objects_container);
     return NULL;
@@ -131,7 +131,7 @@ bool parse_frame_src_files(World_Object *world_object, cJSON *frame_src_files_ar
   world_object->textures.length = frame_count;
 
   // Initialize all pointers to NULL for safe cleanup
-  for (int i = 0; i <= frame_count; i++)
+  for (int i = 0; i < frame_count; i++)
   {
     world_object->frame_src_files.data[i] = NULL;
     world_object->textures.data[i] = NULL;
@@ -164,6 +164,10 @@ bool parse_frame_src_files(World_Object *world_object, cJSON *frame_src_files_ar
 
 bool parse_texture_fields(World_Object *world_object, const cJSON *json_object)
 {
+  world_object->name = NULL;
+  world_object->src_directory = NULL;
+  world_object->category = NULL;
+
   // Parse name
   cJSON *name = cJSON_GetObjectItemCaseSensitive(json_object, "name");
   if (!name || !cJSON_IsString(name))
@@ -249,9 +253,9 @@ bool parse_texture_fields(World_Object *world_object, const cJSON *json_object)
   return true;
 }
 
-bool process_textures(SDL_Renderer *renderer, World_Objects_Container *out_world_objects_container)
+bool process_world_objects(SDL_Renderer *renderer, World_Objects_Container *out_world_objects_container)
 {
-  if (!renderer || !out_world_objects_container)
+  if (!renderer || !out_world_objects_container || !out_world_objects_container->data)
   {
     return false;
   }

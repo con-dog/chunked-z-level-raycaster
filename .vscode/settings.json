@@ -12,7 +12,10 @@
     "constants.h": "c",
     "types.h": "c",
     "sdl_image.h": "c",
-    "__locale": "c"
+    "__locale": "c",
+    "string": "c",
+    "string_view": "c",
+    "array": "c"
   },
   "editor.semanticTokenColorCustomizations": {
     "rules": {

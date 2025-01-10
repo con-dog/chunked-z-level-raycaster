@@ -691,7 +691,7 @@ int main(int argc, char *argv[])
   floor_grid = read_grid_csv_file("./assets/levels/level-1-floor.csv");
 
   printf(
-      "length: %d\n"
+      "length: %zu\n"
       "category : %s\n"
       "collision mode : %d\n"
       "frame_index %d\n"
@@ -702,6 +702,7 @@ int main(int argc, char *argv[])
       "surface_type: %d\n"
       "use_scale_mode_nearest: %d\n"
       "frame_length: %d\n"
+      "frame_src_file_1: %s\n"
       "textures_length: %d\n",
       world_objects_container->length,
       world_objects_container->data[0]->category,
@@ -714,6 +715,7 @@ int main(int argc, char *argv[])
       world_objects_container->data[0]->surface_type,
       world_objects_container->data[0]->use_scale_mode_nearest,
       world_objects_container->data[0]->frame_src_files.length,
+      world_objects_container->data[0]->frame_src_files.data[1],
       world_objects_container->data[0]->textures.length);
 
   // brick_texture_init();
@@ -727,8 +729,6 @@ int main(int argc, char *argv[])
 
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
-
-  TTF_Quit();
 
   SDL_Quit();
 
