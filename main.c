@@ -8,31 +8,15 @@ SDL_Renderer *renderer;
 
 World_Objects_Container *world_objects_container;
 
-// Pixel_Image_Texture_Asset brick_a, brick_b, brick_c, brick_d;
-// Pixel_Image_Texture_Asset lava_a, lava_b, lava_c;
-// Pixel_Image_Texture_Asset mud_brick_a, mud_brick_b, mud_brick_c;
-// Pixel_Image_Texture_Asset overgrown_a, overgrown_b;
-// Pixel_Image_Texture_Asset water_b, water_c;
-// Pixel_Image_Texture_Asset wood_vertical;
+// typedef struct Weapon
+// {
+//   SDL_Texture *texture;
+//   int width;
+//   int height;
+//   float bobOffset; // for weapon bobbing
+// } Weapon;
 
-// SDL_Texture *brick_a_texture, *brick_b_texture, *brick_c_texture, *brick_d_texture;
-// SDL_Texture *lava_a_texture, *lava_b_texture, *lava_c_texture;
-// SDL_Texture *mud_brick_a_texture, *mud_brick_b_texture, *mud_brick_c_texture;
-// SDL_Texture *overgrown_a_texture, *overgrown_b_texture;
-// SDL_Texture *water_b_texture, *water_c_texture;
-// SDL_Texture *wood_vertical_texture;
-
-// SDL_Texture *shotgun_1_texture;
-
-typedef struct Weapon
-{
-  SDL_Texture *texture;
-  int width;
-  int height;
-  float bobOffset; // for weapon bobbing
-} Weapon;
-
-Weapon shotgun_1;
+// Weapon shotgun_1;
 
 Jagged_Grid *floor_grid;
 Jagged_Grid *wall_grid;
@@ -296,8 +280,8 @@ static void cast_rays_from_player(void)
           .w = vertical_strip_width,
           .h = 1};
 
-      Uint8 floor_brightness = (Uint8)(255.0f * (1.0f - log10f(1.0f + (12.0f * distance / (64 * 16)))));
-      Uint8 floor_brightness_b = (Uint8)(255.0f * (1.0f - log10f(1.0f + (3.0f * distance / (64 * 16)))));
+      // Uint8 floor_brightness = (Uint8)(255.0f * (1.0f - log10f(1.0f + (12.0f * distance / (64 * 16)))));
+      // Uint8 floor_brightness_b = (Uint8)(255.0f * (1.0f - log10f(1.0f + (3.0f * distance / (64 * 16)))));
 
       // Calculate brightness based on distance (similar to walls)
       // SDL_SetTextureColorMod(wood_vertical_texture, floor_brightness, floor_brightness, floor_brightness);
@@ -305,7 +289,7 @@ static void cast_rays_from_player(void)
       // SDL_SetTextureColorMod(lava_b_texture, floor_brightness_b, floor_brightness, floor_brightness);
       // SDL_SetTextureColorMod(lava_c_texture, floor_brightness_b, floor_brightness, floor_brightness);
 
-      // SDL_RenderTexture(renderer, wood_vertical_texture, &src_rect, &dst_rect);
+      SDL_RenderTexture(renderer, world_objects_container->data[0]->textures.data[0], &src_rect, &dst_rect);
       // switch (floor_grid->rows[floor_grid_y].elements[floor_grid_x])
       // {
       // case 'A':
@@ -384,8 +368,15 @@ static void cast_rays_from_player(void)
       texture_x = roundf(wall_x_offset_normalized * TEXTURE_PIXEL_W);
     }
 
+    SDL_FRect src_rect = {
+        .x = texture_x,
+        .y = 0,
+        .w = 1,
+        .h = TEXTURE_PIXEL_H};
+    SDL_RenderTexture(renderer, world_objects_container->data[0]->textures.data[0], &src_rect, &wall_rect);
+
     // Brightness transformations
-    Uint8 brightness = (Uint8)(255.0f * (1.0f - log10f(1.0f + (6.0f * perpendicular_distance / (8 * 64)))));
+    // Uint8 brightness = (Uint8)(255.0f * (1.0f - log10f(1.0f + (6.0f * perpendicular_distance / (8 * 64)))));
     // SDL_SetTextureColorMod(brick_a_texture, brightness, brightness, brightness);
     // SDL_SetTextureColorMod(brick_b_texture, brightness, brightness, brightness);
     // SDL_SetTextureColorMod(brick_c_texture, brightness, brightness, brightness);
@@ -639,7 +630,7 @@ void update_display(void)
   SDL_RenderClear(renderer);
   draw_jagged_grid();
   draw_player();
-  // cast_rays_from_player();
+  cast_rays_from_player();
 
   // float center_weapon_x = floorf((WINDOW_W / 2) - (0.5f * shotgun_1.width));
 
@@ -690,41 +681,40 @@ int main(int argc, char *argv[])
   wall_grid = read_grid_csv_file("./assets/levels/level-1-wall.csv");
   floor_grid = read_grid_csv_file("./assets/levels/level-1-floor.csv");
 
-  printf(
-      "length: %zu\n"
-      "category : %s\n"
-      "collision mode : %d\n"
-      "frame_index %d\n"
-      "pixel_height: %d\n"
-      "pixel_width: %d\n"
-      "name : %s\n"
-      "src_directory:  %s\n"
-      "surface_type: %d\n"
-      "use_scale_mode_nearest: %d\n"
-      "frame_length: %d\n"
-      "frame_src_file_1: %s\n"
-      "textures_length: %d\n",
-      world_objects_container->length,
-      world_objects_container->data[0]->category,
-      world_objects_container->data[0]->collision_mode,
-      world_objects_container->data[0]->current_frame_index,
-      world_objects_container->data[0]->expected_pixel_height,
-      world_objects_container->data[0]->expected_pixel_width,
-      world_objects_container->data[0]->name,
-      world_objects_container->data[0]->src_directory,
-      world_objects_container->data[0]->surface_type,
-      world_objects_container->data[0]->use_scale_mode_nearest,
-      world_objects_container->data[0]->frame_src_files.length,
-      world_objects_container->data[0]->frame_src_files.data[1],
-      world_objects_container->data[0]->textures.length);
-
-  // brick_texture_init();
+  // printf(
+  //     "length: %zu\n"
+  //     "category : %s\n"
+  //     "collision mode : %d\n"
+  //     "frame_index %d\n"
+  //     "pixel_height: %d\n"
+  //     "pixel_width: %d\n"
+  //     "name : %s\n"
+  //     "src_directory:  %s\n"
+  //     "surface_type: %d\n"
+  //     "use_scale_mode_nearest: %d\n"
+  //     "frame_length: %d\n"
+  //     "frame_src_file_1: %s\n"
+  //     "textures_length: %d\n",
+  //     world_objects_container->length,
+  //     world_objects_container->data[0]->category,
+  //     world_objects_container->data[0]->collision_mode,
+  //     world_objects_container->data[0]->current_frame_index,
+  //     world_objects_container->data[0]->expected_pixel_height,
+  //     world_objects_container->data[0]->expected_pixel_width,
+  //     world_objects_container->data[0]->name,
+  //     world_objects_container->data[0]->src_directory,
+  //     world_objects_container->data[0]->surface_type,
+  //     world_objects_container->data[0]->use_scale_mode_nearest,
+  //     world_objects_container->data[0]->frame_src_files.length,
+  //     world_objects_container->data[0]->frame_src_files.data[1],
+  //     world_objects_container->data[0]->textures.length);
 
   player_init();
   keyboard_state = SDL_GetKeyboardState(NULL);
   run_game_loop();
 
   free_jagged_grid(wall_grid);
+  free_jagged_grid(floor_grid);
   cleanup_world_objects(world_objects_container);
 
   SDL_DestroyRenderer(renderer);
