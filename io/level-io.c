@@ -96,6 +96,7 @@ static void process_row(char *line, Jagged_Row *row)
   {
     row->length = 0;
     row->world_object_names = NULL;
+    printf("Setting to NULL line 99");
     return;
   }
 
@@ -103,6 +104,7 @@ static void process_row(char *line, Jagged_Row *row)
   row->world_object_names = malloc(row->length * sizeof(Object_Name));
   if (!row->world_object_names)
   {
+    printf("Setting to length 0 line 107");
     row->length = 0;
     return;
   }
@@ -136,6 +138,7 @@ static void process_row(char *line, Jagged_Row *row)
       // Memory allocation failed, clean up
       for (size_t i = 0; i < current_pos; i++)
       {
+        printf("Memory fail line 141");
         free(row->world_object_names[i]);
       }
       free(row->world_object_names);

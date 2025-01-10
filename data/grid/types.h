@@ -9,7 +9,7 @@ typedef struct Jagged_Row
   Object_Name *world_object_names; // Array of char *s
 } Jagged_Row;
 
-typedef struct
+typedef struct Jagged_Grid
 {
   size_t length; // row count
   Jagged_Row *rows;
