@@ -3,6 +3,7 @@
 static void process_row(char *line, Jagged_Row *row);
 
 // Main function to read and create the grid
+// TODO ! Strip empty final rows if there are any
 extern Jagged_Grid *read_grid_csv_file(const char *filename)
 {
   FILE *file = fopen(filename, "r");
@@ -21,18 +22,18 @@ extern Jagged_Grid *read_grid_csv_file(const char *filename)
   }
 
   // First pass: count the number of rows
-  grid->num_rows = 0;
+  grid->length = 0;
   char c;
   while ((c = fgetc(file)) != EOF)
   {
     if (c == '\n')
-      grid->num_rows++;
+      grid->length++;
   }
-  if (c != '\n' && grid->num_rows > 0)
-    grid->num_rows++; // Handle last line without newline
+  if (c != '\n' && grid->length > 0)
+    grid->length++; // Handle last line without newline
 
   // Allocate rows array
-  grid->rows = malloc(grid->num_rows * sizeof(Jagged_Row));
+  grid->rows = malloc(grid->length * sizeof(Jagged_Row));
   if (!grid->rows)
   {
     free(grid);
@@ -50,7 +51,7 @@ extern Jagged_Grid *read_grid_csv_file(const char *filename)
   int row_index = 0;
 
   // Read and process each line
-  while ((read = getline(&line, &len, file)) != -1 && row_index < grid->num_rows)
+  while ((read = getline(&line, &len, file)) != -1 && row_index < grid->length)
   {
     process_row(line, &grid->rows[row_index]);
     row_index++;
@@ -61,25 +62,114 @@ extern Jagged_Grid *read_grid_csv_file(const char *filename)
   return grid;
 }
 
-// Cleanup function
+static void process_row(char *line, Jagged_Row *row)
+{
+  int last_content = -1;
+  int current_pos = 0;
+  int has_content = 0;
+
+  char *line_copy = strdup(line);
+  char *pos = line_copy;
+  char *token;
+
+  // First pass: find last non-empty position
+  while ((token = strsep(&pos, ",")) != NULL)
+  {
+    // Trim whitespace and newline
+    while (*token && (isspace(*token) || *token == '\n'))
+      token++;
+    char *end = token + strlen(token);
+    while (end > token && (isspace(*(end - 1)) || *(end - 1) == '\n'))
+      end--;
+    *end = '\0';
+
+    if (*token)
+    {
+      has_content = 1;
+      last_content = current_pos;
+    }
+    current_pos++;
+  }
+  free(line_copy);
+
+  if (!has_content)
+  {
+    row->length = 0;
+    row->world_object_names = NULL;
+    return;
+  }
+
+  row->length = last_content + 1;
+  row->world_object_names = malloc(row->length * sizeof(Object_Name));
+  if (!row->world_object_names)
+  {
+    row->length = 0;
+    return;
+  }
+
+  // Second pass: store strings
+  line_copy = strdup(line);
+  pos = line_copy;
+  current_pos = 0;
+
+  while ((token = strsep(&pos, ",")) != NULL && current_pos < row->length)
+  {
+    // Trim whitespace and newline
+    while (*token && (isspace(*token) || *token == '\n'))
+      token++;
+    char *end = token + strlen(token);
+    while (end > token && (isspace(*(end - 1)) || *(end - 1) == '\n'))
+      end--;
+    *end = '\0';
+
+    if (!*token)
+    {
+      row->world_object_names[current_pos] = strdup("EMPTY");
+    }
+    else
+    {
+      row->world_object_names[current_pos] = strdup(token);
+    }
+
+    if (!row->world_object_names[current_pos])
+    {
+      // Memory allocation failed, clean up
+      for (size_t i = 0; i < current_pos; i++)
+      {
+        free(row->world_object_names[i]);
+      }
+      free(row->world_object_names);
+      row->world_object_names = NULL;
+      row->length = 0;
+      free(line_copy);
+      return;
+    }
+    current_pos++;
+  }
+
+  free(line_copy);
+}
+
 extern void free_jagged_grid(Jagged_Grid *grid)
 {
   if (!grid)
     return;
 
-  for (int i = 0; i < grid->num_rows; i++)
+  for (size_t i = 0; i < grid->length; i++)
   {
-    if (grid->rows[i].elements)
+    if (grid->rows[i].world_object_names)
     {
-      free(grid->rows[i].elements);
+      for (size_t j = 0; j < grid->rows[i].length; j++)
+      {
+        free(grid->rows[i].world_object_names[j]);
+      }
+      free(grid->rows[i].world_object_names);
     }
   }
-
   free(grid->rows);
   free(grid);
 }
 
-// Debug printing function
 extern void print_jagged_grid(const Jagged_Grid *grid)
 {
   if (!grid)
@@ -88,18 +178,16 @@ extern void print_jagged_grid(const Jagged_Grid *grid)
     return;
   }
 
-  printf("Grid has %d rows:\n", grid->num_rows);
-  for (int i = 0; i < grid->num_rows; i++)
+  printf("Grid has %zu rows:\n", grid->length);
+  for (size_t i = 0; i < grid->length; i++)
   {
-    printf("Row %d:  length=%d, elements=",
-           i, grid->rows[i].length);
+    printf("Row %zu: length=%zu, elements=", i, grid->rows[i].length);
 
-    // Print elements if they exist
-    if (grid->rows[i].elements)
+    if (grid->rows[i].world_object_names)
     {
-      for (int j = 0; j < grid->rows[i].length; j++)
+      for (size_t j = 0; j < grid->rows[i].length; j++)
       {
-        printf("%c", grid->rows[i].elements[j]);
+        printf("%s", grid->rows[i].world_object_names[j]);
         if (j < grid->rows[i].length - 1)
         {
           printf(",");
@@ -108,78 +196,4 @@ extern void print_jagged_grid(const Jagged_Grid *grid)
     }
     printf("\n");
   }
-}
-
-static void process_row(char *line, Jagged_Row *row)
-{
-  // First pass: find last letter position and check if row has any content
-  int last_letter = -1;
-  int has_content = 0;
-  int current_pos = 0;
-
-  // Create a copy of the line for first pass
-  char *line_copy = strdup(line);
-  char *pos = line_copy;
-  char *token;
-
-  // Custom tokenization to handle empty cells
-  while ((token = strsep(&pos, ",")) != NULL)
-  {
-    // Strip whitespace and newline
-    while (*token && (isspace(*token) || *token == '\n'))
-      token++;
-
-    // Check if it's a non-empty cell
-    if (*token)
-    { // If there's any character after whitespace
-      has_content = 1;
-      last_letter = current_pos;
-    }
-    current_pos++;
-  }
-  free(line_copy);
-
-  // If the row has content, start from position 0
-  // If no content, create empty row
-  if (!has_content)
-  {
-    row->length = 0;
-    row->elements = NULL;
-    return;
-  }
-
-  // Always start from position 0 if we have content
-  row->length = last_letter + 1; // +1 because last_letter is 0-based
-
-  // Allocate array
-  row->elements = malloc(row->length * sizeof(Wall_Type));
-  if (!row->elements)
-  {
-    row->length = 0;
-    return;
-  }
-
-  // Second pass: fill the array
-  line_copy = strdup(line);
-  pos = line_copy;
-  current_pos = 0;
-
-  while ((token = strsep(&pos, ",")) != NULL && current_pos < row->length)
-  {
-    // Strip whitespace and newline
-    while (*token && (isspace(*token) || *token == '\n'))
-      token++;
-
-    if (!*token)
-    { // Empty cell
-      row->elements[current_pos] = 'z';
-    }
-    else
-    {
-      row->elements[current_pos] = *token;
-    }
-    current_pos++;
-  }
-
-  free(line_copy);
 }

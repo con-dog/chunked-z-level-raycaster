@@ -91,7 +91,6 @@ static void cast_rays_from_player(void)
     Point_1D world_next_wall_intersection_x;
     Point_1D world_next_wall_intersection_y;
     Wall_Surface surface_hit;
-    Wall_Type current_grid_cell_value;
     Jagged_Row *current_grid_row;
 
     bool is_surface_hit = false;
@@ -122,11 +121,11 @@ static void cast_rays_from_player(void)
       ray.end.y = world_next_wall_intersection_y;
 
       current_grid_row = &wall_grid->rows[grid_y];
-      current_grid_cell_value = current_grid_row->elements[grid_x];
 
-      if (current_grid_cell_value != 'z')
+      if (strcmp(current_grid_row->world_object_names[grid_x], EMPTY_GRID_CELL_VALUE) != 0)
       {
         is_surface_hit = 1;
+        printf("Surface hit");
         break;
       }
     }
@@ -266,7 +265,7 @@ void draw_player(void)
 
 static void draw_jagged_grid(void)
 {
-  for (int i = 0; i < wall_grid->num_rows; i++)
+  for (size_t i = 0; i < wall_grid->length; i++)
   {
 
     Jagged_Row *current_row = &wall_grid->rows[i];
@@ -276,14 +275,14 @@ static void draw_jagged_grid(void)
     int black_count = 0;
     int white_count = 0;
     float offset = 0.1f;
-    for (int j = 0; j < current_row->length; j++)
+    for (size_t j = 0; j < current_row->length; j++)
     {
       SDL_FRect rect;
       rect.h = GRID_CELL_SIZE * (1.0f - offset);
       rect.w = GRID_CELL_SIZE * (1.0f - offset);
       rect.x = (j * GRID_CELL_SIZE) + (GRID_CELL_SIZE * offset / 2);
       rect.y = (i * GRID_CELL_SIZE) + (GRID_CELL_SIZE * offset / 2);
-      if (wall_grid->rows[i].elements[j] != 'z')
+      if (strcmp(wall_grid->rows[i].world_object_names[j], EMPTY_GRID_CELL_VALUE) != 0)
       {
         black_rects[black_count++] = rect;
       }
@@ -360,13 +359,16 @@ void move_player(float direction, bool is_sprinting, float delta_time)
   Jagged_Row *bl_grid_cell_row = &wall_grid->rows[player_hit_box_grid.bl.y];
   Jagged_Row *br_grid_cell_row = &wall_grid->rows[player_hit_box_grid.br.y];
 
-  Wall_Type tl_grid_cell_value = tl_grid_cell_row->elements[player_hit_box_grid.tl.x];
-  Wall_Type tr_grid_cell_value = tr_grid_cell_row->elements[player_hit_box_grid.tr.x];
-  Wall_Type bl_grid_cell_value = bl_grid_cell_row->elements[player_hit_box_grid.bl.x];
-  Wall_Type br_grid_cell_value = br_grid_cell_row->elements[player_hit_box_grid.br.x];
+  const Object_Name tl_grid_cell_value = tl_grid_cell_row->world_object_names[player_hit_box_grid.tl.x];
+  const Object_Name tr_grid_cell_value = tr_grid_cell_row->world_object_names[player_hit_box_grid.tr.x];
+  const Object_Name bl_grid_cell_value = bl_grid_cell_row->world_object_names[player_hit_box_grid.bl.x];
+  const Object_Name br_grid_cell_value = br_grid_cell_row->world_object_names[player_hit_box_grid.br.x];
 
-  if (tl_grid_cell_value == 'z' && tr_grid_cell_value == 'z' &&
-      bl_grid_cell_value == 'z' && br_grid_cell_value == 'z')
+  if (
+      (strcmp(tl_grid_cell_value, EMPTY_GRID_CELL_VALUE) == 0) &&
+      (strcmp(tr_grid_cell_value, EMPTY_GRID_CELL_VALUE) == 0) &&
+      (strcmp(bl_grid_cell_value, EMPTY_GRID_CELL_VALUE) == 0) &&
+      (strcmp(br_grid_cell_value, EMPTY_GRID_CELL_VALUE) == 0))
   {
     player.rect.x = new_pos.x;
     player.rect.y = new_pos.y;
@@ -448,15 +450,16 @@ void run_game_loop(void)
   }
 }
 
-int main(int argc, char *argv[])
+int main()
 {
   const char *title = "2.5D Raycasting Game Engine";
 
   setup_sdl(title, WINDOW_W, WINDOW_H, SDL_WINDOW_RESIZABLE, &window, &renderer);
   world_objects_container = setup_engine_textures(renderer, "./manifests/texture_manifest.json");
 
-  wall_grid = read_grid_csv_file("./assets/levels/level-1-wall.csv");
-  floor_grid = read_grid_csv_file("./assets/levels/level-1-floor.csv");
+  wall_grid = read_grid_csv_file("./assets/levels/1/level-1-walls.csv");
+  print_jagged_grid(wall_grid);
+  // floor_grid = read_grid_csv_file("./assets/levels/level-1-floor.csv");
 
   // printf(
   //     "length: %zu\n"
@@ -488,10 +491,10 @@ int main(int argc, char *argv[])
 
   player_init();
   keyboard_state = SDL_GetKeyboardState(NULL);
-  run_game_loop();
+  // run_game_loop();
 
   free_jagged_grid(wall_grid);
-  free_jagged_grid(floor_grid);
+  // free_jagged_grid(floor_grid);
   cleanup_world_objects(world_objects_container);
 
   SDL_DestroyRenderer(renderer);
