@@ -125,7 +125,6 @@ static void cast_rays_from_player(void)
       if (strcmp(current_grid_row->world_object_names[grid_x], EMPTY_GRID_CELL_VALUE) != 0)
       {
         is_surface_hit = 1;
-        printf("Surface hit");
         break;
       }
     }
@@ -491,7 +490,7 @@ int main()
 
   player_init();
   keyboard_state = SDL_GetKeyboardState(NULL);
-  // run_game_loop();
+  run_game_loop();
 
   free_jagged_grid(wall_grid);
   // free_jagged_grid(floor_grid);
