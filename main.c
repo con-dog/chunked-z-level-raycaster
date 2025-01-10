@@ -187,7 +187,14 @@ static void cast_rays_from_player(void)
       /*
        * Texture case handling
        */
-
+      // for (size_t i = 0; i < world_objects_container->length; i++)
+      // {
+      //   if (strcmp(current_grid_row->world_object_names[grid_x], world_objects_container->data[i]->name) == 0)
+      //   {
+      //     SDL_RenderTexture(renderer, world_objects_container->data[i]->textures.data[0], &src_rect, &dst_rect);
+      //     break;
+      //   }
+      // }
       // Uint8 floor_brightness = (Uint8)(255.0f * (1.0f - log10f(1.0f + (12.0f * distance / (64 * 16)))));
       // Uint8 floor_brightness_b = (Uint8)(255.0f * (1.0f - log10f(1.0f + (3.0f * distance / (64 * 16)))));
 
@@ -196,7 +203,9 @@ static void cast_rays_from_player(void)
       // SDL_SetTextureColorMod(lava_a_texture, floor_brightness_b, floor_brightness, floor_brightness);
       // SDL_SetTextureColorMod(lava_b_texture, floor_brightness_b, floor_brightness, floor_brightness);
       // SDL_SetTextureColorMod(lava_c_texture, floor_brightness_b, floor_brightness, floor_brightness);
-      SDL_RenderTexture(renderer, world_objects_container->data[0]->textures.data[0], &src_rect, &dst_rect);
+
+      // SDL_RenderTexture(renderer, world_objects_container->data[0]->textures.data[0], &src_rect, &dst_rect);
+      // Search in world-objects
     }
 
     /*
@@ -240,6 +249,18 @@ static void cast_rays_from_player(void)
     /*
      * Texture case handling
      */
+
+    /*
+     * Texture case handling
+     */
+    for (size_t i = 0; i < world_objects_container->length; i++)
+    {
+      if (strcmp(current_grid_row->world_object_names[grid_x], world_objects_container->data[i]->name) == 0)
+      {
+        SDL_RenderTexture(renderer, world_objects_container->data[i]->textures.data[0], &src_rect, &wall_rect);
+        break;
+      }
+    }
     // Brightness transformations
     // Uint8 brightness = (Uint8)(255.0f * (1.0f - log10f(1.0f + (6.0f * perpendicular_distance / (8 * 64)))));
     // SDL_SetTextureColorMod(brick_a_texture, brightness, brightness, brightness);
@@ -251,7 +272,7 @@ static void cast_rays_from_player(void)
     // SDL_SetTextureColorMod(mud_brick_c_texture, brightness, brightness, brightness);
     // SDL_SetTextureColorMod(overgrown_a_texture, brightness, brightness, brightness);
     // SDL_SetTextureColorMod(overgrown_b_texture, brightness, brightness, brightness);
-    SDL_RenderTexture(renderer, world_objects_container->data[0]->textures.data[0], &src_rect, &wall_rect);
+    // SDL_RenderTexture(renderer, world_objects_container->data[0]->textures.data[0], &src_rect, &wall_rect);
   }
 }
 
@@ -418,8 +439,8 @@ void update_display(void)
 {
   SDL_SetRenderDrawColor(renderer, 30, 0, 30, 255);
   SDL_RenderClear(renderer);
-  draw_jagged_grid();
-  draw_player();
+  // draw_jagged_grid();
+  // draw_player();
   cast_rays_from_player();
   SDL_RenderPresent(renderer);
 }
