@@ -690,6 +690,32 @@ int main(int argc, char *argv[])
   wall_grid = read_grid_csv_file("./assets/levels/level-1-wall.csv");
   floor_grid = read_grid_csv_file("./assets/levels/level-1-floor.csv");
 
+  printf(
+      "length: %d\n"
+      "category : %s\n"
+      "collision mode : %d\n"
+      "frame_index %d\n"
+      "pixel_height: %d\n"
+      "pixel_width: %d\n"
+      "name : %s\n"
+      "src_directory:  %s\n"
+      "surface_type: %d\n"
+      "use_scale_mode_nearest: %d\n"
+      "frame_length: %d\n"
+      "textures_length: %d\n",
+      world_objects_container->length,
+      world_objects_container->data[0]->category,
+      world_objects_container->data[0]->collision_mode,
+      world_objects_container->data[0]->current_frame_index,
+      world_objects_container->data[0]->expected_pixel_height,
+      world_objects_container->data[0]->expected_pixel_width,
+      world_objects_container->data[0]->name,
+      world_objects_container->data[0]->src_directory,
+      world_objects_container->data[0]->surface_type,
+      world_objects_container->data[0]->use_scale_mode_nearest,
+      world_objects_container->data[0]->frame_src_files.length,
+      world_objects_container->data[0]->textures.length);
+
   // brick_texture_init();
 
   player_init();
@@ -697,7 +723,7 @@ int main(int argc, char *argv[])
   run_game_loop();
 
   free_jagged_grid(wall_grid);
-  cleanup_textures(world_objects_container);
+  cleanup_world_objects(world_objects_container);
 
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);

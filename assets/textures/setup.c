@@ -1,15 +1,5 @@
 #include "./setup.h"
 
-static bool parse_asset_manifest_json_string(World_Objects_Container *out_array_list, const char *json_string);
-static bool parse_texture_fields(World_Object *texture, const cJSON *json);
-static void cleanup_texture(World_Object *texture);
-static bool validate_texture_fields(const cJSON *name, const cJSON *path,
-                                    const cJSON *category, const cJSON *surface_type,
-                                    const cJSON *width, const cJSON *height);
-static bool parse_binary_string(const char *str, uint8_t *result);
-
-static bool process_textures(SDL_Renderer *renderer, World_Objects_Container *out_array_list);
-
 extern World_Objects_Container *setup_engine_textures(SDL_Renderer *renderer, char *root_manifest_file)
 {
   const char *manifest_json_string = read_asset_manifest_file(root_manifest_file);
@@ -36,78 +26,17 @@ extern World_Objects_Container *setup_engine_textures(SDL_Renderer *renderer, ch
 
   if (!process_textures(renderer, world_objects_container))
   {
-    cleanup_textures(world_objects_container);
+    cleanup_world_objects(world_objects_container);
     return NULL;
   }
 
   return world_objects_container;
 }
 
-extern void cleanup_textures(World_Objects_Container *textures)
-{
-  if (!textures)
-    return;
-  if (textures->data)
-  {
-    for (size_t i = 0; i < textures->length; i++)
-    {
-      if (textures->data[i])
-      {
-        cleanup_texture(textures->data[i]);
-        free(textures->data[i]);
-      }
-    }
-    free(textures->data);
-  }
-  free(textures);
-}
-
-static bool process_textures(SDL_Renderer *renderer, World_Objects_Container *out_array_list)
-{
-  if (!renderer || !out_array_list)
-    return false;
-
-  for (int i = 0; i < out_array_list->length; i++)
-  {
-    SDL_Surface *temp_surface = IMG_Load(out_array_list->data[i]->path);
-    if (!temp_surface)
-    {
-      fprintf(stderr, "Failed to load image %s\n",
-              out_array_list->data[i]->path);
-      return false;
-    }
-
-    SDL_Texture *temp_texture = SDL_CreateTextureFromSurface(renderer, temp_surface);
-    SDL_DestroySurface(temp_surface);
-
-    if (!temp_texture)
-    {
-      fprintf(stderr, "Failed to create texture from %s: %s\n",
-              out_array_list->data[i]->path, SDL_GetError());
-      return false;
-    }
-
-    SDL_ScaleMode scale_mode = out_array_list->data[i]->use_scale_mode_nearest
-                                   ? SDL_SCALEMODE_NEAREST
-                                   : SDL_SCALEMODE_LINEAR;
-
-    if (!SDL_SetTextureScaleMode(temp_texture, scale_mode))
-    {
-      fprintf(stderr, "Failed to set texture scale mode: %s\n", SDL_GetError());
-      SDL_DestroyTexture(temp_texture);
-      return false;
-    }
-
-    out_array_list->data[i]->texture = temp_texture;
-  }
-
-  return true;
-}
-
-static bool parse_asset_manifest_json_string(World_Objects_Container *out_array_list, const char *json_string)
+bool parse_asset_manifest_json_string(World_Objects_Container *out_world_objects_container, const char *json_string)
 {
   cJSON *root = cJSON_Parse(json_string);
-  if (!root)
+  if (!root) // TODO ! Move to validation func
   {
     const char *error = cJSON_GetErrorPtr();
     if (error)
@@ -117,247 +46,333 @@ static bool parse_asset_manifest_json_string(World_Objects_Container *out_array_
     return false;
   }
 
-  cJSON *texture_data_array = cJSON_GetObjectItemCaseSensitive(root, "data");
-  if (!texture_data_array || !cJSON_IsArray(texture_data_array))
+  cJSON *world_object_data = cJSON_GetObjectItemCaseSensitive(root, "data");
+  if (!world_object_data || !cJSON_IsArray(world_object_data)) // TODO ! Move to validation func
   {
     cJSON_Delete(root);
     return false;
   }
 
-  int texture_count = cJSON_GetArraySize(texture_data_array);
-  if (texture_count <= 0)
+  int world_object_count = cJSON_GetArraySize(world_object_data);
+  if (world_object_count <= 0) // TODO ! Move to validation func
   {
     cJSON_Delete(root);
     return false;
   }
 
-  out_array_list->data = malloc(texture_count * sizeof(World_Object *));
-  if (!out_array_list->data)
+  out_world_objects_container->data = malloc(world_object_count * sizeof(World_Object *));
+  if (!out_world_objects_container->data) // TODO ! Move to validation func
   {
     cJSON_Delete(root);
     return false;
   }
-  out_array_list->length = texture_count;
+  out_world_objects_container->length = world_object_count;
 
   // Initialize all pointers to NULL for safe cleanup on failure
-  for (int i = 0; i < texture_count; i++)
+  for (int i = 0; i < world_object_count; i++)
   {
-    out_array_list->data[i] = NULL;
+    out_world_objects_container->data[i] = NULL;
   }
 
-  cJSON *texture = NULL;
-  int index = 0;
-  cJSON_ArrayForEach(texture, texture_data_array)
+  cJSON *world_object = NULL;
+  int world_object_index = 0;
+  cJSON_ArrayForEach(world_object, world_object_data)
   {
-    World_Object *current_texture = malloc(sizeof(World_Object));
-    if (!current_texture)
+    World_Object *current_world_object = malloc(sizeof(World_Object));
+    if (!current_world_object) // TODO ! Move to validation func
     {
       cJSON_Delete(root);
-      cleanup_textures(out_array_list);
+      cleanup_world_objects(out_world_objects_container);
       return false;
     }
-    out_array_list->data[index] = current_texture;
+    out_world_objects_container->data[world_object_index] = current_world_object;
 
-    // Initialize texture fields to NULL/0
-    current_texture->name = NULL;
-    current_texture->path = NULL;
-    current_texture->category = NULL;
-    current_texture->texture = NULL;
-
-    if (!parse_texture_fields(current_texture, texture))
+    if (!parse_texture_fields(current_world_object, world_object))
     {
       cJSON_Delete(root);
-      cleanup_textures(out_array_list);
+      cleanup_world_objects(out_world_objects_container);
       return false;
     }
-    index++;
+
+    world_object_index++;
   }
 
   cJSON_Delete(root);
   return true;
 }
 
-static bool parse_texture_fields(World_Object *texture, const cJSON *json)
+bool parse_frame_src_files(World_Object *world_object, cJSON *frame_src_files_array)
 {
-  cJSON *name = cJSON_GetObjectItemCaseSensitive(json, "name");
-  cJSON *path = cJSON_GetObjectItemCaseSensitive(json, "path");
-  cJSON *category = cJSON_GetObjectItemCaseSensitive(json, "category");
-  cJSON *surface_type = cJSON_GetObjectItemCaseSensitive(json, "surface_type");
-  cJSON *expected_pixel_width = cJSON_GetObjectItemCaseSensitive(json, "expected_pixel_width");
-  cJSON *expected_pixel_height = cJSON_GetObjectItemCaseSensitive(json, "expected_pixel_height");
-  cJSON *use_scale_mode_nearest = cJSON_GetObjectItemCaseSensitive(json, "use_scale_mode_nearest");
-  cJSON *is_collision_enabled = cJSON_GetObjectItemCaseSensitive(json, "is_collision_enabled");
-
-  if (!validate_texture_fields(name, path, category, surface_type,
-                               expected_pixel_width, expected_pixel_height))
+  if (!frame_src_files_array || !cJSON_IsArray(frame_src_files_array))
   {
     return false;
   }
 
-  texture->name = strdup(name->valuestring);
-  texture->path = strdup(path->valuestring);
-  texture->category = strdup(category->valuestring);
-
-  if (!texture->name || !texture->path || !texture->category)
-  {
-    cleanup_texture(texture);
-    return false;
-  }
-
-  Uint8 result;
-  if (!parse_binary_string(surface_type->valuestring, &result))
-  {
-    cleanup_texture(texture);
-    return false;
-  }
-
-  texture->surface_type = result;
-  texture->expected_pixel_height = expected_pixel_height->valuedouble;
-  texture->expected_pixel_width = expected_pixel_width->valuedouble;
-  texture->use_scale_mode_nearest = cJSON_IsTrue(use_scale_mode_nearest);
-  texture->is_collision_enabled = cJSON_IsTrue(is_collision_enabled);
-
-  return true;
-}
-
-static void cleanup_texture(World_Object *texture)
-{
-  if (!texture)
-    return;
-  free(texture->name);
-  free(texture->path);
-  free(texture->category);
-  if (texture->texture)
-  {
-    SDL_DestroyTexture(texture->texture);
-  }
-}
-
-static bool validate_texture_fields(const cJSON *name, const cJSON *path,
-                                    const cJSON *category, const cJSON *surface_type,
-                                    const cJSON *width, const cJSON *height)
-{
-  return (cJSON_IsString(name) && name->valuestring &&
-          cJSON_IsString(path) && path->valuestring &&
-          cJSON_IsString(category) && category->valuestring &&
-          cJSON_IsString(surface_type) && surface_type->valuestring &&
-          cJSON_IsNumber(width) && cJSON_IsNumber(height));
-}
-
-static bool parse_binary_string(const char *str, uint8_t *result)
-{
-  uint8_t value = 0;
-  size_t bits = 0;
-
-  if (str[0] != '0' || str[1] != 'b')
+  int frame_count = cJSON_GetArraySize(frame_src_files_array);
+  if (frame_count <= 0)
   {
     return false;
   }
 
-  for (const char *p = str + 2; *p; p++)
+  // Allocate array of char pointers
+  world_object->frame_src_files.data = malloc(frame_count * sizeof(char *));
+  if (!world_object->frame_src_files.data)
   {
-    if (*p != '0' && *p != '1')
+    return false;
+  }
+  world_object->frame_src_files.length = frame_count;
+
+  // Allocate array of SDL_Texture pointers
+  world_object->textures.data = malloc(frame_count * sizeof(SDL_Texture));
+  if (!world_object->textures.data)
+  {
+    return false;
+  }
+  world_object->textures.length = frame_count;
+
+  // Initialize all pointers to NULL for safe cleanup
+  for (int i = 0; i <= frame_count; i++)
+  {
+    world_object->frame_src_files.data[i] = NULL;
+    world_object->textures.data[i] = NULL;
+  }
+
+  // Parse each frame source file
+  for (int i = 0; i < frame_count; i++)
+  {
+    cJSON *frame_src = cJSON_GetArrayItem(frame_src_files_array, i);
+    if (!frame_src || !cJSON_IsString(frame_src))
     {
       return false;
     }
-    if (bits >= 8)
+
+    const char *frame_src_str = cJSON_GetStringValue(frame_src);
+    if (!frame_src_str)
     {
-      return false; // Overflow
+      return false;
     }
-    value = (value << 1) | (uint8_t)(*p - '0');
-    bits++;
+
+    world_object->frame_src_files.data[i] = strdup(frame_src_str);
+    if (!world_object->frame_src_files.data[i])
+    {
+      return false;
+    }
   }
 
-  *result = value;
   return true;
 }
 
-// SDL_Texture *shotgun_1_texture;
+bool parse_texture_fields(World_Object *world_object, const cJSON *json_object)
+{
+  // Parse name
+  cJSON *name = cJSON_GetObjectItemCaseSensitive(json_object, "name");
+  if (!name || !cJSON_IsString(name))
+  {
+    return false;
+  }
+  world_object->name = strdup(cJSON_GetStringValue(name));
+  if (!world_object->name)
+  {
+    return false;
+  }
 
-// static int brick_texture_init(void)
-// {
+  // Parse src_directory
+  cJSON *src_directory = cJSON_GetObjectItemCaseSensitive(json_object, "src_directory");
+  if (!src_directory || !cJSON_IsString(src_directory))
+  {
+    return false;
+  }
+  world_object->src_directory = strdup(cJSON_GetStringValue(src_directory));
+  if (!world_object->src_directory)
+  {
+    return false;
+  }
 
-//   brick_a_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
-//   if (brick_a_texture == NULL)
-//   {
-//     SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_Texture could not initialize! SDL_Texture Error: %s\n", SDL_GetError());
-//     return 3;
-//   }
-//   brick_b_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
-//   if (brick_b_texture == NULL)
-//   {
-//     SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_Texture could not initialize! SDL_Texture Error: %s\n", SDL_GetError());
-//     return 3;
-//   }
-//   brick_c_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
-//   if (brick_c_texture == NULL)
-//   {
-//     SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_Texture could not initialize! SDL_Texture Error: %s\n", SDL_GetError());
-//     return 3;
-//   }
-//   brick_d_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
-//   if (brick_d_texture == NULL)
-//   {
-//     SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_Texture could not initialize! SDL_Texture Error: %s\n", SDL_GetError());
-//     return 3;
-//   }
+  // Parse frame_src_files array
+  cJSON *frame_src_files = cJSON_GetObjectItemCaseSensitive(json_object, "frame_src_files");
+  if (!parse_frame_src_files(world_object, frame_src_files))
+  {
+    return false;
+  }
 
-//   lava_a_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
-//   lava_b_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
-//   lava_c_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
+  // Parse category
+  cJSON *category = cJSON_GetObjectItemCaseSensitive(json_object, "category");
+  if (!category || !cJSON_IsString(category))
+  {
+    return false;
+  }
+  world_object->category = strdup(cJSON_GetStringValue(category));
+  if (!world_object->category)
+  {
+    return false;
+  }
 
-//   mud_brick_a_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
-//   mud_brick_b_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
-//   mud_brick_c_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
+  // Parse surface_type and collision_mode
+  cJSON *surface_type = cJSON_GetObjectItemCaseSensitive(json_object, "surface_type");
+  cJSON *collision_mode = cJSON_GetObjectItemCaseSensitive(json_object, "collision_mode");
+  if (!surface_type || !collision_mode)
+  {
+    return false;
+  }
+  // Convert string binary representation to integer
+  const char *surface_type_str = cJSON_GetStringValue(surface_type);
+  const char *collision_mode_str = cJSON_GetStringValue(collision_mode);
+  if (!surface_type_str || !collision_mode_str)
+  {
+    return false;
+  }
+  // Skip "0b" prefix and convert to integer
+  world_object->surface_type = (Uint8)strtol(surface_type_str + 2, NULL, 2);
+  world_object->collision_mode = (Uint8)strtol(collision_mode_str + 2, NULL, 2);
 
-//   overgrown_a_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
-//   overgrown_b_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
+  // Parse dimensions
+  cJSON *width = cJSON_GetObjectItemCaseSensitive(json_object, "expected_pixel_width");
+  cJSON *height = cJSON_GetObjectItemCaseSensitive(json_object, "expected_pixel_height");
+  if (!width || !height || !cJSON_IsNumber(width) || !cJSON_IsNumber(height))
+  {
+    return false;
+  }
+  world_object->expected_pixel_width = width->valueint;
+  world_object->expected_pixel_height = height->valueint;
 
-//   water_b_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
-//   water_c_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
+  // Parse scale mode
+  cJSON *scale_mode = cJSON_GetObjectItemCaseSensitive(json_object, "use_scale_mode_nearest");
+  if (!scale_mode || !cJSON_IsBool(scale_mode))
+  {
+    return false;
+  }
+  world_object->use_scale_mode_nearest = cJSON_IsTrue(scale_mode);
 
-//   wood_vertical_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, TEXTURE_PIXEL_W, TEXTURE_PIXEL_H);
+  // Initialize other fields
+  world_object->current_frame_index = 0;
 
-//   SDL_SetTextureScaleMode(brick_a_texture, SDL_SCALEMODE_NEAREST);
-//   SDL_SetTextureScaleMode(brick_b_texture, SDL_SCALEMODE_NEAREST);
-//   SDL_SetTextureScaleMode(brick_c_texture, SDL_SCALEMODE_NEAREST);
-//   SDL_SetTextureScaleMode(brick_d_texture, SDL_SCALEMODE_NEAREST);
-//   SDL_SetTextureScaleMode(lava_a_texture, SDL_SCALEMODE_NEAREST);
-//   SDL_SetTextureScaleMode(lava_b_texture, SDL_SCALEMODE_NEAREST);
-//   SDL_SetTextureScaleMode(lava_c_texture, SDL_SCALEMODE_NEAREST);
-//   SDL_SetTextureScaleMode(mud_brick_a_texture, SDL_SCALEMODE_NEAREST);
-//   SDL_SetTextureScaleMode(mud_brick_b_texture, SDL_SCALEMODE_NEAREST);
-//   SDL_SetTextureScaleMode(mud_brick_c_texture, SDL_SCALEMODE_NEAREST);
-//   SDL_SetTextureScaleMode(overgrown_a_texture, SDL_SCALEMODE_NEAREST);
-//   SDL_SetTextureScaleMode(overgrown_b_texture, SDL_SCALEMODE_NEAREST);
-//   SDL_SetTextureScaleMode(water_b_texture, SDL_SCALEMODE_NEAREST);
-//   SDL_SetTextureScaleMode(water_c_texture, SDL_SCALEMODE_NEAREST);
-//   SDL_SetTextureScaleMode(wood_vertical_texture, SDL_SCALEMODE_NEAREST);
+  return true;
+}
 
-//   SDL_UpdateTexture(brick_a_texture, NULL, brick_a.pixel_data, TEXTURE_PIXEL_W * 4);
-//   SDL_UpdateTexture(brick_b_texture, NULL, brick_b.pixel_data, TEXTURE_PIXEL_W * 4);
-//   SDL_UpdateTexture(brick_c_texture, NULL, brick_c.pixel_data, TEXTURE_PIXEL_W * 4);
-//   SDL_UpdateTexture(brick_d_texture, NULL, brick_d.pixel_data, TEXTURE_PIXEL_W * 4);
-//   SDL_UpdateTexture(lava_a_texture, NULL, lava_a.pixel_data, TEXTURE_PIXEL_W * 4);
-//   SDL_UpdateTexture(lava_b_texture, NULL, lava_b.pixel_data, TEXTURE_PIXEL_W * 4);
-//   SDL_UpdateTexture(lava_c_texture, NULL, lava_c.pixel_data, TEXTURE_PIXEL_W * 4);
-//   SDL_UpdateTexture(mud_brick_a_texture, NULL, mud_brick_a.pixel_data, TEXTURE_PIXEL_W * 4);
-//   SDL_UpdateTexture(mud_brick_b_texture, NULL, mud_brick_b.pixel_data, TEXTURE_PIXEL_W * 4);
-//   SDL_UpdateTexture(mud_brick_c_texture, NULL, mud_brick_c.pixel_data, TEXTURE_PIXEL_W * 4);
-//   SDL_UpdateTexture(overgrown_a_texture, NULL, overgrown_a.pixel_data, TEXTURE_PIXEL_W * 4);
-//   SDL_UpdateTexture(overgrown_b_texture, NULL, overgrown_b.pixel_data, TEXTURE_PIXEL_W * 4);
-//   SDL_UpdateTexture(water_b_texture, NULL, water_b.pixel_data, TEXTURE_PIXEL_W * 4);
-//   SDL_UpdateTexture(water_c_texture, NULL, water_c.pixel_data, TEXTURE_PIXEL_W * 4);
-//   SDL_UpdateTexture(wood_vertical_texture, NULL, wood_vertical.pixel_data, TEXTURE_PIXEL_W * 4);
+bool process_textures(SDL_Renderer *renderer, World_Objects_Container *out_world_objects_container)
+{
+  if (!renderer || !out_world_objects_container)
+  {
+    return false;
+  }
 
-//   SDL_SetTextureScaleMode(shotgun_1_texture, SDL_SCALEMODE_NEAREST);
-//   SDL_Surface *shotgun_1_surface = IMG_Load("./assets/sprites/shotgun/shotgun-1/shotgun-1.png");
-//   shotgun_1_texture = SDL_CreateTextureFromSurface(renderer, shotgun_1_surface);
-//   SDL_DestroySurface(shotgun_1_surface);
+  for (size_t i = 0; i < out_world_objects_container->length; i++)
+  {
+    for (size_t j = 0; j < out_world_objects_container->data[i]->frame_src_files.length; j++)
+    {
+      char temp_path[MAX_PATH_LENGTH];
+      int chars_written = snprintf(temp_path, MAX_PATH_LENGTH, "%s/%s",
+                                   out_world_objects_container->data[i]->src_directory,
+                                   out_world_objects_container->data[i]->frame_src_files.data[j]);
 
-//   shotgun_1.texture = shotgun_1_texture.;
-//   shotgun_1.height = 304;
-//   shotgun_1.width = 444;
+      if (chars_written >= MAX_PATH_LENGTH)
+      {
+        printf("Error: Truncation in path occured");
+      }
 
-//   return 0;
-// }
+      SDL_Surface *temp_surface = IMG_Load(temp_path);
+
+      // SDL_Surface *temp_surface = IMG_Load(out_world_objects_container->data[i]->path);
+
+      if (!temp_surface)
+      {
+        fprintf(stderr, "Failed to load image %s\n",
+                temp_path);
+        return false;
+      }
+
+      SDL_Texture *temp_texture = SDL_CreateTextureFromSurface(renderer, temp_surface);
+      SDL_DestroySurface(temp_surface);
+
+      if (!temp_texture)
+      {
+        fprintf(stderr, "Failed to create texture from %s: %s\n",
+                temp_path, SDL_GetError());
+        return false;
+      }
+
+      SDL_ScaleMode scale_mode = out_world_objects_container->data[i]->use_scale_mode_nearest
+                                     ? SDL_SCALEMODE_NEAREST
+                                     : SDL_SCALEMODE_LINEAR;
+
+      if (!SDL_SetTextureScaleMode(temp_texture, scale_mode))
+      {
+        fprintf(stderr, "Failed to set texture scale mode: %s\n", SDL_GetError());
+        SDL_DestroyTexture(temp_texture);
+        return false;
+      }
+
+      out_world_objects_container->data[i]->textures.data[j] = temp_texture;
+    }
+  }
+
+  return true;
+}
+
+void cleanup_world_objects(World_Objects_Container *container)
+{
+  if (!container || !container->data)
+  {
+    return;
+  }
+
+  for (size_t i = 0; i < container->length; i++)
+  {
+    cleanup_world_object(container->data[i]);
+  }
+
+  free(container->data);
+  container->data = NULL;
+  container->length = 0;
+}
+
+void cleanup_world_object(World_Object *world_object)
+{
+  if (!world_object)
+  {
+    return;
+  }
+
+  free(world_object->name);
+  free(world_object->src_directory);
+  free(world_object->category);
+
+  // Clean up frame source files using the container cleanup
+  cleanup_frame_src_container(&world_object->frame_src_files);
+  cleanup_textures(&world_object->textures);
+
+  free(world_object);
+}
+
+void cleanup_frame_src_container(Frame_Src_Container *container)
+{
+  if (!container || !container->data)
+  {
+    return;
+  }
+
+  for (size_t i = 0; i < container->length; i++)
+  {
+    free(container->data[i]);
+  }
+  free(container->data);
+  container->data = NULL;
+  container->length = 0;
+}
+
+void cleanup_textures(Texture_Src_Container *container)
+{
+  if (!container || !container->data)
+  {
+    return;
+  }
+
+  for (size_t i = 0; i < container->length; i++)
+  {
+    SDL_DestroyTexture(container->data[i]);
+  }
+
+  free(container->data);
+  container->data = NULL;
+  container->length = 0;
+}
