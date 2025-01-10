@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+       .grid { display: flex; flex-direction: column; }
+       .row { display: flex; }
+       .cell {
+           border: 1px solid #ccc;
+           display: flex;
+           justify-content: center;
+           align-items: center;
+       }
+       .cell img { max-width: 100%; max-height: 100%; }
+       .controls { margin-bottom: 10px; }
+       .image-refs { margin-left: 20px; }
+       .dropzone {
+           border: 2px dashed #ccc;
+           padding: 20px;
+           text-align: center;
+           margin-bottom: 10px;
+       }
+       .ref-image {
+           cursor: move;
+           padding: 5px;
+       }
+   </style>
+  </head>
+  <body>
+    <div class="controls">
+      <input type="number" id="cellSize" value="64" min="16">
+      <button onclick="addRow()">Add Row</button>
+      <button onclick="addCol()">Add Column</button>
+      <button onclick="exportCSV()">Export CSV</button>
+    </div>
+    <div style="display: flex">
+      <div id="grid" class="grid"></div>
+      <div id="imageRefs" class="image-refs">
+        <div id="dropzone" class="dropzone">Drop New Images Here</div>
+        <h3>Image References</h3>
+      </div>
+    </div>
+
+    <script>
+       let grid = [[null]];
+       let imageMap = new Map();
+       let nextId = 1;
+
+       const dropzone = document.getElementById('dropzone');
+       dropzone.ondragover = e => e.preventDefault();
+       dropzone.ondrop = e => {
+           e.preventDefault();
+           const file = e.dataTransfer.files[0];
+           if (file && file.type.startsWith('image/')) {
+               const reader = new FileReader();
+               reader.onload = e => {
+                   const imageData = e.target.result;
+                   if (!imageMap.has(imageData)) {
+                       const imgId = `image${nextId}`;
+                       imageMap.set(imageData, { id: imgId, name: imgId });
+                       nextId++;
+                       updateImageRefs();
+                   }
+               };
+               reader.readAsDataURL(file);
+           }
+       };
+
+       function updateCellSize() {
+           const size = document.getElementById('cellSize').value;
+           document.querySelectorAll('.cell').forEach(cell => {
+               cell.style.width = size + 'px';
+               cell.style.height = size + 'px';
+           });
+       }
+
+       function createCell(row, col) {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    cell.ondragover = e => e.preventDefault();
+    cell.onclick = () => {
+        grid[row][col] = null;
+        renderCell(row, col);
+    };
+    cell.ondrop = e => {
+        e.preventDefault();
+        const imageData = e.dataTransfer.getData('image/data');
+        if (imageData && imageMap.has(imageData)) {
+            grid[row][col] = imageData;
+            renderCell(row, col);
+        }
+    };
+    return cell;
+}
+
+       function updateImageRefs() {
+    const container = document.getElementById('imageRefs');
+    // Keep existing dropzone
+    const refs = document.createElement('div');
+    refs.innerHTML = '<h3>Image References</h3>';
+
+    imageMap.forEach((info, imageData) => {
+        const div = document.createElement('div');
+        div.className = 'ref-image';
+        div.draggable = true;
+        div.ondragstart = e => {
+            e.dataTransfer.setData('image/data', imageData);
+        };
+        div.innerHTML = `
+            <img src="${imageData}" style="width: 32px; height: 32px; object-fit: contain">
+            <input type="text" value="${info.name}"
+                   onchange="updateImageName('${imageData}', this.value)">
+        `;
+        refs.appendChild(div);
+    });
+
+    // Replace everything after dropzone
+    const dropzone = container.querySelector('#dropzone');
+    container.innerHTML = '';
+    container.appendChild(dropzone);
+    container.appendChild(refs);
+}
+
+       function updateImageName(imageData, newName) {
+           const info = imageMap.get(imageData);
+           imageMap.set(imageData, { ...info, name: newName });
+       }
+
+       function renderGrid() {
+           const container = document.getElementById('grid');
+           container.innerHTML = '';
+           grid.forEach((row, i) => {
+               const rowDiv = document.createElement('div');
+               rowDiv.className = 'row';
+               row.forEach((_, j) => {
+                   rowDiv.appendChild(createCell(i, j));
+               });
+               container.appendChild(rowDiv);
+           });
+           renderAllCells();
+           updateCellSize();
+       }
+
+       function renderCell(row, col) {
+           const cells = document.querySelectorAll('.row')[row].children;
+           const cell = cells[col];
+           cell.innerHTML = '';
+           if (grid[row][col]) {
+               const img = document.createElement('img');
+               img.src = grid[row][col];
+               cell.appendChild(img);
+           }
+       }
+
+       function renderAllCells() {
+           grid.forEach((row, i) => {
+               row.forEach((_, j) => renderCell(i, j));
+           });
+       }
+
+       function addRow() {
+           grid.push(new Array(grid[0].length).fill(null));
+           renderGrid();
+       }
+
+       function addCol() {
+           grid.forEach(row => row.push(null));
+           renderGrid();
+       }
+
+       function exportCSV() {
+    const csv = grid
+        .filter(row => row.some(cell => cell !== null)) // Remove empty rows
+        .map(row => {
+            // Trim trailing nulls
+            let lastImageIndex = row.length - 1;
+            while (lastImageIndex >= 0 && !row[lastImageIndex]) {
+                lastImageIndex--;
+            }
+            return row
+                .slice(0, lastImageIndex + 1)
+                .map(cell => cell ? imageMap.get(cell)?.name || '' : '')
+                .join(',');
+        })
+        .join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'grid-export.csv';
+    a.click();
+}
+
+       document.getElementById('cellSize').onchange = updateCellSize;
+       renderGrid();
+   </script>
+  </body>
+</html>
