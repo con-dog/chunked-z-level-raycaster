@@ -91,7 +91,7 @@ static void cast_rays_from_player(void)
     Point_1D world_next_wall_intersection_x;
     Point_1D world_next_wall_intersection_y;
     Wall_Surface surface_hit;
-    Jagged_Row *current_grid_row;
+    Jagged_Row *current_wall_grid_row, *current_floor_grid_row;
 
     bool is_surface_hit = false;
     while (!is_surface_hit)
@@ -120,9 +120,10 @@ static void cast_rays_from_player(void)
       ray.end.x = world_next_wall_intersection_x;
       ray.end.y = world_next_wall_intersection_y;
 
-      current_grid_row = &wall_grid->rows[grid_y];
+      current_wall_grid_row = &wall_grid->rows[grid_y];
+      current_floor_grid_row = &floor_grid->rows[grid_y];
 
-      if (strcmp(current_grid_row->world_object_names[grid_x], EMPTY_GRID_CELL_VALUE) != 0)
+      if (strcmp(current_wall_grid_row->world_object_names[grid_x], EMPTY_GRID_CELL_VALUE) != 0)
       {
         is_surface_hit = 1;
         break;
@@ -187,14 +188,13 @@ static void cast_rays_from_player(void)
       /*
        * Texture case handling
        */
-      // for (size_t i = 0; i < world_objects_container->length; i++)
-      // {
-      //   if (strcmp(current_grid_row->world_object_names[grid_x], world_objects_container->data[i]->name) == 0)
-      //   {
-      //     SDL_RenderTexture(renderer, world_objects_container->data[i]->textures.data[0], &src_rect, &dst_rect);
-      //     break;
-      //   }
-      // }
+      for (size_t i = 0; i < world_objects_container->length; i++)
+      {
+        if (strcmp(current_wall_grid_row->world_object_names[grid_x], world_objects_container->data[i]->name) == 0)
+        {
+          SDL_RenderTexture(renderer, world_objects_container->data[i]->textures.data[0], &src_rect, &dst_rect);
+        }
+      }
       // Uint8 floor_brightness = (Uint8)(255.0f * (1.0f - log10f(1.0f + (12.0f * distance / (64 * 16)))));
       // Uint8 floor_brightness_b = (Uint8)(255.0f * (1.0f - log10f(1.0f + (3.0f * distance / (64 * 16)))));
 
@@ -253,14 +253,14 @@ static void cast_rays_from_player(void)
     /*
      * Texture case handling
      */
-    for (size_t i = 0; i < world_objects_container->length; i++)
-    {
-      if (strcmp(current_grid_row->world_object_names[grid_x], world_objects_container->data[i]->name) == 0)
-      {
-        SDL_RenderTexture(renderer, world_objects_container->data[i]->textures.data[0], &src_rect, &wall_rect);
-        break;
-      }
-    }
+    // for (size_t i = 0; i < world_objects_container->length; i++)
+    // {
+    //   if (strcmp(current_wall_grid_row->world_object_names[grid_x], world_objects_container->data[i]->name) == 0)
+    //   {
+    //     SDL_RenderTexture(renderer, world_objects_container->data[i]->textures.data[0], &src_rect, &wall_rect);
+    //     break;
+    //   }
+    // }
     // Brightness transformations
     // Uint8 brightness = (Uint8)(255.0f * (1.0f - log10f(1.0f + (6.0f * perpendicular_distance / (8 * 64)))));
     // SDL_SetTextureColorMod(brick_a_texture, brightness, brightness, brightness);
@@ -478,43 +478,16 @@ int main()
   world_objects_container = setup_engine_textures(renderer, "./manifests/texture_manifest.json");
 
   wall_grid = read_grid_csv_file("./assets/levels/1/level-1-walls.csv");
-  print_jagged_grid(wall_grid);
-  // floor_grid = read_grid_csv_file("./assets/levels/level-1-floor.csv");
+  floor_grid = read_grid_csv_file("./assets/levels/1/level-1-floors.csv");
 
-  // printf(
-  //     "length: %zu\n"
-  //     "category : %s\n"
-  //     "collision mode : %d\n"
-  //     "frame_index %d\n"
-  //     "pixel_height: %d\n"
-  //     "pixel_width: %d\n"
-  //     "name : %s\n"
-  //     "src_directory:  %s\n"
-  //     "surface_type: %d\n"
-  //     "use_scale_mode_nearest: %d\n"
-  //     "frame_length: %d\n"
-  //     "frame_src_file_1: %s\n"
-  //     "textures_length: %d\n",
-  //     world_objects_container->length,
-  //     world_objects_container->data[0]->category,
-  //     world_objects_container->data[0]->collision_mode,
-  //     world_objects_container->data[0]->current_frame_index,
-  //     world_objects_container->data[0]->expected_pixel_height,
-  //     world_objects_container->data[0]->expected_pixel_width,
-  //     world_objects_container->data[0]->name,
-  //     world_objects_container->data[0]->src_directory,
-  //     world_objects_container->data[0]->surface_type,
-  //     world_objects_container->data[0]->use_scale_mode_nearest,
-  //     world_objects_container->data[0]->frame_src_files.length,
-  //     world_objects_container->data[0]->frame_src_files.data[1],
-  //     world_objects_container->data[0]->textures.length);
+  print_jagged_grid(floor_grid);
 
   player_init();
   keyboard_state = SDL_GetKeyboardState(NULL);
   run_game_loop();
 
   free_jagged_grid(wall_grid);
-  // free_jagged_grid(floor_grid);
+  free_jagged_grid(floor_grid);
   cleanup_world_objects(world_objects_container);
 
   SDL_DestroyRenderer(renderer);

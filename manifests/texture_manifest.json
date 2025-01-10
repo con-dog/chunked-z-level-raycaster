@@ -80,6 +80,16 @@
       "expected_pixel_width": 64,
       "expected_pixel_height": 64,
       "use_scale_mode_nearest": true
+    },{
+      "name": "wood-vertical",
+      "src_directory": "assets/textures/64x64/wood/a",
+      "frame_src_files": ["wood-vertical.png"],
+      "category": "wood",
+      "surface_type": "0b001",
+      "collision_mode": "0b010",
+      "expected_pixel_width": 64,
+      "expected_pixel_height": 64,
+      "use_scale_mode_nearest": true
     }
   ]
 }
