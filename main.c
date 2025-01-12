@@ -191,25 +191,25 @@ static void cast_rays_from_player(void)
        */
       // printf("grid x %d\n", grid_x);
 
-      printf("length %d\n", strlen(current_floor_grid_row->world_object_names[1]));
+      // printf("length %d\n", strlen(current_floor_grid_row->world_object_names[1]));
 
-      // for (size_t i = 0; i < world_objects_container->length; i++)
-      // {
-      //   // printf("%s\n", current_floor_grid_row->world_object_names[0]);
+      for (size_t i = 0; i < world_objects_container->length; i++)
+      {
+        // printf("%s\n", current_floor_grid_row->world_object_names[0]);
 
-      //   // printf("world_objects_container: %d\n",
-      //   //        world_objects_container->length);
-      //   // printf("floor row length%d\n",
-      //   //        current_floor_grid_row->length);
-      //   // printf("grid_x %d grid_y %d \n",
-      //   //        grid_x, grid_y);
-      //   // printf("%s\n", current_floor_grid_row->world_object_names[grid_x]);
-      //   // if (strcmp(current_floor_grid_row->world_object_names[grid_x], world_objects_container->data[i]->name) == 0)
-      //   // {
-      //   //   // SDL_RenderTexture(renderer, world_objects_container->data[i]->textures.data[0], &src_rect, &dst_rect);
-      //   //   break;
-      //   // }
-      // }
+        // printf("world_objects_container: %d\n",
+        //        world_objects_container->length);
+        // printf("floor row length%d\n",
+        //        current_floor_grid_row->length);
+        // printf("grid_x %d grid_y %d \n",
+        //        grid_x, grid_y);
+        // printf("%s\n", current_floor_grid_row->world_object_names[grid_x]);
+        if (strcmp(current_floor_grid_row->world_object_names[grid_x], world_objects_container->data[i]->name) == 0)
+        {
+          SDL_RenderTexture(renderer, world_objects_container->data[i]->textures.data[0], &src_rect, &dst_rect);
+          break;
+        }
+      }
       // Uint8 floor_brightness = (Uint8)(255.0f * (1.0f - log10f(1.0f + (12.0f * distance / (64 * 16)))));
       // Uint8 floor_brightness_b = (Uint8)(255.0f * (1.0f - log10f(1.0f + (3.0f * distance / (64 * 16)))));
 
