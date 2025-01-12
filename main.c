@@ -236,15 +236,15 @@ static void cast_rays_from_player(void) {
 
     SDL_FRect src_rect = {.x = texture_x, .y = 0, .w = 1, .h = TEXTURE_PIXEL_H};
 
-    // for (size_t i = 0; i < world_objects_container->length; i++) {
-    //   if (strcmp(curr_wall_grid_row->world_object_names[grid_x],
-    //              world_objects_container->data[i]->name) == 0) {
-    //     SDL_RenderTexture(renderer,
-    //                       world_objects_container->data[i]->textures.data[0],
-    //                       &src_rect, &wall_rect);
-    //     break;
-    //   }
-    // }
+    for (size_t i = 0; i < world_objects_container->length; i++) {
+      if (strcmp(curr_wall_grid_row->world_object_names[grid_x],
+                 world_objects_container->data[i]->name) == 0) {
+        SDL_RenderTexture(renderer,
+                          world_objects_container->data[i]->textures.data[0],
+                          &src_rect, &wall_rect);
+        break;
+      }
+    }
   }
 }
 

@@ -1,7 +1,3 @@
-brick-a,brick-b,brick-d,brick-a,brick-d
-brick-c,,,,brick-d
-brick-a,brick-a,brick-c,,brick-f,brick-e
-,,brick-c,,,brick-g
-,,brick-b,,,brick-f,brick-e
-,,brick-c,,,,brick-e
-,,brick-d,brick-e,brick-f,brick-g,brick-g
+brick-a,brick-a,brick-a,brick-a,brick-a,brick-a
+brick-a,,,,,brick-a
+brick-a,brick-a,brick-a,brick-a,brick-a,brick-a
