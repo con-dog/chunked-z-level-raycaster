@@ -58,24 +58,23 @@ static Scalar calculate_ray_perpendicular_distance(Line_2D *ray,
 }
 
 static void cast_rays_from_player(void) {
-  // clang-format off
-  Degrees start_angle  = player.angle - PLAYER_FOV_DEG / 2;
-  Degrees end_angle    = player.angle + PLAYER_FOV_DEG / 2;
+  Degrees start_angle = player.angle - PLAYER_FOV_DEG / 2;
+  Degrees end_angle   = player.angle + PLAYER_FOV_DEG / 2;
 
-  for (Degrees curr_angle_deg = start_angle; curr_angle_deg <= end_angle; curr_angle_deg += PLAYER_FOV_DEG_INC)
-  {
+  for (Degrees curr_angle_deg = start_angle; curr_angle_deg <= end_angle;
+       curr_angle_deg += PLAYER_FOV_DEG_INC) {
     /*
      * Ray Setup logic
      */
-    Line_2D    ray;
+    Line_2D     ray;
     Jagged_Row *curr_wall_grid_row;
     Jagged_Row *curr_floor_grid_row;
 
-    Radians curr_angle_rads          = convert_deg_to_rads(curr_angle_deg);
-    Radians theta                    = convert_deg_to_rads(curr_angle_deg - player.angle);
+    Radians curr_angle_rads = convert_deg_to_rads(curr_angle_deg);
+    Radians theta = convert_deg_to_rads(curr_angle_deg - player.angle);
 
-    ray.start.x                      = player.rect.x + (PLAYER_W / 2);
-    ray.start.y                      = player.rect.y + (PLAYER_H / 2);
+    ray.start.x = player.rect.x + (PLAYER_W / 2);
+    ray.start.y = player.rect.y + (PLAYER_H / 2);
 
     IPoint_1D  grid_x                = floorf(ray.start.x / GRID_CELL_SIZE);
     Point_1D   norm_x                = ray.start.x / GRID_CELL_SIZE;
@@ -83,8 +82,8 @@ static void cast_rays_from_player(void) {
     IVector_1D step_x                = (x_dir >= 0) ? 1 : -1;
     Vector_1D  delta_x               = fabs(1.0f / x_dir);
     Vector_1D  norm_x_dist_cell_edge = (x_dir < 0)
-                                        ? (norm_x - grid_x) * delta_x
-                                        : (grid_x + 1 - norm_x) * delta_x;
+                                           ? (norm_x - grid_x) * delta_x
+                                           : (grid_x + 1 - norm_x) * delta_x;
 
     IPoint_1D  grid_y                = floorf(ray.start.y / GRID_CELL_SIZE);
     Point_1D   norm_y                = ray.start.y / GRID_CELL_SIZE;
@@ -92,8 +91,8 @@ static void cast_rays_from_player(void) {
     IVector_1D step_y                = (y_dir >= 0) ? 1 : -1;
     Vector_1D  delta_y               = fabs(1.0f / y_dir);
     Vector_1D  norm_y_dist_cell_edge = (y_dir < 0)
-                                        ? (norm_y - grid_y) * delta_y
-                                        : (grid_y + 1 - norm_y) * delta_y;
+                                           ? (norm_y - grid_y) * delta_y
+                                           : (grid_y + 1 - norm_y) * delta_y;
 
     Point_1D     wall_x_intersection;
     Point_1D     wall_y_intersection;
@@ -103,27 +102,23 @@ static void cast_rays_from_player(void) {
      * Wall collision and step logic
      */
     bool is_wall_hit = false;
-    while (!is_wall_hit)
-    {
-      if (norm_x_dist_cell_edge < norm_y_dist_cell_edge)
-      {
-        wall_x_intersection   = (x_dir < 0)
-                                 ? grid_x * GRID_CELL_SIZE
-                                 : (grid_x + 1) * GRID_CELL_SIZE;
-        wall_y_intersection   = ray.start.y + (wall_x_intersection - ray.start.x) * y_dir / x_dir;
+    while (!is_wall_hit) {
+      if (norm_x_dist_cell_edge < norm_y_dist_cell_edge) {
+        wall_x_intersection = (x_dir < 0) ? grid_x * GRID_CELL_SIZE
+                                          : (grid_x + 1) * GRID_CELL_SIZE;
+        wall_y_intersection =
+            ray.start.y + (wall_x_intersection - ray.start.x) * y_dir / x_dir;
         norm_x_dist_cell_edge += delta_x;
-        grid_x                += step_x;
-        surface_hit           = WS_VERTICAL;
-      }
-      else
-      {
-        wall_y_intersection   = (y_dir < 0)
-                                 ? grid_y * GRID_CELL_SIZE
-                                 : (grid_y + 1) * GRID_CELL_SIZE;
-        wall_x_intersection   = ray.start.x + (wall_y_intersection - ray.start.y) * x_dir / y_dir;
+        grid_x += step_x;
+        surface_hit = WS_VERTICAL;
+      } else {
+        wall_y_intersection = (y_dir < 0) ? grid_y * GRID_CELL_SIZE
+                                          : (grid_y + 1) * GRID_CELL_SIZE;
+        wall_x_intersection =
+            ray.start.x + (wall_y_intersection - ray.start.y) * x_dir / y_dir;
         norm_y_dist_cell_edge += delta_y;
-        grid_y                += step_y;
-        surface_hit           = WS_HORIZONTAL;
+        grid_y += step_y;
+        surface_hit = WS_HORIZONTAL;
       }
 
       ray.end.x = wall_x_intersection;
@@ -133,8 +128,8 @@ static void cast_rays_from_player(void) {
        * Collision check for non EMPTY cell
        */
       curr_wall_grid_row = &wall_grid->rows[grid_y];
-      if (strcmp(curr_wall_grid_row->world_object_names[grid_x], EMPTY_GRID_CELL_VALUE) != 0)
-      {
+      if (strcmp(curr_wall_grid_row->world_object_names[grid_x],
+                 EMPTY_GRID_CELL_VALUE) != 0) {
         is_wall_hit = 1;
         break;
       }
@@ -143,8 +138,8 @@ static void cast_rays_from_player(void) {
     /*
      * Conversions to screen positions
      */
-    Scalar ray_perp_distance = calculate_ray_perpendicular_distance(&ray, theta);
-
+    Scalar ray_perp_distance =
+        calculate_ray_perpendicular_distance(&ray, theta);
 
     // SCREEN
     Point_1D ray_screen_position_x =
