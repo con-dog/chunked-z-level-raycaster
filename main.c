@@ -269,14 +269,14 @@ static void cast_rays_from_player(void)
      * Texture case handling
      */
 
-    for (size_t i = 0; i < world_objects_container->length; i++)
-    {
-      if (strcmp(current_wall_grid_row->world_object_names[grid_x], world_objects_container->data[i]->name) == 0)
-      {
-        SDL_RenderTexture(renderer, world_objects_container->data[i]->textures.data[0], &src_rect, &wall_rect);
-        break;
-      }
-    }
+    // for (size_t i = 0; i < world_objects_container->length; i++)
+    // {
+    //   if (strcmp(current_wall_grid_row->world_object_names[grid_x], world_objects_container->data[i]->name) == 0)
+    //   {
+    //     SDL_RenderTexture(renderer, world_objects_container->data[i]->textures.data[0], &src_rect, &wall_rect);
+    //     break;
+    //   }
+    // }
   }
 }
 
