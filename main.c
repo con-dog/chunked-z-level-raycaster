@@ -59,7 +59,6 @@ static void cast_rays_from_player(void)
 {
   Degrees start_angle = player.angle - PLAYER_FOV_DEG / 2;
   Degrees end_angle = player.angle + PLAYER_FOV_DEG / 2;
-  Uint8 r = 255, g = 0, b = 0, a = 255;
 
   for (Degrees current_angle = start_angle; current_angle <= end_angle; current_angle += PLAYER_FOV_DEG_INC)
   {
@@ -149,7 +148,6 @@ static void cast_rays_from_player(void)
      * DRAW FLOORS
      */
     Scalar floor_start_y = wall_vertical_offset + wall_vertical_strip_height;
-    Scalar floor_vertical_strip_height = WINDOW_H - floor_start_y;
 
     // For each vertical pixel in the floor strip
     for (int screen_y = floor_start_y; screen_y < WINDOW_H; screen_y++)
@@ -162,10 +160,6 @@ static void cast_rays_from_player(void)
 
       Point_1D floor_world_x = (player.rect.x + PLAYER_W / 2) + (x_direction / cos(theta)) * distance;
       Point_1D floor_world_y = (player.rect.y + PLAYER_H / 2) + (y_direction / cos(theta)) * distance;
-
-      // Fix grid position calculation using floorf()
-      Grid_Point_1D floor_grid_x = floorf(floor_world_x / GRID_CELL_SIZE);
-      Grid_Point_1D floor_grid_y = floorf(floor_world_y / GRID_CELL_SIZE);
 
       // Calculate texture coordinates
       Point_1D texture_x = (int)(floor_world_x) % TEXTURE_PIXEL_W;
@@ -269,14 +263,14 @@ static void cast_rays_from_player(void)
      * Texture case handling
      */
 
-    // for (size_t i = 0; i < world_objects_container->length; i++)
-    // {
-    //   if (strcmp(current_wall_grid_row->world_object_names[grid_x], world_objects_container->data[i]->name) == 0)
-    //   {
-    //     SDL_RenderTexture(renderer, world_objects_container->data[i]->textures.data[0], &src_rect, &wall_rect);
-    //     break;
-    //   }
-    // }
+    for (size_t i = 0; i < world_objects_container->length; i++)
+    {
+      if (strcmp(current_wall_grid_row->world_object_names[grid_x], world_objects_container->data[i]->name) == 0)
+      {
+        SDL_RenderTexture(renderer, world_objects_container->data[i]->textures.data[0], &src_rect, &wall_rect);
+        break;
+      }
+    }
   }
 }
 
@@ -293,7 +287,6 @@ static void draw_jagged_grid(void)
   {
 
     Jagged_Row *current_row = &wall_grid->rows[i];
-    bool initialized = false;
     SDL_FRect black_rects[current_row->length];
     SDL_FRect white_rects[current_row->length];
     int black_count = 0;
