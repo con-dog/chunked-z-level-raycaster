@@ -13,10 +13,10 @@ typedef struct Hit_Box
 
 typedef struct Grid_Hit_Box
 {
-  Grid_Point_2D tl;
-  Grid_Point_2D tr;
-  Grid_Point_2D bl;
-  Grid_Point_2D br;
+  IPoint_2D tl;
+  IPoint_2D tr;
+  IPoint_2D bl;
+  IPoint_2D br;
 } Grid_Hit_Box;
 
 #endif

@@ -57,77 +57,81 @@ static void draw_player_rect(void)
 
 static void cast_rays_from_player(void)
 {
-  Degrees start_angle = player.angle - PLAYER_FOV_DEG / 2;
-  Degrees end_angle = player.angle + PLAYER_FOV_DEG / 2;
+  // clang-format off
+  Degrees start_angle  = player.angle - PLAYER_FOV_DEG / 2;
+  Degrees end_angle    = player.angle + PLAYER_FOV_DEG / 2;
 
-  for (Degrees current_angle = start_angle; current_angle <= end_angle; current_angle += PLAYER_FOV_DEG_INC)
+  for (Degrees curr_angle_deg = start_angle; curr_angle_deg <= end_angle; curr_angle_deg += PLAYER_FOV_DEG_INC)
   {
-    Radians radians = convert_deg_to_rads(current_angle);
-    Radians theta = convert_deg_to_rads(current_angle - player.angle);
-    Line_2D ray;
+    Line_2D    ray;
+    Jagged_Row *curr_wall_grid_row;
+    Jagged_Row *curr_floor_grid_row;
 
-    ray.start.x = player.rect.x + (PLAYER_W / 2);
-    ray.start.y = player.rect.y + (PLAYER_H / 2);
+    Radians curr_angle_rads   = convert_deg_to_rads(curr_angle_deg);
+    Radians theta             = convert_deg_to_rads(curr_angle_deg - player.angle);
 
-    Vector_1D x_direction = cos(radians);
-    Vector_1D y_direction = sin(radians);
-    Vector_1D step_x = (x_direction >= 0) ? 1 : -1;
-    Vector_1D step_y = (y_direction >= 0) ? 1 : -1;
-    Vector_1D delta_x = fabs(1.0f / x_direction);
-    Vector_1D delta_y = fabs(1.0f / y_direction);
-    Grid_Point_1D grid_x = floorf(ray.start.x / GRID_CELL_SIZE);
-    Grid_Point_1D grid_y = floorf(ray.start.y / GRID_CELL_SIZE);
-    Point_1D world_x_normalized = ray.start.x / GRID_CELL_SIZE;
-    Point_1D world_y_normalized = ray.start.y / GRID_CELL_SIZE;
+    ray.start.x               = player.rect.x + (PLAYER_W / 2);
+    ray.start.y               = player.rect.y + (PLAYER_H / 2);
 
-    Vector_1D x_distance_to_next_vertical_cell_edge_normalized = (x_direction < 0)
-                                                                     ? (world_x_normalized - grid_x) * delta_x
-                                                                     : (grid_x + 1 - world_x_normalized) * delta_x;
-    Vector_1D y_distance_to_next_horizontal_cell_edge_normalized = (y_direction < 0)
-                                                                       ? (world_y_normalized - grid_y) * delta_y
-                                                                       : (grid_y + 1 - world_y_normalized) * delta_y;
+    IPoint_1D  grid_x         = floorf(ray.start.x / GRID_CELL_SIZE);
+    Point_1D   norm_x         = ray.start.x / GRID_CELL_SIZE;
+    Vector_1D  x_dir          = cos(curr_angle_rads);
+    IVector_1D step_x         = (x_dir >= 0) ? 1 : -1;
+    Vector_1D  delta_x        = fabs(1.0f / x_dir);
 
-    Point_1D world_next_wall_intersection_x;
-    Point_1D world_next_wall_intersection_y;
+    IPoint_1D  grid_y         = floorf(ray.start.y / GRID_CELL_SIZE);
+    Point_1D   norm_y         = ray.start.y / GRID_CELL_SIZE;
+    Vector_1D  y_dir          = sin(curr_angle_rads);
+    IVector_1D step_y         = (y_dir >= 0) ? 1 : -1;
+    Vector_1D  delta_y        = fabs(1.0f / y_dir);
+
+    Vector_1D  norm_x_dist_cell_edge = (x_dir < 0)
+                                      ? (norm_x - grid_x) * delta_x
+                                      : (grid_x + 1 - norm_x) * delta_x;
+    Vector_1D  norm_y_dist_cell_edge = (y_dir < 0)
+                                      ? (norm_y - grid_y) * delta_y
+                                      : (grid_y + 1 - norm_y) * delta_y;
+
+    Point_1D     wall_x_intersection;
+    Point_1D     wall_y_intersection;
     Wall_Surface surface_hit;
-    Jagged_Row *current_wall_grid_row, *current_floor_grid_row;
-
-    bool is_surface_hit = false;
-    while (!is_surface_hit)
+    bool is_wall_hit = false;
+    while (!is_wall_hit)
     {
-      if (x_distance_to_next_vertical_cell_edge_normalized < y_distance_to_next_horizontal_cell_edge_normalized)
+      curr_wall_grid_row = &wall_grid->rows[grid_y];
+      if (strcmp(curr_wall_grid_row->world_object_names[grid_x], EMPTY_GRID_CELL_VALUE) != 0)
       {
-        world_next_wall_intersection_x = (x_direction < 0)
-                                             ? grid_x * GRID_CELL_SIZE
-                                             : (grid_x + 1) * GRID_CELL_SIZE;
-        world_next_wall_intersection_y = ray.start.y + (world_next_wall_intersection_x - ray.start.x) * y_direction / x_direction;
-        x_distance_to_next_vertical_cell_edge_normalized += delta_x;
-        grid_x += step_x;
-        surface_hit = WS_VERTICAL;
+        is_wall_hit = 1;
+        break;
+      }
+
+      if (norm_x_dist_cell_edge < norm_y_dist_cell_edge)
+      {
+        wall_x_intersection = (x_dir < 0)
+                                  ? grid_x * GRID_CELL_SIZE
+                                  : (grid_x + 1) * GRID_CELL_SIZE;
+        wall_y_intersection = ray.start.y + (wall_x_intersection - ray.start.x) * y_dir / x_dir;
+        norm_x_dist_cell_edge    += delta_x;
+        grid_x                   += step_x;
+        surface_hit              = WS_VERTICAL;
       }
       else
       {
-        world_next_wall_intersection_y = (y_direction < 0)
-                                             ? grid_y * GRID_CELL_SIZE
-                                             : (grid_y + 1) * GRID_CELL_SIZE;
-        world_next_wall_intersection_x = ray.start.x + (world_next_wall_intersection_y - ray.start.y) * x_direction / y_direction;
-        y_distance_to_next_horizontal_cell_edge_normalized += delta_y;
-        grid_y += step_y;
-        surface_hit = WS_HORIZONTAL;
+        wall_y_intersection = (y_dir < 0)
+                                  ? grid_y * GRID_CELL_SIZE
+                                  : (grid_y + 1) * GRID_CELL_SIZE;
+        wall_x_intersection = ray.start.x + (wall_y_intersection - ray.start.y) * x_dir / y_dir;
+        norm_y_dist_cell_edge    += delta_y;
+        grid_y                   += step_y;
+        surface_hit              = WS_HORIZONTAL;
       }
 
-      ray.end.x = world_next_wall_intersection_x;
-      ray.end.y = world_next_wall_intersection_y;
-
-      current_wall_grid_row = &wall_grid->rows[grid_y];
-
-      if (strcmp(current_wall_grid_row->world_object_names[grid_x], EMPTY_GRID_CELL_VALUE) != 0)
-      {
-        is_surface_hit = 1;
-        break;
-      }
+      ray.end.x = wall_x_intersection;
+      ray.end.y = wall_y_intersection;
     }
+    // clang-format on
 
+    // 2D Map
     // Ray lines
     // SDL_SetRenderDrawColor(renderer, r, g, b, a);
     // SDL_RenderLine(renderer, ray.start.x, ray.start.y, ray.end.x, ray.end.y);
@@ -136,8 +140,10 @@ static void cast_rays_from_player(void)
      * 2.5D Rendering
      */
     Scalar ray_length = sqrt(pow(ray.start.x - ray.end.x, 2) + pow(ray.start.y - ray.end.y, 2));
-    Point_1D ray_screen_position_x = ((current_angle - start_angle) / PLAYER_FOV_DEG) * (WINDOW_W / 2) + WINDOW_W / 4;
     Scalar perpendicular_distance = ray_length * cos(theta);
+
+    // SCREEN
+    Point_1D ray_screen_position_x = ((curr_angle_deg - start_angle) / PLAYER_FOV_DEG) * (WINDOW_W / 2) + WINDOW_W / 4;
     Scalar wall_vertical_strip_height = (GRID_CELL_SIZE * WINDOW_H) / perpendicular_distance;
     Scalar vertical_strip_width = (WINDOW_W / 2) / ((end_angle - start_angle) / PLAYER_FOV_DEG_INC);
 
@@ -152,14 +158,15 @@ static void cast_rays_from_player(void)
     // For each vertical pixel in the floor strip
     for (int screen_y = floor_start_y; screen_y < WINDOW_H; screen_y++)
     {
+
       // Calculate distance to the point on the floor
       Scalar distance = (WINDOW_H / 2.0f) / (screen_y - WINDOW_H / 2.0f);
 
       // Scale by the player's height (distance to projection plane)
       distance *= GRID_CELL_SIZE; // Adjust this factor as needed
 
-      Point_1D floor_world_x = (player.rect.x + PLAYER_W / 2) + (x_direction / cos(theta)) * distance;
-      Point_1D floor_world_y = (player.rect.y + PLAYER_H / 2) + (y_direction / cos(theta)) * distance;
+      Point_1D floor_world_x = (player.rect.x + PLAYER_W / 2) + (x_dir / cos(theta)) * distance;
+      Point_1D floor_world_y = (player.rect.y + PLAYER_H / 2) + (y_dir / cos(theta)) * distance;
 
       // Calculate texture coordinates
       Point_1D texture_x = (int)(floor_world_x) % TEXTURE_PIXEL_W;
@@ -178,43 +185,21 @@ static void cast_rays_from_player(void)
           .w = vertical_strip_width,
           .h = 1};
 
-      current_floor_grid_row = &floor_grid->rows[grid_y];
+      curr_floor_grid_row = &floor_grid->rows[grid_y];
 
       /*
        * Texture case handling
        */
-      // printf("grid x %d\n", grid_x);
-
-      // printf("length %d\n", strlen(current_floor_grid_row->world_object_names[1]));
 
       for (size_t i = 0; i < world_objects_container->length; i++)
       {
-        // printf("%s\n", current_floor_grid_row->world_object_names[0]);
 
-        // printf("world_objects_container: %d\n",
-        //        world_objects_container->length);
-        // printf("floor row length%d\n",
-        //        current_floor_grid_row->length);
-        // printf("grid_x %d grid_y %d \n",
-        //        grid_x, grid_y);
-        // printf("%s\n", current_floor_grid_row->world_object_names[grid_x]);
-        if (strcmp(current_floor_grid_row->world_object_names[grid_x], world_objects_container->data[i]->name) == 0)
+        if (strcmp(curr_floor_grid_row->world_object_names[grid_x], world_objects_container->data[i]->name) == 0)
         {
           SDL_RenderTexture(renderer, world_objects_container->data[i]->textures.data[0], &src_rect, &dst_rect);
           break;
         }
       }
-      // Uint8 floor_brightness = (Uint8)(255.0f * (1.0f - log10f(1.0f + (12.0f * distance / (64 * 16)))));
-      // Uint8 floor_brightness_b = (Uint8)(255.0f * (1.0f - log10f(1.0f + (3.0f * distance / (64 * 16)))));
-
-      // Calculate brightness based on distance (similar to walls)
-      // SDL_SetTextureColorMod(wood_vertical_texture, floor_brightness, floor_brightness, floor_brightness);
-      // SDL_SetTextureColorMod(lava_a_texture, floor_brightness_b, floor_brightness, floor_brightness);
-      // SDL_SetTextureColorMod(lava_b_texture, floor_brightness_b, floor_brightness, floor_brightness);
-      // SDL_SetTextureColorMod(lava_c_texture, floor_brightness_b, floor_brightness, floor_brightness);
-
-      // SDL_RenderTexture(renderer, world_objects_container->data[0]->textures.data[0], &src_rect, &dst_rect);
-      // Search in world-objects
     }
 
     /*
@@ -236,14 +221,14 @@ static void cast_rays_from_player(void)
     Point_1D texture_x;
     if (surface_hit == WS_VERTICAL)
     {
-      wall_x = world_next_wall_intersection_y;
+      wall_x = wall_y_intersection;
       Point_1D wall_x_normalized = wall_x / GRID_CELL_SIZE;
       Point_1D wall_x_offset_normalized = wall_x_normalized - floorf(wall_x_normalized);
       texture_x = roundf(wall_x_offset_normalized * TEXTURE_PIXEL_W);
     }
     else
     {
-      wall_x = world_next_wall_intersection_x;
+      wall_x = wall_x_intersection;
       Point_1D wall_x_normalized = wall_x / GRID_CELL_SIZE;
       Point_1D wall_x_offset_normalized = wall_x_normalized - floorf(wall_x_normalized);
       texture_x = roundf(wall_x_offset_normalized * TEXTURE_PIXEL_W);
@@ -265,7 +250,7 @@ static void cast_rays_from_player(void)
 
     for (size_t i = 0; i < world_objects_container->length; i++)
     {
-      if (strcmp(current_wall_grid_row->world_object_names[grid_x], world_objects_container->data[i]->name) == 0)
+      if (strcmp(curr_wall_grid_row->world_object_names[grid_x], world_objects_container->data[i]->name) == 0)
       {
         SDL_RenderTexture(renderer, world_objects_container->data[i]->textures.data[0], &src_rect, &wall_rect);
         break;

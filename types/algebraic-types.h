@@ -2,30 +2,54 @@
 #define ALGEBRAIC_TYPES_H
 
 /*
- * 1 dimension
+ * Integer
  */
-typedef int Grid_Point_1D;
+typedef int IPoint_1D;
+typedef int IVector_1D;
+typedef int IPlane_1D;
+typedef int IScalar;
+
+typedef struct IPoint_2D
+{
+  IPoint_1D x;
+  IPoint_1D y;
+} IPoint_2D;
+
+typedef struct IVector_2D
+{
+  IVector_1D x;
+  IVector_1D y;
+} IVector_2D;
+
+typedef struct ILine_2D
+{
+  IPoint_2D start;
+  IPoint_2D end;
+} ILine_2D;
+
+typedef struct IRect_2D
+{
+  IPoint_2D origin;
+  IScalar w;
+  IScalar h;
+} IRect_2D;
+
+/*
+ * Floats
+ */
+
 typedef float Plane_1D;
 typedef float Point_1D;
 typedef float Scalar;
 typedef float Vector_1D;
 
-/*
- * 2 dimensions
- */
-typedef struct Grid_Point_2D
-{
-  Grid_Point_1D x;
-  Grid_Point_1D y;
-} Grid_Point_2D;
-
-typedef struct
+typedef struct Point_2D
 {
   Point_1D x;
   Point_1D y;
 } Point_2D;
 
-typedef struct
+typedef struct Vector_2D
 {
   Vector_1D x;
   Vector_1D y;
