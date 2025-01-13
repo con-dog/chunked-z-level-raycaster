@@ -394,6 +394,8 @@ void run_game_loop(void) {
       }
     }
 
+    // HANDLE ANIMATIONS PROCESSING HERE?
+
     handle_player_movement(delta_time);
     update_display();
   }
