@@ -3,18 +3,13 @@
 /* ******************
  * GLOBALS (START)
  ****************** */
-SDL_Window   *window;
-SDL_Renderer *renderer;
-
+SDL_Window              *window;
+SDL_Renderer            *renderer;
 World_Objects_Container *world_objects_container;
-
-Jagged_Grid *floor_grid;
-Jagged_Grid *wall_grid;
-
-Player player;
-
-const bool *keyboard_state;
-
+Jagged_Grid             *floor_grid;
+Jagged_Grid             *wall_grid;
+Player                   player;
+const bool              *keyboard_state;
 /* ******************
  * GLOBALS (END)
  ****************** */
@@ -318,7 +313,6 @@ void move_player(float direction, bool is_sprinting, float delta_time) {
 
   Grid_Hit_Box player_hit_box_grid = convert_world_position_to_grid_position(
       &new_pos, PLAYER_INTERACTION_DISTANCE);
-
   Jagged_Row *tl_grid_cell_row = &wall_grid->rows[player_hit_box_grid.tl.y];
   Jagged_Row *tr_grid_cell_row = &wall_grid->rows[player_hit_box_grid.tr.y];
   Jagged_Row *bl_grid_cell_row = &wall_grid->rows[player_hit_box_grid.bl.y];
@@ -379,8 +373,6 @@ void handle_player_movement(float delta_time) {
 void update_display(void) {
   SDL_SetRenderDrawColor(renderer, 30, 0, 30, 255);
   SDL_RenderClear(renderer);
-  // draw_jagged_grid();
-  // draw_player();
   cast_rays_from_player();
   SDL_RenderPresent(renderer);
 }
@@ -409,16 +401,13 @@ void run_game_loop(void) {
 
 int main() {
   const char *title = "2.5D Raycasting Game Engine";
-
   setup_sdl(title, WINDOW_W, WINDOW_H, SDL_WINDOW_RESIZABLE, &window,
             &renderer);
+
   world_objects_container =
       setup_engine_textures(renderer, "./manifests/texture_manifest.json");
-
-  wall_grid  = read_grid_csv_file("./assets/levels/1/level-1-walls.csv");
   floor_grid = read_grid_csv_file("./assets/levels/1/level-1-floors.csv");
-
-  print_jagged_grid(floor_grid);
+  wall_grid  = read_grid_csv_file("./assets/levels/1/level-1-walls.csv");
 
   player_init();
   keyboard_state = SDL_GetKeyboardState(NULL);
@@ -427,10 +416,8 @@ int main() {
   free_jagged_grid(wall_grid);
   free_jagged_grid(floor_grid);
   cleanup_world_objects(world_objects_container);
-
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
-
   SDL_Quit();
 
   return 0;
