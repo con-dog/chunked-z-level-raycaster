@@ -191,12 +191,13 @@ static void cast_rays_from_player(void)
       Scalar distance =
           ((WINDOW_H / 2.0f) / (scr_y - WINDOW_H / 2.0f)) * GRID_CELL_SIZE;
       Point_1D floor_world_x =
-          (player.rect.x + PLAYER_W / 2) + (x_dir / cos(theta)) * distance;
+          (player.rect.x) + (x_dir / cos(theta)) * distance;
       Point_1D floor_world_y =
-          (player.rect.y + PLAYER_H / 2) + (y_dir / cos(theta)) * distance;
+          (player.rect.y) + (y_dir / cos(theta)) * distance;
+
+      IPoint_1D floor_grid_y = floorf(floor_world_y / GRID_CELL_SIZE);
 
       IPoint_1D floor_grid_x = floorf(floor_world_x / GRID_CELL_SIZE);
-      IPoint_1D floor_grid_y = floorf(floor_world_y / GRID_CELL_SIZE);
 
       Point_1D texture_x = (int)(floor_world_x) % TEXTURE_PIXEL_W;
       Point_1D texture_y = (int)(floor_world_y) % TEXTURE_PIXEL_H;
@@ -204,21 +205,31 @@ static void cast_rays_from_player(void)
       SDL_FRect src_rect = {.x = texture_x, .y = texture_y, .w = 1, .h = 1};
       SDL_FRect dst_rect = {.x = scr_x, .y = scr_y, .w = scr_strip_w, .h = 1};
 
-      curr_floor_grid_row = &floor_grid->rows[floor_grid_y];
-      Object_Name curr_floor_grid_cell_value =
-          curr_floor_grid_row->world_object_names[floor_grid_x];
-      for (size_t i = 0; i < world_objects_container->length; i++)
+      // bounds check
+      if (floor_grid_y < floor_grid->length)
       {
-        if (strcmp(curr_floor_grid_cell_value,
-                   world_objects_container->data[i]->name) == 0)
+        if (floor_grid_x < floor_grid->rows[floor_grid_y].length)
         {
-          int current_frame_index = world_objects_container->data[i]
-                                        ->animation_state.current_frame_index;
-          SDL_RenderTexture(renderer,
-                            world_objects_container->data[i]
-                                ->textures.data[current_frame_index],
-                            &src_rect, &dst_rect);
-          break;
+          curr_floor_grid_row = &floor_grid->rows[floor_grid_y];
+          if (floor_grid_x < curr_floor_grid_row->length)
+          {
+            Object_Name curr_floor_grid_cell_value =
+                curr_floor_grid_row->world_object_names[floor_grid_x];
+            for (size_t i = 0; i < world_objects_container->length; i++)
+            {
+              if (strcmp(curr_floor_grid_cell_value,
+                         world_objects_container->data[i]->name) == 0)
+              {
+                int current_frame_index = world_objects_container->data[i]
+                                              ->animation_state.current_frame_index;
+                SDL_RenderTexture(renderer,
+                                  world_objects_container->data[i]
+                                      ->textures.data[current_frame_index],
+                                  &src_rect, &dst_rect);
+                break;
+              }
+            }
+          }
         }
       }
     }
@@ -255,16 +266,19 @@ static void cast_rays_from_player(void)
     SDL_FRect src_rect = {.x = texture_x, .y = 0, .w = 1, .h = TEXTURE_PIXEL_H};
     for (size_t i = 0; i < world_objects_container->length; i++)
     {
-      if (strcmp(curr_wall_grid_row->world_object_names[grid_x],
-                 world_objects_container->data[i]->name) == 0)
+      if (grid_x < curr_wall_grid_row->length)
       {
-        int current_frame_index = world_objects_container->data[i]
-                                      ->animation_state.current_frame_index;
-        SDL_RenderTexture(renderer,
-                          world_objects_container->data[i]
-                              ->textures.data[current_frame_index],
-                          &src_rect, &wall_rect);
-        break;
+        if (strcmp(curr_wall_grid_row->world_object_names[grid_x],
+                   world_objects_container->data[i]->name) == 0)
+        {
+          int current_frame_index = world_objects_container->data[i]
+                                        ->animation_state.current_frame_index;
+          SDL_RenderTexture(renderer,
+                            world_objects_container->data[i]
+                                ->textures.data[current_frame_index],
+                            &src_rect, &wall_rect);
+          break;
+        }
       }
     }
   }
@@ -614,10 +628,8 @@ int main()
 
   world_objects_container =
       setup_engine_textures(renderer, "./manifests/texture_manifest.json");
-  floor_grid = read_grid_csv_file("./assets/levels/3/f.csv");
-  wall_grid = read_grid_csv_file("./assets/levels/3/w.csv");
-
-  printf("%d %d\n", world_objects_container->data[0]->collision_mode, world_objects_container->data[0]->surface_type);
+  floor_grid = read_grid_csv_file("./assets/levels/4/f.csv");
+  wall_grid = read_grid_csv_file("./assets/levels/4/w.csv");
 
   player_init();
   keyboard_state = SDL_GetKeyboardState(NULL);
