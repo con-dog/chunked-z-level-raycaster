@@ -2,7 +2,6 @@
 
 static void process_row(char *line, Jagged_Row *row);
 
-// Main function to read and create the grid
 // TODO ! Strip empty final rows if there are any
 extern Jagged_Grid *read_grid_csv_file(const char *filename) {
   FILE *file = fopen(filename, "r");
@@ -11,7 +10,6 @@ extern Jagged_Grid *read_grid_csv_file(const char *filename) {
     return NULL;
   }
 
-  // Create the grid structure
   Jagged_Grid *grid = malloc(sizeof(Jagged_Grid));
   if (!grid) {
     fclose(file);
@@ -28,7 +26,6 @@ extern Jagged_Grid *read_grid_csv_file(const char *filename) {
   if (c != '\n' && grid->length > 0)
     grid->length++; // Handle last line without newline
 
-  // Allocate rows array
   grid->rows = malloc(grid->length * sizeof(Jagged_Row));
   if (!grid->rows) {
     free(grid);
@@ -36,10 +33,8 @@ extern Jagged_Grid *read_grid_csv_file(const char *filename) {
     return NULL;
   }
 
-  // Reset file position
   rewind(file);
 
-  // Buffer for reading lines
   char   *line = NULL;
   size_t  len  = 0;
   ssize_t read;
@@ -87,14 +82,12 @@ static void process_row(char *line, Jagged_Row *row) {
   if (!has_content) {
     row->length             = 0;
     row->world_object_names = NULL;
-    printf("Setting to NULL line 99");
     return;
   }
 
   row->length             = last_content + 1;
   row->world_object_names = malloc(row->length * sizeof(Object_Name));
   if (!row->world_object_names) {
-    printf("Setting to length 0 line 107");
     row->length = 0;
     return;
   }
@@ -106,7 +99,6 @@ static void process_row(char *line, Jagged_Row *row) {
 
   while ((token = strsep(&pos, ",")) != NULL &&
          (size_t)current_pos < row->length) {
-    // Trim whitespace and newline
     while (*token && (isspace(*token) || *token == '\n'))
       token++;
     char *end = token + strlen(token);
@@ -121,9 +113,7 @@ static void process_row(char *line, Jagged_Row *row) {
     }
 
     if (!row->world_object_names[current_pos]) {
-      // Memory allocation failed, clean up
       for (size_t i = 0; i < (size_t)current_pos; i++) {
-        printf("Memory fail line 141");
         free(row->world_object_names[i]);
       }
       free(row->world_object_names);
