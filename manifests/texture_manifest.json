@@ -206,6 +206,20 @@
       "use_scale_mode_nearest": true
     },
     {
+      "name": "lava-c",
+      "src_directory": "assets/textures/64x64/lava/c",
+      "frame_src_files": ["lava-c.png"],
+      "frame_duration": 1,
+      "is_animated": false,
+      "is_looping": false,
+      "category": "lava",
+      "surface_type": "0b001",
+      "collision_mode": "0b001",
+      "expected_pixel_width": 64,
+      "expected_pixel_height": 64,
+      "use_scale_mode_nearest": true
+    },
+    {
       "name": "overgrown-a",
       "src_directory": "assets/textures/64x64/overgrown/a",
       "frame_src_files": ["overgrown-a.png"],
