@@ -80,7 +80,85 @@
       "expected_pixel_width": 64,
       "expected_pixel_height": 64,
       "use_scale_mode_nearest": true
-    },{
+    },
+    {
+      "name": "lava-a",
+      "src_directory": "assets/textures/64x64/lava/a",
+      "frame_src_files": ["lava-a.png"],
+      "category": "lava",
+      "surface_type": "0b010",
+      "collision_mode": "0b010",
+      "expected_pixel_width": 64,
+      "expected_pixel_height": 64,
+      "use_scale_mode_nearest": true
+    },
+    {
+      "name": "lava-b",
+      "src_directory": "assets/textures/64x64/lava/b",
+      "frame_src_files": ["lava-b.png"],
+      "category": "lava",
+      "surface_type": "0b010",
+      "collision_mode": "0b010",
+      "expected_pixel_width": 64,
+      "expected_pixel_height": 64,
+      "use_scale_mode_nearest": true
+    },
+    {
+      "name": "lava-c",
+      "src_directory": "assets/textures/64x64/lava/c",
+      "frame_src_files": ["lava-c.png"],
+      "category": "lava",
+      "surface_type": "0b010",
+      "collision_mode": "0b010",
+      "expected_pixel_width": 64,
+      "expected_pixel_height": 64,
+      "use_scale_mode_nearest": true
+    },
+    {
+      "name": "overgrown-a",
+      "src_directory": "assets/textures/64x64/overgrown/a",
+      "frame_src_files": ["overgrown-a.png"],
+      "category": "overgrown",
+      "surface_type": "0b010",
+      "collision_mode": "0b010",
+      "expected_pixel_width": 64,
+      "expected_pixel_height": 64,
+      "use_scale_mode_nearest": true
+    },
+    {
+      "name": "overgrown-b",
+      "src_directory": "assets/textures/64x64/overgrown/b",
+      "frame_src_files": ["overgrown-b.png"],
+      "category": "overgrown",
+      "surface_type": "0b010",
+      "collision_mode": "0b010",
+      "expected_pixel_width": 64,
+      "expected_pixel_height": 64,
+      "use_scale_mode_nearest": true
+    },
+    {
+      "name": "water-b",
+      "src_directory": "assets/textures/64x64/water/b",
+      "frame_src_files": ["water-b.png"],
+      "category": "water",
+      "surface_type": "0b010",
+      "collision_mode": "0b010",
+      "expected_pixel_width": 64,
+      "expected_pixel_height": 64,
+      "use_scale_mode_nearest": true
+    },
+    {
+      "name": "water-c",
+      "src_directory": "assets/textures/64x64/water/c",
+      "frame_src_files": ["water-c.png"],
+      "category": "water",
+      "surface_type": "0b010",
+      "collision_mode": "0b010",
+      "expected_pixel_width": 64,
+      "expected_pixel_height": 64,
+      "use_scale_mode_nearest": true
+    },
+    {
       "name": "wood-vertical",
       "src_directory": "assets/textures/64x64/wood/a",
       "frame_src_files": ["wood-vertical.png"],

@@ -406,8 +406,8 @@ int main() {
 
   world_objects_container =
       setup_engine_textures(renderer, "./manifests/texture_manifest.json");
-  floor_grid = read_grid_csv_file("./assets/levels/1/level-1-floors.csv");
-  wall_grid  = read_grid_csv_file("./assets/levels/1/level-1-walls.csv");
+  floor_grid = read_grid_csv_file("./assets/levels/2/floors.csv");
+  wall_grid  = read_grid_csv_file("./assets/levels/2/walls.csv");
 
   player_init();
   keyboard_state = SDL_GetKeyboardState(NULL);
