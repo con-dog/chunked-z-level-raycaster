@@ -5,7 +5,7 @@ A brand-new, old-school game-engine inspired by the likes of [Wolfenstein 3D (19
 ## Currently in Phase 5:
 Animated textures, floor/wall collisions, and just for fun - sprites.
 ![Phase 5 image](https://github.com/con-dog/2.5D-raycasting-engine/blob/6f3023fa86f8d4a3338c96a77d64b92d55bdabc6/_media/phase-5/fishing-time.png)
-1[Phase 5 fishing gif](https://github.com/con-dog/2.5D-raycasting-engine/blob/35efbffc349788171c625aecd9ae6a6f2db17518/_media/phase-5/fishing-time.gif)
+![Phase 5 fishing gif](https://github.com/con-dog/2.5D-raycasting-engine/blob/35efbffc349788171c625aecd9ae6a6f2db17518/_media/phase-5/fishing-time.gif)
 ![Phase 5 gif](https://github.com/con-dog/2.5D-raycasting-engine/blob/3e8615c0fbabc73b51672c1551a10ede91257603/_media/phase-5/phase-5.gif)
 
 ## Future Goals
