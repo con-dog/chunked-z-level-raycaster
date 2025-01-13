@@ -1,8 +1,8 @@
 brick-a,brick-a,brick-a,brick-b,brick-f,water-b,,,
-brick-a,wood-vertical,wood-vertical,wood-vertical,wood-vertical,water-b,,,
-brick-a,wood-vertical,wood-vertical,wood-vertical,wood-vertical,water-c,water-b,,
-brick-a,brick-a,brick-b,wood-vertical,wood-vertical,overgrown-a,brick-e,water-b,
-,,,brick-f,wood-vertical,wood-vertical,water-b,brick-e,
+brick-a,water-a,water-a,water-a,water-a,water-b,,,
+brick-a,water-a,water-a,water-a,water-a,water-c,water-b,,
+brick-a,brick-a,brick-b,water-a,water-a,overgrown-a,brick-e,water-b,
+,,,brick-f,water-a,water-a,water-b,brick-e,
 ,,water-b,brick-f,wood-vertical,wood-vertical,water-c,lava-c,
 ,water-b,brick-f,brick-d,brick-d,brick-a,water-b,brick-d,water-b
 water-b,brick-f,brick-d,brick-a,brick-a,brick-a,water-c,lava-a,brick-d

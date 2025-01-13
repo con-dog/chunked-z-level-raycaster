@@ -137,6 +137,17 @@
       "use_scale_mode_nearest": true
     },
     {
+      "name": "water-a",
+      "src_directory": "assets/textures/64x64/water/a",
+      "frame_src_files": ["water-a.png", "water-b.png", "water-c.png"],
+      "category": "water",
+      "surface_type": "0b010",
+      "collision_mode": "0b010",
+      "expected_pixel_width": 64,
+      "expected_pixel_height": 64,
+      "use_scale_mode_nearest": true
+    },
+    {
       "name": "water-b",
       "src_directory": "assets/textures/64x64/water/b",
       "frame_src_files": ["water-b.png"],
