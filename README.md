@@ -3,14 +3,10 @@
 A brand-new, old-school game-engine inspired by the likes of [Wolfenstein 3D (1992)](https://en.wikipedia.org/wiki/Wolfenstein_3D) and [Ultima Underworld: The Stygian Abyss (1992)](https://en.wikipedia.org/wiki/Ultima_Underworld:_The_Stygian_Abyss). Uses simple raycasting techniques and a uniform cell grid to render 3D.
 
 ## Currently in Phase 5:
-### Planning
-- Texture animations (running water, flowing lava etc)
-  - Frame rate
-  - Looping
-  - Random start frame
-  - Random frame order
+Animated textures with a rudimentary animation processing step.
+![Phase 5 gif](https://github.com/con-dog/2.5D-raycasting-engine/blob/3e8615c0fbabc73b51672c1551a10ede91257603/_media/phase-5/phase-5.gif)
 
-### Future Goals
+## Future Goals
 - Remake / Demake a Pokemon town in this engine
 - Texture transparency (ray pass-through to next texture)
 - Texture collision enabled bitfield for floor wall or ceiling via 0bXXX (similar to texture surface type) so you can have hitbox detection for walls, floors, and ceilings
