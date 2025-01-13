@@ -58,15 +58,16 @@ static Scalar calculate_ray_perpendicular_distance(Line_2D *ray,
 }
 
 static void cast_rays_from_player(void) {
-  Degrees start_angle = player.angle - PLAYER_FOV_DEG / 2;
-  Degrees end_angle   = player.angle + PLAYER_FOV_DEG / 2;
+  Degrees start_angle_deg = player.angle - PLAYER_FOV_DEG / 2;
+  Degrees end_angle_deg   = player.angle + PLAYER_FOV_DEG / 2;
 
-  for (Degrees curr_angle_deg = start_angle; curr_angle_deg <= end_angle;
-       curr_angle_deg += PLAYER_FOV_DEG_INC) {
+  for (Degrees curr_angle_deg = start_angle_deg;
+       curr_angle_deg <= end_angle_deg; curr_angle_deg += PLAYER_FOV_DEG_INC) {
     /*
      * Ray Setup logic
      */
     Line_2D     ray;
+    Jagged_Row *curr_floor_grid_row;
     Jagged_Row *curr_wall_grid_row;
 
     Radians curr_angle_rads = convert_deg_to_rads(curr_angle_deg);
@@ -137,56 +138,44 @@ static void cast_rays_from_player(void) {
       }
     }
 
-    Scalar ray_length =
-        sqrt(pow(ray.start.x - ray.end.x, 2) + pow(ray.start.y - ray.end.y, 2));
-    Point_1D ray_screen_position_x =
-        ((curr_angle_deg - start_angle) / PLAYER_FOV_DEG) * (WINDOW_W / 2) +
+    /*
+     * Screen calculations
+     */
+    Scalar   perp_distance = calculate_ray_perpendicular_distance(&ray, theta);
+    Point_1D scr_x =
+        ((curr_angle_deg - start_angle_deg) / PLAYER_FOV_DEG) * (WINDOW_W / 2) +
         WINDOW_W / 4;
-    Scalar perpendicular_distance = ray_length * cos(theta);
-    Scalar wall_vertical_strip_height =
-        (GRID_CELL_SIZE * WINDOW_H) / perpendicular_distance;
-    Scalar vertical_strip_width =
-        (WINDOW_W / 2) / ((end_angle - start_angle) / PLAYER_FOV_DEG_INC);
+    Scalar wall_strip_h = (GRID_CELL_SIZE * WINDOW_H) / perp_distance;
+    Scalar scr_strip_w  = (WINDOW_W / 2) / ((end_angle_deg - start_angle_deg) /
+                                           PLAYER_FOV_DEG_INC);
+    Scalar scr_offset_y = (WINDOW_H - wall_strip_h) / 2;
 
-    Scalar wall_vertical_offset = (WINDOW_H - wall_vertical_strip_height) / 2;
-
-    // FLOOR
-    Scalar floor_start_y = wall_vertical_offset + wall_vertical_strip_height;
-    Scalar floor_vertical_strip_height = WINDOW_H - floor_start_y;
-
-    // For each vertical pixel in the floor strip
-    for (int screen_y = floor_start_y; screen_y < WINDOW_H; screen_y++) {
-      // Calculate distance to the point on the floor
-      Scalar distance = (WINDOW_H / 2.0f) / (screen_y - WINDOW_H / 2.0f);
-
-      // Scale by the player's height (distance to projection plane)
-      distance *= GRID_CELL_SIZE; // Adjust this factor as needed
-
+    /*
+     * Draw Floors
+     */
+    Scalar floor_start_y = scr_offset_y + wall_strip_h;
+    for (int scr_y = floor_start_y; scr_y < WINDOW_H; scr_y++) {
+      Scalar distance =
+          ((WINDOW_H / 2.0f) / (scr_y - WINDOW_H / 2.0f)) * GRID_CELL_SIZE;
       Point_1D floor_world_x =
           (player.rect.x + PLAYER_W / 2) + (x_dir / cos(theta)) * distance;
       Point_1D floor_world_y =
           (player.rect.y + PLAYER_H / 2) + (y_dir / cos(theta)) * distance;
 
-      // Fix grid position calculation using floorf()
       IPoint_1D floor_grid_x = floorf(floor_world_x / GRID_CELL_SIZE);
       IPoint_1D floor_grid_y = floorf(floor_world_y / GRID_CELL_SIZE);
 
-      // Calculate texture coordinates
       Point_1D texture_x = (int)(floor_world_x) % TEXTURE_PIXEL_W;
       Point_1D texture_y = (int)(floor_world_y) % TEXTURE_PIXEL_H;
 
-      // Create source and destination rectangles for this pixel
       SDL_FRect src_rect = {.x = texture_x, .y = texture_y, .w = 1, .h = 1};
+      SDL_FRect dst_rect = {.x = scr_x, .y = scr_y, .w = scr_strip_w, .h = 1};
 
-      SDL_FRect dst_rect = {.x = ray_screen_position_x,
-                            .y = screen_y,
-                            .w = vertical_strip_width,
-                            .h = 1};
-
-      Jagged_Row *curr_floor_grid_row;
       curr_floor_grid_row = &floor_grid->rows[floor_grid_y];
+      Object_Name curr_floor_grid_cell_value =
+          curr_floor_grid_row->world_object_names[floor_grid_x];
       for (size_t i = 0; i < world_objects_container->length; i++) {
-        if (strcmp(curr_floor_grid_row->world_object_names[floor_grid_x],
+        if (strcmp(curr_floor_grid_cell_value,
                    world_objects_container->data[i]->name) == 0) {
           SDL_RenderTexture(renderer,
                             world_objects_container->data[i]->textures.data[0],
@@ -196,88 +185,14 @@ static void cast_rays_from_player(void) {
       }
     }
 
-    // /*
-    //  * Conversions to screen positions
-    //  */
-    // Scalar ray_perp_distance =
-    //     calculate_ray_perpendicular_distance(&ray, theta);
-
-    // // SCREEN
-    // Point_1D ray_screen_position_x =
-    //     ((curr_angle_deg - start_angle) / PLAYER_FOV_DEG) * (WINDOW_W /
-    //     2) + WINDOW_W / 4;
-    // Scalar wall_vertical_strip_height =
-    //     (GRID_CELL_SIZE * WINDOW_H) / ray_perp_distance;
-    // Scalar vertical_strip_width =
-    //     (WINDOW_W / 2) / ((end_angle - start_angle) /
-    //     PLAYER_FOV_DEG_INC);
-
-    // // Center line vertically
-    // Scalar wall_vertical_offset = (WINDOW_H - wall_vertical_strip_height)
-    // / 2;
-
-    // /*
-    //  * DRAW FLOORS
-    //  */
-    // Scalar floor_start_y = wall_vertical_offset +
-    // wall_vertical_strip_height;
-
-    // // For each vertical pixel in the floor strip
-    // for (int screen_y = floor_start_y; screen_y < WINDOW_H; screen_y++) {
-
-    //   // Calculate distance to the point on the floor
-    //   Scalar distance = (WINDOW_H / 2.0f) / (screen_y - WINDOW_H / 2.0f);
-
-    //   // Scale by the player's height (distance to projection plane)
-    //   distance *= GRID_CELL_SIZE; // Adjust this factor as needed
-
-    //   Point_1D floor_world_x =
-    //       (player.rect.x + PLAYER_W / 2) + (x_dir / cos(theta)) *
-    //       distance;
-    //   Point_1D floor_world_y =
-    //       (player.rect.y + PLAYER_H / 2) + (y_dir / cos(theta)) *
-    //       distance;
-
-    //   // Calculate texture coordinates
-    //   Point_1D texture_x = (int)(floor_world_x) % TEXTURE_PIXEL_W;
-    //   Point_1D texture_y = (int)(floor_world_y) % TEXTURE_PIXEL_H;
-
-    //   // Create source and destination rectangles for this pixel
-    //   SDL_FRect src_rect = {.x = texture_x, .y = texture_y, .w = 1, .h =
-    //   1};
-
-    //   SDL_FRect dst_rect = {.x = ray_screen_position_x,
-    //                         .y = screen_y,
-    //                         .w = vertical_strip_width,
-    //                         .h = 1};
-
-    //   curr_floor_grid_row = &floor_grid->rows[grid_y];
-
-    //   /*
-    //    * Texture case handling
-    //    */
-
-    //   for (size_t i = 0; i < world_objects_container->length; i++) {
-
-    //     if (strcmp(curr_floor_grid_row->world_object_names[grid_x],
-    //                world_objects_container->data[i]->name) == 0) {
-    //       SDL_RenderTexture(renderer,
-    //                         world_objects_container->data[i]->textures.data[0],
-    //                         &src_rect, &dst_rect);
-    //       break;
-    //     }
-    //   }
-    // }
-
     /*
-     * DRAW WALLS
+     * Draw Walls
      */
-
     SDL_FRect wall_rect = {
-        .x = ray_screen_position_x,
-        .y = wall_vertical_offset,
-        .w = vertical_strip_width,
-        .h = wall_vertical_strip_height,
+        .x = scr_x,
+        .y = scr_offset_y,
+        .w = scr_strip_w,
+        .h = wall_strip_h,
     };
 
     Point_1D wall_x;
@@ -297,7 +212,6 @@ static void cast_rays_from_player(void) {
     }
 
     SDL_FRect src_rect = {.x = texture_x, .y = 0, .w = 1, .h = TEXTURE_PIXEL_H};
-
     for (size_t i = 0; i < world_objects_container->length; i++) {
       if (strcmp(curr_wall_grid_row->world_object_names[grid_x],
                  world_objects_container->data[i]->name) == 0) {
