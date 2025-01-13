@@ -18,6 +18,8 @@ typedef struct Texture_Src_Container {
 } Texture_Src_Container;
 
 typedef struct Animation_State {
+  bool  is_animated;
+  bool  is_looping;
   int   current_frame_index;
   int   max_frame_index;
   float frame_elapsed_time;
