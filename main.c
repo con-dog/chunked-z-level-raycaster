@@ -348,24 +348,111 @@ void move_player(float direction, bool is_sprinting, float delta_time)
 
   Grid_Hit_Box player_hit_box_grid = convert_world_position_to_grid_position(
       &new_pos, PLAYER_INTERACTION_DISTANCE);
-  Jagged_Row *tl_grid_cell_row = &wall_grid->rows[player_hit_box_grid.tl.y];
-  Jagged_Row *tr_grid_cell_row = &wall_grid->rows[player_hit_box_grid.tr.y];
-  Jagged_Row *bl_grid_cell_row = &wall_grid->rows[player_hit_box_grid.bl.y];
-  Jagged_Row *br_grid_cell_row = &wall_grid->rows[player_hit_box_grid.br.y];
 
-  const Object_Name tl_grid_cell_value =
-      tl_grid_cell_row->world_object_names[player_hit_box_grid.tl.x];
-  const Object_Name tr_grid_cell_value =
-      tr_grid_cell_row->world_object_names[player_hit_box_grid.tr.x];
-  const Object_Name bl_grid_cell_value =
-      bl_grid_cell_row->world_object_names[player_hit_box_grid.bl.x];
-  const Object_Name br_grid_cell_value =
-      br_grid_cell_row->world_object_names[player_hit_box_grid.br.x];
+  /*
+   * Process wall collisions
+   */
+  Jagged_Row *tl_wall_cell_row = &wall_grid->rows[player_hit_box_grid.tl.y];
+  Jagged_Row *tr_wall_cell_row = &wall_grid->rows[player_hit_box_grid.tr.y];
+  Jagged_Row *bl_wall_cell_row = &wall_grid->rows[player_hit_box_grid.bl.y];
+  Jagged_Row *br_wall_cell_row = &wall_grid->rows[player_hit_box_grid.br.y];
 
-  if ((strcmp(tl_grid_cell_value, EMPTY_GRID_CELL_VALUE) == 0) &&
-      (strcmp(tr_grid_cell_value, EMPTY_GRID_CELL_VALUE) == 0) &&
-      (strcmp(bl_grid_cell_value, EMPTY_GRID_CELL_VALUE) == 0) &&
-      (strcmp(br_grid_cell_value, EMPTY_GRID_CELL_VALUE) == 0))
+  Jagged_Row *tl_floor_cell_row = &floor_grid->rows[player_hit_box_grid.tl.y];
+  Jagged_Row *tr_floor_cell_row = &floor_grid->rows[player_hit_box_grid.tr.y];
+  Jagged_Row *bl_floor_cell_row = &floor_grid->rows[player_hit_box_grid.bl.y];
+  Jagged_Row *br_floor_cell_row = &floor_grid->rows[player_hit_box_grid.br.y];
+
+  const Object_Name tl_wall_value =
+      tl_wall_cell_row->world_object_names[player_hit_box_grid.tl.x];
+  const Object_Name tr_wall_value =
+      tr_wall_cell_row->world_object_names[player_hit_box_grid.tr.x];
+  const Object_Name bl_wall_value =
+      bl_wall_cell_row->world_object_names[player_hit_box_grid.bl.x];
+  const Object_Name br_wall_value =
+      br_wall_cell_row->world_object_names[player_hit_box_grid.br.x];
+
+  const Object_Name tl_floor_value = tl_floor_cell_row->world_object_names[player_hit_box_grid.tl.x];
+  const Object_Name tr_floor_value = tr_floor_cell_row->world_object_names[player_hit_box_grid.tr.x];
+  const Object_Name bl_floor_value = bl_floor_cell_row->world_object_names[player_hit_box_grid.bl.x];
+  const Object_Name br_floor_value = br_floor_cell_row->world_object_names[player_hit_box_grid.br.x];
+
+  const Object_Name wall_obj_names[4] = {
+      tl_wall_value,
+      tr_wall_value,
+      bl_wall_value,
+      br_wall_value,
+  };
+
+  const Object_Name floor_obj_names[4] = {
+      tl_floor_value,
+      tr_floor_value,
+      bl_floor_value,
+      br_floor_value};
+
+  bool can_move = true;
+  for (size_t i = 0; i < 4; i++)
+  {
+    for (size_t j = 0; j < world_objects_container->length; j++)
+    {
+      if (strcmp(wall_obj_names[i], world_objects_container->data[j]->name) == 0)
+      {
+        switch (world_objects_container->data[j]->collision_mode)
+        {
+        case 0b010:
+        {
+          can_move = false;
+          break;
+        }
+        case 0b011:
+        {
+          can_move = false;
+          break;
+        }
+        case 0b111:
+        {
+          can_move = false;
+        }
+        }
+        if (can_move == false)
+        {
+          break;
+        }
+      }
+    }
+  }
+
+  for (size_t i = 0; i < 4; i++)
+  {
+    for (size_t j = 0; j < world_objects_container->length; j++)
+    {
+      if (strcmp(floor_obj_names[i], world_objects_container->data[j]->name) == 0)
+      {
+        switch (world_objects_container->data[j]->collision_mode)
+        {
+        case 0b001:
+        {
+          can_move = false;
+          break;
+        }
+        case 0b011:
+        {
+          can_move = false;
+          break;
+        }
+        case 0b111:
+        {
+          can_move = false;
+        }
+        }
+        if (can_move == false)
+        {
+          break;
+        }
+      }
+    }
+  }
+
+  if (can_move)
   {
     player.rect.x = new_pos.x;
     player.rect.y = new_pos.y;
@@ -493,6 +580,8 @@ int main()
       setup_engine_textures(renderer, "./manifests/texture_manifest.json");
   floor_grid = read_grid_csv_file("./assets/levels/3/f.csv");
   wall_grid = read_grid_csv_file("./assets/levels/3/w.csv");
+
+  printf("%d %d\n", world_objects_container->data[0]->collision_mode, world_objects_container->data[0]->surface_type);
 
   player_init();
   keyboard_state = SDL_GetKeyboardState(NULL);
