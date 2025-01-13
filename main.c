@@ -94,8 +94,8 @@ static void cast_rays_from_player(void)
      * Ray Setup logic
      */
     Line_2D ray;
-    Jagged_Row *curr_floor_grid_row;
-    Jagged_Row *curr_wall_grid_row;
+    Jagged_Row *curr_floor_grid_row = NULL;
+    Jagged_Row *curr_wall_grid_row = NULL;
 
     Radians curr_angle_rads = convert_deg_to_rads(curr_angle_deg);
     Radians theta = convert_deg_to_rads(curr_angle_deg - player.angle);
@@ -158,15 +158,21 @@ static void cast_rays_from_player(void)
       /*
        * Collision check for non EMPTY cell
        */
-      curr_wall_grid_row = &wall_grid->rows[grid_y];
-      // Ocurr_grid_cell_value
-      Object_Name current_grid_cell_value =
-          curr_wall_grid_row->world_object_names[grid_x];
-
-      if (strcmp(current_grid_cell_value, EMPTY_GRID_CELL_VALUE) != 0)
+      if (grid_y < wall_grid->length)
       {
-        is_wall_hit = 1;
-        break;
+        curr_wall_grid_row = &wall_grid->rows[grid_y];
+      }
+      if (curr_wall_grid_row && grid_x < curr_wall_grid_row->length)
+      {
+        // Ocurr_grid_cell_value
+        Object_Name current_grid_cell_value =
+            curr_wall_grid_row->world_object_names[grid_x];
+
+        if (strcmp(current_grid_cell_value, EMPTY_GRID_CELL_VALUE) != 0)
+        {
+          is_wall_hit = 1;
+          break;
+        }
       }
     }
 
@@ -206,22 +212,42 @@ static void cast_rays_from_player(void)
       SDL_FRect dst_rect = {.x = scr_x, .y = scr_y, .w = scr_strip_w, .h = 1};
 
       // bounds check
-      if (floor_grid_y < floor_grid->length)
+      if (floor_grid_y < floor_grid->length &&
+          floor_grid_x < floor_grid->rows[floor_grid_y].length)
       {
-        if (floor_grid_x < floor_grid->rows[floor_grid_y].length)
+        curr_floor_grid_row = &floor_grid->rows[floor_grid_y];
+        if (floor_grid_x < curr_floor_grid_row->length &&
+            curr_floor_grid_row->world_object_names)
         {
-          curr_floor_grid_row = &floor_grid->rows[floor_grid_y];
-          if (floor_grid_x < curr_floor_grid_row->length)
+          Object_Name curr_floor_grid_cell_value =
+              curr_floor_grid_row->world_object_names[floor_grid_x];
+
+          // Check if the cell value is valid
+          if (curr_floor_grid_cell_value != NULL)
           {
-            Object_Name curr_floor_grid_cell_value =
-                curr_floor_grid_row->world_object_names[floor_grid_x];
             for (size_t i = 0; i < world_objects_container->length; i++)
             {
+              // Check if the object and its name exist
+              if (world_objects_container->data[i] == NULL ||
+                  world_objects_container->data[i]->name == NULL)
+              {
+                continue;
+              }
+
               if (strcmp(curr_floor_grid_cell_value,
                          world_objects_container->data[i]->name) == 0)
               {
                 int current_frame_index = world_objects_container->data[i]
                                               ->animation_state.current_frame_index;
+
+                // Check if textures array is valid and index is in bounds
+                if (world_objects_container->data[i]->textures.data == NULL ||
+                    current_frame_index < 0 ||
+                    current_frame_index >= world_objects_container->data[i]->textures.length)
+                {
+                  continue;
+                }
+
                 SDL_RenderTexture(renderer,
                                   world_objects_container->data[i]
                                       ->textures.data[current_frame_index],
@@ -266,7 +292,7 @@ static void cast_rays_from_player(void)
     SDL_FRect src_rect = {.x = texture_x, .y = 0, .w = 1, .h = TEXTURE_PIXEL_H};
     for (size_t i = 0; i < world_objects_container->length; i++)
     {
-      if (grid_x < curr_wall_grid_row->length)
+      if (curr_wall_grid_row->world_object_names && grid_x < curr_wall_grid_row->length && grid_x >= 0)
       {
         if (strcmp(curr_wall_grid_row->world_object_names[grid_x],
                    world_objects_container->data[i]->name) == 0)
