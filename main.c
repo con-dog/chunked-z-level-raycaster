@@ -9,6 +9,7 @@ World_Objects_Container *world_objects_container;
 Jagged_Grid *floor_grid;
 Jagged_Grid *wall_grid;
 Player player;
+SDL_Texture *rod;
 const bool *keyboard_state;
 /* ******************
  * GLOBALS (END)
@@ -25,6 +26,31 @@ static void player_init(void)
   Radians radians = convert_deg_to_rads(player.angle);
   player.delta.x = cos(radians) * PLAYER_MOTION_DELTA_MULTIPLIER;
   player.delta.y = sin(radians) * PLAYER_MOTION_DELTA_MULTIPLIER;
+
+  // ROD
+  SDL_Surface *temp_surface = IMG_Load("./assets/sprites/rod/rod.png");
+  if (!temp_surface)
+  {
+    fprintf(stderr, "Failed to load image\n");
+  }
+
+  SDL_Texture *temp_texture =
+      SDL_CreateTextureFromSurface(renderer, temp_surface);
+  SDL_DestroySurface(temp_surface);
+
+  if (!temp_texture)
+  {
+    fprintf(stderr, "Failed to create texture\n");
+  }
+
+  if (!SDL_SetTextureScaleMode(temp_texture, SDL_SCALEMODE_NEAREST))
+  {
+    fprintf(stderr, "Failed to set texture scale mode: %s\n",
+            SDL_GetError());
+    SDL_DestroyTexture(temp_texture);
+  }
+
+  rod = temp_texture;
 }
 
 static void create_2D_line_from_start_point(Line_2D *out_line, Degrees degrees,
@@ -505,6 +531,16 @@ void update_display(void)
   SDL_SetRenderDrawColor(renderer, 30, 0, 30, 255);
   SDL_RenderClear(renderer);
   cast_rays_from_player();
+
+  SDL_FRect dest_rect = {
+      .h = 300,
+      .w = 400,
+      .x = WINDOW_W / 2 - 200,
+      .y = WINDOW_H - 300,
+  };
+
+  SDL_RenderTexture(renderer, rod, NULL, &dest_rect);
+
   SDL_RenderPresent(renderer);
 }
 
