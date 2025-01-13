@@ -12,7 +12,10 @@
     {
       "name": "brick-a",
       "src_directory": "assets/textures/64x64/bricks",
-      "frame_src_files": ["brick-a"],
+      "frame_src_files": ["brick-a", "brick-b"],
+      "is_animated": true,
+      "frame_duration": ".2",
+      "is_looping": true,
       "category": "bricks",
       "collision_mode": "0b010",
       "surface_type": "0b010",

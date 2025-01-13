@@ -1,0 +1,184 @@
+{
+  "manifest_version": 1,
+  "metadata": {
+    "name": "",
+    "description": "",
+    "version": "1.0.0",
+    "author": "",
+    "contact": "",
+    "homepage_url": ""
+  },
+  "data": [
+    {
+      "name": "brick-a",
+      "src_directory": "assets/textures/64x64/bricks/a",
+      "frame_src_files": ["brick-a.png"],
+      "category": "bricks",
+      "surface_type": "0b010",
+      "collision_mode": "0b010",
+      "expected_pixel_width": 64,
+      "expected_pixel_height": 64,
+      "use_scale_mode_nearest": true
+    },
+    {
+      "name": "brick-b",
+      "src_directory": "assets/textures/64x64/bricks/b",
+      "frame_src_files": ["brick-b.png"],
+      "category": "bricks",
+      "surface_type": "0b010",
+      "collision_mode": "0b010",
+      "expected_pixel_width": 64,
+      "expected_pixel_height": 64,
+      "use_scale_mode_nearest": true
+    },{
+      "name": "brick-c",
+      "src_directory": "assets/textures/64x64/bricks/c",
+      "frame_src_files": ["brick-c.png"],
+      "category": "bricks",
+      "surface_type": "0b010",
+      "collision_mode": "0b010",
+      "expected_pixel_width": 64,
+      "expected_pixel_height": 64,
+      "use_scale_mode_nearest": true
+    },{
+      "name": "brick-d",
+      "src_directory": "assets/textures/64x64/bricks/d",
+      "frame_src_files": ["brick-d.png"],
+      "category": "bricks",
+      "surface_type": "0b010",
+      "collision_mode": "0b010",
+      "expected_pixel_width": 64,
+      "expected_pixel_height": 64,
+      "use_scale_mode_nearest": true
+    },{
+      "name": "brick-e",
+      "src_directory": "assets/textures/64x64/bricks/e",
+      "frame_src_files": ["brick-e.png"],
+      "category": "bricks",
+      "surface_type": "0b010",
+      "collision_mode": "0b010",
+      "expected_pixel_width": 64,
+      "expected_pixel_height": 64,
+      "use_scale_mode_nearest": true
+    },{
+      "name": "brick-f",
+      "src_directory": "assets/textures/64x64/bricks/f",
+      "frame_src_files": ["brick-f.png"],
+      "category": "bricks",
+      "surface_type": "0b010",
+      "collision_mode": "0b010",
+      "expected_pixel_width": 64,
+      "expected_pixel_height": 64,
+      "use_scale_mode_nearest": true
+    },{
+      "name": "brick-g",
+      "src_directory": "assets/textures/64x64/bricks/g",
+      "frame_src_files": ["brick-g.png"],
+      "category": "bricks",
+      "surface_type": "0b010",
+      "collision_mode": "0b010",
+      "expected_pixel_width": 64,
+      "expected_pixel_height": 64,
+      "use_scale_mode_nearest": true
+    },
+    {
+      "name": "lava-a",
+      "src_directory": "assets/textures/64x64/lava/a",
+      "frame_src_files": ["lava-a.png"],
+      "category": "lava",
+      "surface_type": "0b010",
+      "collision_mode": "0b010",
+      "expected_pixel_width": 64,
+      "expected_pixel_height": 64,
+      "use_scale_mode_nearest": true
+    },
+    {
+      "name": "lava-b",
+      "src_directory": "assets/textures/64x64/lava/b",
+      "frame_src_files": ["lava-b.png"],
+      "category": "lava",
+      "surface_type": "0b010",
+      "collision_mode": "0b010",
+      "expected_pixel_width": 64,
+      "expected_pixel_height": 64,
+      "use_scale_mode_nearest": true
+    },
+    {
+      "name": "lava-c",
+      "src_directory": "assets/textures/64x64/lava/c",
+      "frame_src_files": ["lava-c.png"],
+      "category": "lava",
+      "surface_type": "0b010",
+      "collision_mode": "0b010",
+      "expected_pixel_width": 64,
+      "expected_pixel_height": 64,
+      "use_scale_mode_nearest": true
+    },
+    {
+      "name": "overgrown-a",
+      "src_directory": "assets/textures/64x64/overgrown/a",
+      "frame_src_files": ["overgrown-a.png"],
+      "category": "overgrown",
+      "surface_type": "0b010",
+      "collision_mode": "0b010",
+      "expected_pixel_width": 64,
+      "expected_pixel_height": 64,
+      "use_scale_mode_nearest": true
+    },
+    {
+      "name": "overgrown-b",
+      "src_directory": "assets/textures/64x64/overgrown/b",
+      "frame_src_files": ["overgrown-b.png"],
+      "category": "overgrown",
+      "surface_type": "0b010",
+      "collision_mode": "0b010",
+      "expected_pixel_width": 64,
+      "expected_pixel_height": 64,
+      "use_scale_mode_nearest": true
+    },
+    {
+      "name": "water-a",
+      "src_directory": "assets/textures/64x64/water/a",
+      "frame_src_files": ["water-a.png", "water-b.png", "water-c.png"],
+      "category": "water",
+      "surface_type": "0b010",
+      "collision_mode": "0b010",
+      "expected_pixel_width": 64,
+      "expected_pixel_height": 64,
+      "use_scale_mode_nearest": true
+    },
+    {
+      "name": "water-b",
+      "src_directory": "assets/textures/64x64/water/b",
+      "frame_src_files": ["water-b.png"],
+      "category": "water",
+      "surface_type": "0b010",
+      "collision_mode": "0b010",
+      "expected_pixel_width": 64,
+      "expected_pixel_height": 64,
+      "use_scale_mode_nearest": true
+    },
+    {
+      "name": "water-c",
+      "src_directory": "assets/textures/64x64/water/c",
+      "frame_src_files": ["water-c.png"],
+      "category": "water",
+      "surface_type": "0b010",
+      "collision_mode": "0b010",
+      "expected_pixel_width": 64,
+      "expected_pixel_height": 64,
+      "use_scale_mode_nearest": true
+    },
+    {
+      "name": "wood-vertical",
+      "src_directory": "assets/textures/64x64/wood/a",
+      "frame_src_files": ["wood-vertical.png"],
+      "category": "wood",
+      "surface_type": "0b001",
+      "collision_mode": "0b010",
+      "expected_pixel_width": 64,
+      "expected_pixel_height": 64,
+      "use_scale_mode_nearest": true
+    }
+  ]
+}

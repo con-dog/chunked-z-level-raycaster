@@ -3,41 +3,44 @@
 /* ******************
  * GLOBALS (START)
  ****************** */
-SDL_Window              *window;
-SDL_Renderer            *renderer;
+SDL_Window *window;
+SDL_Renderer *renderer;
 World_Objects_Container *world_objects_container;
-Jagged_Grid             *floor_grid;
-Jagged_Grid             *wall_grid;
-Player                   player;
-const bool              *keyboard_state;
+Jagged_Grid *floor_grid;
+Jagged_Grid *wall_grid;
+Player player;
+const bool *keyboard_state;
 /* ******************
  * GLOBALS (END)
  ****************** */
 
-static void player_init(void) {
+static void player_init(void)
+{
   player.rect.x = 72.0f;
   player.rect.y = 72.0f;
   player.rect.w = PLAYER_W;
   player.rect.h = PLAYER_H;
-  player.angle  = 0.0f;
+  player.angle = 0.0f;
 
   Radians radians = convert_deg_to_rads(player.angle);
-  player.delta.x  = cos(radians) * PLAYER_MOTION_DELTA_MULTIPLIER;
-  player.delta.y  = sin(radians) * PLAYER_MOTION_DELTA_MULTIPLIER;
+  player.delta.x = cos(radians) * PLAYER_MOTION_DELTA_MULTIPLIER;
+  player.delta.y = sin(radians) * PLAYER_MOTION_DELTA_MULTIPLIER;
 }
 
 static void create_2D_line_from_start_point(Line_2D *out_line, Degrees degrees,
-                                            float length) {
+                                            float length)
+{
   Radians radians = convert_deg_to_rads(degrees);
   out_line->end.x = out_line->start.x + length * cos(radians);
   out_line->end.y = out_line->start.y + length * sin(radians);
 }
 
-static void draw_player_direction(void) {
-  float   length = 30.0f;
-  Line_2D line   = {
-        .start.x = player.rect.x + PLAYER_W / 2,
-        .start.y = player.rect.y + PLAYER_H / 2,
+static void draw_player_direction(void)
+{
+  float length = 30.0f;
+  Line_2D line = {
+      .start.x = player.rect.x + PLAYER_W / 2,
+      .start.y = player.rect.y + PLAYER_H / 2,
   };
   create_2D_line_from_start_point(&line, player.angle, length);
   SDL_RenderLine(renderer, line.start.x, line.start.y, line.end.x, line.end.y);
@@ -46,22 +49,25 @@ static void draw_player_direction(void) {
 static void draw_player_rect(void) { SDL_RenderRect(renderer, &player.rect); }
 
 static Scalar calculate_ray_perpendicular_distance(Line_2D *ray,
-                                                   Radians  theta) {
+                                                   Radians theta)
+{
   Scalar ray_length = sqrt(pow(ray->start.x - ray->end.x, 2) +
                            pow(ray->start.y - ray->end.y, 2));
   return ray_length * cos(theta);
 }
 
-static void cast_rays_from_player(void) {
+static void cast_rays_from_player(void)
+{
   Degrees start_angle_deg = player.angle - PLAYER_FOV_DEG / 2;
-  Degrees end_angle_deg   = player.angle + PLAYER_FOV_DEG / 2;
+  Degrees end_angle_deg = player.angle + PLAYER_FOV_DEG / 2;
 
   for (Degrees curr_angle_deg = start_angle_deg;
-       curr_angle_deg <= end_angle_deg; curr_angle_deg += PLAYER_FOV_DEG_INC) {
+       curr_angle_deg <= end_angle_deg; curr_angle_deg += PLAYER_FOV_DEG_INC)
+  {
     /*
      * Ray Setup logic
      */
-    Line_2D     ray;
+    Line_2D ray;
     Jagged_Row *curr_floor_grid_row;
     Jagged_Row *curr_wall_grid_row;
 
@@ -71,34 +77,36 @@ static void cast_rays_from_player(void) {
     ray.start.x = player.rect.x + (PLAYER_W / 2);
     ray.start.y = player.rect.y + (PLAYER_H / 2);
 
-    IPoint_1D  grid_x                = floorf(ray.start.x / GRID_CELL_SIZE);
-    Point_1D   norm_x                = ray.start.x / GRID_CELL_SIZE;
-    Vector_1D  x_dir                 = cos(curr_angle_rads);
-    IVector_1D step_x                = (x_dir >= 0) ? 1 : -1;
-    Vector_1D  delta_x               = fabs(1.0f / x_dir);
-    Vector_1D  norm_x_dist_cell_edge = (x_dir < 0)
-                                           ? (norm_x - grid_x) * delta_x
-                                           : (grid_x + 1 - norm_x) * delta_x;
+    IPoint_1D grid_x = floorf(ray.start.x / GRID_CELL_SIZE);
+    Point_1D norm_x = ray.start.x / GRID_CELL_SIZE;
+    Vector_1D x_dir = cos(curr_angle_rads);
+    IVector_1D step_x = (x_dir >= 0) ? 1 : -1;
+    Vector_1D delta_x = fabs(1.0f / x_dir);
+    Vector_1D norm_x_dist_cell_edge = (x_dir < 0)
+                                          ? (norm_x - grid_x) * delta_x
+                                          : (grid_x + 1 - norm_x) * delta_x;
 
-    IPoint_1D  grid_y                = floorf(ray.start.y / GRID_CELL_SIZE);
-    Point_1D   norm_y                = ray.start.y / GRID_CELL_SIZE;
-    Vector_1D  y_dir                 = sin(curr_angle_rads);
-    IVector_1D step_y                = (y_dir >= 0) ? 1 : -1;
-    Vector_1D  delta_y               = fabs(1.0f / y_dir);
-    Vector_1D  norm_y_dist_cell_edge = (y_dir < 0)
-                                           ? (norm_y - grid_y) * delta_y
-                                           : (grid_y + 1 - norm_y) * delta_y;
+    IPoint_1D grid_y = floorf(ray.start.y / GRID_CELL_SIZE);
+    Point_1D norm_y = ray.start.y / GRID_CELL_SIZE;
+    Vector_1D y_dir = sin(curr_angle_rads);
+    IVector_1D step_y = (y_dir >= 0) ? 1 : -1;
+    Vector_1D delta_y = fabs(1.0f / y_dir);
+    Vector_1D norm_y_dist_cell_edge = (y_dir < 0)
+                                          ? (norm_y - grid_y) * delta_y
+                                          : (grid_y + 1 - norm_y) * delta_y;
 
-    Point_1D     wall_x_intersection;
-    Point_1D     wall_y_intersection;
+    Point_1D wall_x_intersection;
+    Point_1D wall_y_intersection;
     Wall_Surface surface_hit;
 
     /*
      * Wall collision and step logic
      */
     bool is_wall_hit = false;
-    while (!is_wall_hit) {
-      if (norm_x_dist_cell_edge < norm_y_dist_cell_edge) {
+    while (!is_wall_hit)
+    {
+      if (norm_x_dist_cell_edge < norm_y_dist_cell_edge)
+      {
         wall_x_intersection = (x_dir < 0) ? grid_x * GRID_CELL_SIZE
                                           : (grid_x + 1) * GRID_CELL_SIZE;
         wall_y_intersection =
@@ -106,7 +114,9 @@ static void cast_rays_from_player(void) {
         norm_x_dist_cell_edge += delta_x;
         grid_x += step_x;
         surface_hit = WS_VERTICAL;
-      } else {
+      }
+      else
+      {
         wall_y_intersection = (y_dir < 0) ? grid_y * GRID_CELL_SIZE
                                           : (grid_y + 1) * GRID_CELL_SIZE;
         wall_x_intersection =
@@ -127,7 +137,8 @@ static void cast_rays_from_player(void) {
       Object_Name current_grid_cell_value =
           curr_wall_grid_row->world_object_names[grid_x];
 
-      if (strcmp(current_grid_cell_value, EMPTY_GRID_CELL_VALUE) != 0) {
+      if (strcmp(current_grid_cell_value, EMPTY_GRID_CELL_VALUE) != 0)
+      {
         is_wall_hit = 1;
         break;
       }
@@ -136,12 +147,12 @@ static void cast_rays_from_player(void) {
     /*
      * Screen calculations
      */
-    Scalar   perp_distance = calculate_ray_perpendicular_distance(&ray, theta);
+    Scalar perp_distance = calculate_ray_perpendicular_distance(&ray, theta);
     Point_1D scr_x =
         ((curr_angle_deg - start_angle_deg) / PLAYER_FOV_DEG) * (WINDOW_W / 2) +
         WINDOW_W / 4;
     Scalar wall_strip_h = (GRID_CELL_SIZE * WINDOW_H) / perp_distance;
-    Scalar scr_strip_w  = (WINDOW_W / 2) / ((end_angle_deg - start_angle_deg) /
+    Scalar scr_strip_w = (WINDOW_W / 2) / ((end_angle_deg - start_angle_deg) /
                                            PLAYER_FOV_DEG_INC);
     Scalar scr_offset_y = (WINDOW_H - wall_strip_h) / 2;
 
@@ -149,7 +160,8 @@ static void cast_rays_from_player(void) {
      * Draw Floors
      */
     Scalar floor_start_y = scr_offset_y + wall_strip_h;
-    for (int scr_y = floor_start_y; scr_y < WINDOW_H; scr_y++) {
+    for (int scr_y = floor_start_y; scr_y < WINDOW_H; scr_y++)
+    {
       Scalar distance =
           ((WINDOW_H / 2.0f) / (scr_y - WINDOW_H / 2.0f)) * GRID_CELL_SIZE;
       Point_1D floor_world_x =
@@ -169,11 +181,16 @@ static void cast_rays_from_player(void) {
       curr_floor_grid_row = &floor_grid->rows[floor_grid_y];
       Object_Name curr_floor_grid_cell_value =
           curr_floor_grid_row->world_object_names[floor_grid_x];
-      for (size_t i = 0; i < world_objects_container->length; i++) {
+      for (size_t i = 0; i < world_objects_container->length; i++)
+      {
         if (strcmp(curr_floor_grid_cell_value,
-                   world_objects_container->data[i]->name) == 0) {
+                   world_objects_container->data[i]->name) == 0)
+        {
+          int current_frame_index = world_objects_container->data[i]
+                                        ->animation_state.current_frame_index;
           SDL_RenderTexture(renderer,
-                            world_objects_container->data[i]->textures.data[0],
+                            world_objects_container->data[i]
+                                ->textures.data[current_frame_index],
                             &src_rect, &dst_rect);
           break;
         }
@@ -192,14 +209,17 @@ static void cast_rays_from_player(void) {
 
     Point_1D wall_x;
     Point_1D texture_x;
-    if (surface_hit == WS_VERTICAL) {
-      wall_x                     = wall_y_intersection;
+    if (surface_hit == WS_VERTICAL)
+    {
+      wall_x = wall_y_intersection;
       Point_1D wall_x_normalized = wall_x / GRID_CELL_SIZE;
       Point_1D wall_x_offset_normalized =
           wall_x_normalized - floorf(wall_x_normalized);
       texture_x = roundf(wall_x_offset_normalized * TEXTURE_PIXEL_W);
-    } else {
-      wall_x                     = wall_x_intersection;
+    }
+    else
+    {
+      wall_x = wall_x_intersection;
       Point_1D wall_x_normalized = wall_x / GRID_CELL_SIZE;
       Point_1D wall_x_offset_normalized =
           wall_x_normalized - floorf(wall_x_normalized);
@@ -207,11 +227,16 @@ static void cast_rays_from_player(void) {
     }
 
     SDL_FRect src_rect = {.x = texture_x, .y = 0, .w = 1, .h = TEXTURE_PIXEL_H};
-    for (size_t i = 0; i < world_objects_container->length; i++) {
+    for (size_t i = 0; i < world_objects_container->length; i++)
+    {
       if (strcmp(curr_wall_grid_row->world_object_names[grid_x],
-                 world_objects_container->data[i]->name) == 0) {
+                 world_objects_container->data[i]->name) == 0)
+      {
+        int current_frame_index = world_objects_container->data[i]
+                                      ->animation_state.current_frame_index;
         SDL_RenderTexture(renderer,
-                          world_objects_container->data[i]->textures.data[0],
+                          world_objects_container->data[i]
+                              ->textures.data[current_frame_index],
                           &src_rect, &wall_rect);
         break;
       }
@@ -219,31 +244,38 @@ static void cast_rays_from_player(void) {
   }
 }
 
-void draw_player(void) {
+void draw_player(void)
+{
   SDL_SetRenderDrawColor(renderer, 100, 0, 255, 255);
   draw_player_rect();
   draw_player_direction();
 }
 
-static void draw_jagged_grid(void) {
-  for (size_t i = 0; i < wall_grid->length; i++) {
+static void draw_jagged_grid(void)
+{
+  for (size_t i = 0; i < wall_grid->length; i++)
+  {
 
     Jagged_Row *current_row = &wall_grid->rows[i];
-    SDL_FRect   black_rects[current_row->length];
-    SDL_FRect   white_rects[current_row->length];
-    int         black_count = 0;
-    int         white_count = 0;
-    float       offset      = 0.1f;
-    for (size_t j = 0; j < current_row->length; j++) {
+    SDL_FRect black_rects[current_row->length];
+    SDL_FRect white_rects[current_row->length];
+    int black_count = 0;
+    int white_count = 0;
+    float offset = 0.1f;
+    for (size_t j = 0; j < current_row->length; j++)
+    {
       SDL_FRect rect;
       rect.h = GRID_CELL_SIZE * (1.0f - offset);
       rect.w = GRID_CELL_SIZE * (1.0f - offset);
       rect.x = (j * GRID_CELL_SIZE) + (GRID_CELL_SIZE * offset / 2);
       rect.y = (i * GRID_CELL_SIZE) + (GRID_CELL_SIZE * offset / 2);
       if (strcmp(wall_grid->rows[i].world_object_names[j],
-                 EMPTY_GRID_CELL_VALUE) != 0) {
+                 EMPTY_GRID_CELL_VALUE) != 0)
+      {
         black_rects[black_count++] = rect;
-      } else {
+      }
+      else
+      {
         white_rects[white_count++] = rect;
       }
     }
@@ -255,19 +287,21 @@ static void draw_jagged_grid(void) {
   }
 }
 
-void rotate_player(Rotation_Type rotation, float delta_time) {
-  player.angle    = player.angle + (rotation * PLAYER_ROTATION_STEP *
+void rotate_player(Rotation_Type rotation, float delta_time)
+{
+  player.angle = player.angle + (rotation * PLAYER_ROTATION_STEP *
                                  PLAYER_ROTATION_SPEED * delta_time);
-  player.angle    = (player.angle < 0)     ? 360
-                    : (player.angle > 360) ? 0
-                                           : player.angle;
+  player.angle = (player.angle < 0)     ? 360
+                 : (player.angle > 360) ? 0
+                                        : player.angle;
   Radians radians = convert_deg_to_rads(player.angle);
-  player.delta.x  = cos(radians) * PLAYER_MOTION_DELTA_MULTIPLIER;
-  player.delta.y  = sin(radians) * PLAYER_MOTION_DELTA_MULTIPLIER;
+  player.delta.x = cos(radians) * PLAYER_MOTION_DELTA_MULTIPLIER;
+  player.delta.y = sin(radians) * PLAYER_MOTION_DELTA_MULTIPLIER;
 }
 
 Grid_Hit_Box convert_world_position_to_grid_position(Point_2D *world_point,
-                                                     float     offset) {
+                                                     float offset)
+{
   Hit_Box player_hit_box_world = {// Top-left
                                   .tl.x = world_point->x - offset,
                                   .tl.y = world_point->y - offset,
@@ -299,7 +333,8 @@ Grid_Hit_Box convert_world_position_to_grid_position(Point_2D *world_point,
   return player_hit_box_grid;
 }
 
-void move_player(float direction, bool is_sprinting, float delta_time) {
+void move_player(float direction, bool is_sprinting, float delta_time)
+{
   Point_2D new_pos = {
       .x = player.rect.x +
            (direction * player.delta.x *
@@ -330,13 +365,15 @@ void move_player(float direction, bool is_sprinting, float delta_time) {
   if ((strcmp(tl_grid_cell_value, EMPTY_GRID_CELL_VALUE) == 0) &&
       (strcmp(tr_grid_cell_value, EMPTY_GRID_CELL_VALUE) == 0) &&
       (strcmp(bl_grid_cell_value, EMPTY_GRID_CELL_VALUE) == 0) &&
-      (strcmp(br_grid_cell_value, EMPTY_GRID_CELL_VALUE) == 0)) {
+      (strcmp(br_grid_cell_value, EMPTY_GRID_CELL_VALUE) == 0))
+  {
     player.rect.x = new_pos.x;
     player.rect.y = new_pos.y;
   }
 }
 
-uint8_t get_kb_arrow_input_state(void) {
+uint8_t get_kb_arrow_input_state(void)
+{
   uint8_t state = 0b0;
   if (keyboard_state[SDL_SCANCODE_UP])
     state |= KEY_UP;
@@ -349,65 +386,113 @@ uint8_t get_kb_arrow_input_state(void) {
   return state;
 }
 
-void handle_player_movement(float delta_time) {
+void handle_player_movement(float delta_time)
+{
   uint8_t arrows_state = get_kb_arrow_input_state();
-  bool    is_sprinting = false;
+  bool is_sprinting = false;
   if (keyboard_state[SDL_SCANCODE_LSHIFT] ||
-      keyboard_state[SDL_SCANCODE_RSHIFT]) {
+      keyboard_state[SDL_SCANCODE_RSHIFT])
+  {
     is_sprinting = true;
   }
-  if (arrows_state & KEY_LEFT) {
+  if (arrows_state & KEY_LEFT)
+  {
     rotate_player(ANTI_CLOCKWISE, delta_time);
   }
-  if (arrows_state & KEY_RIGHT) {
+  if (arrows_state & KEY_RIGHT)
+  {
     rotate_player(CLOCKWISE, delta_time);
   }
-  if (arrows_state & KEY_UP) {
+  if (arrows_state & KEY_UP)
+  {
     move_player(FORWARDS, is_sprinting, delta_time);
   }
-  if (arrows_state & KEY_DOWN) {
+  if (arrows_state & KEY_DOWN)
+  {
     move_player(BACKWARDS, is_sprinting, delta_time);
   }
 }
 
-void update_display(void) {
+void update_display(void)
+{
   SDL_SetRenderDrawColor(renderer, 30, 0, 30, 255);
   SDL_RenderClear(renderer);
   cast_rays_from_player();
   SDL_RenderPresent(renderer);
 }
 
-void run_game_loop(void) {
-  bool     loopShouldStop = false;
-  uint64_t previous_time  = SDL_GetTicks();
+void process_texture_animations(float delta_time)
+{
+  for (size_t i = 0; i < world_objects_container->length; i++)
+  {
+    // check if is animated first
+    if (!world_objects_container->data[i]->animation_state.is_animated)
+    {
+      continue;
+    }
 
-  while (!loopShouldStop) {
+    // increment elapsed time
+    world_objects_container->data[i]->animation_state.frame_elapsed_time +=
+        delta_time;
+
+    if (world_objects_container->data[i]->animation_state.frame_elapsed_time >
+        world_objects_container->data[i]->animation_state.frame_duration)
+    {
+      // reset elapsed time
+      world_objects_container->data[i]->animation_state.frame_elapsed_time = 0;
+      // check whether to increment or reset index
+      world_objects_container->data[i]
+          ->animation_state.current_frame_index =
+          world_objects_container->data[i]
+                      ->animation_state.current_frame_index ==
+                  world_objects_container->data[i]
+                      ->animation_state.max_frame_index
+              ? 0
+              : world_objects_container->data[i]
+                        ->animation_state.current_frame_index +
+                    1;
+    }
+  }
+}
+
+void run_game_loop(void)
+{
+  bool loopShouldStop = false;
+  uint64_t previous_time = SDL_GetTicks();
+
+  while (!loopShouldStop)
+  {
     uint64_t current_time = SDL_GetTicks();
-    float    delta_time =
+    float delta_time =
         (current_time - previous_time) / 1000.0f; // Convert to seconds
     previous_time = current_time;
 
     SDL_Event event;
-    while (SDL_PollEvent(&event)) {
-      if (event.type == SDL_EVENT_QUIT) {
+    while (SDL_PollEvent(&event))
+    {
+      if (event.type == SDL_EVENT_QUIT)
+      {
         loopShouldStop = true;
       }
     }
 
+    // HANDLE ANIMATIONS PROCESSING HERE?
+    process_texture_animations(delta_time);
     handle_player_movement(delta_time);
     update_display();
   }
 }
 
-int main() {
+int main()
+{
   const char *title = "2.5D Raycasting Game Engine";
   setup_sdl(title, WINDOW_W, WINDOW_H, SDL_WINDOW_RESIZABLE, &window,
             &renderer);
 
   world_objects_container =
       setup_engine_textures(renderer, "./manifests/texture_manifest.json");
-  floor_grid = read_grid_csv_file("./assets/levels/2/floors.csv");
-  wall_grid  = read_grid_csv_file("./assets/levels/2/walls.csv");
+  floor_grid = read_grid_csv_file("./assets/levels/2/floors-a.csv");
+  wall_grid = read_grid_csv_file("./assets/levels/2/walls-a.csv");
 
   player_init();
   keyboard_state = SDL_GetKeyboardState(NULL);
