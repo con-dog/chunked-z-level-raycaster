@@ -110,12 +110,21 @@ static void cast_rays_from_player(void)
   Degrees start_angle_deg = player.angle - PLAYER_FOV_DEG / 2;
   Degrees end_angle_deg = player.angle + PLAYER_FOV_DEG / 2;
 
+  SDL_Texture *current_batch_texture = NULL;
+  float batch_start_x = 0;
+  float batch_width = 0;
+  float batch_y = 0;
+  float batch_height = 0;
+  SDL_FRect wall_src_rect;
+
   for (Degrees curr_angle_deg = start_angle_deg;
        curr_angle_deg <= end_angle_deg; curr_angle_deg += PLAYER_FOV_DEG_INC)
   {
     /*
      * Ray Setup logic
      */
+
+    clock_t grid_traversal_start = clock();
 
     Line_2D ray;
     Jagged_Row *curr_floor_grid_row = NULL;
@@ -203,7 +212,9 @@ static void cast_rays_from_player(void)
         }
       }
     }
+    clock_t grid_traversal_end = clock();
 
+    clock_t screen_calc_start = clock();
     /*
      * Screen calculations
      */
@@ -215,10 +226,13 @@ static void cast_rays_from_player(void)
     Scalar scr_strip_w = (WINDOW_W / 2) / ((end_angle_deg - start_angle_deg) /
                                            PLAYER_FOV_DEG_INC);
     Scalar scr_offset_y = (WINDOW_H - wall_strip_h) / 2;
+    clock_t screen_calc_end = clock();
 
     /*
      * Draw Floors
      */
+
+    clock_t draw_floors_start = clock();
     Scalar floor_start_y = scr_offset_y + wall_strip_h;
     for (int scr_y = floor_start_y; scr_y < WINDOW_H; scr_y++)
     {
@@ -287,55 +301,106 @@ static void cast_rays_from_player(void)
         }
       }
     }
+    clock_t draw_floors_end = clock();
+
+    clock_t draw_walls_start = clock();
 
     /*
      * Draw Walls
      */
-    SDL_FRect wall_rect = {
-        .x = scr_x,
-        .y = scr_offset_y,
-        .w = scr_strip_w,
-        .h = wall_strip_h,
-    };
+    current_batch_texture = NULL;
+    batch_start_x = scr_x;
+    batch_width = 0;
+    batch_y = scr_offset_y;
+    batch_height = wall_strip_h;
+    float current_texture_x = 0;
 
     Point_1D wall_x;
-    Point_1D texture_x;
     if (surface_hit == WS_VERTICAL)
     {
       wall_x = wall_y_intersection;
-      Point_1D wall_x_normalized = wall_x / GRID_CELL_SIZE;
-      Point_1D wall_x_offset_normalized =
-          wall_x_normalized - floorf(wall_x_normalized);
-      texture_x = roundf(wall_x_offset_normalized * TEXTURE_PIXEL_W);
     }
     else
     {
       wall_x = wall_x_intersection;
-      Point_1D wall_x_normalized = wall_x / GRID_CELL_SIZE;
-      Point_1D wall_x_offset_normalized =
-          wall_x_normalized - floorf(wall_x_normalized);
-      texture_x = roundf(wall_x_offset_normalized * TEXTURE_PIXEL_W);
     }
+    Point_1D wall_x_normalized = wall_x / GRID_CELL_SIZE;
+    Point_1D wall_x_offset_normalized = wall_x_normalized - floorf(wall_x_normalized);
+    Point_1D texture_x = roundf(wall_x_offset_normalized * TEXTURE_PIXEL_W);
 
-    SDL_FRect src_rect = {.x = texture_x, .y = 0, .w = 1, .h = TEXTURE_PIXEL_H};
+    wall_src_rect.x = texture_x;
+    wall_src_rect.y = 0;
+    wall_src_rect.w = 1;
+    wall_src_rect.h = TEXTURE_PIXEL_H;
+
+    // Find the texture for current strip
+    SDL_Texture *current_strip_texture = NULL;
     for (size_t i = 0; i < world_objects_container->length; i++)
     {
-      if (curr_wall_grid_row->world_object_names && grid_x < curr_wall_grid_row->length && grid_x >= 0)
+      if (curr_wall_grid_row->world_object_names &&
+          grid_x < curr_wall_grid_row->length &&
+          grid_x >= 0)
       {
         if (strcmp(curr_wall_grid_row->world_object_names[grid_x],
                    world_objects_container->data[i]->name) == 0)
         {
           int current_frame_index = world_objects_container->data[i]
                                         ->animation_state.current_frame_index;
-          SDL_RenderTexture(renderer,
-                            world_objects_container->data[i]
-                                ->textures.data[current_frame_index],
-                            &src_rect, &wall_rect);
+          current_strip_texture = world_objects_container->data[i]
+                                      ->textures.data[current_frame_index];
           break;
         }
       }
     }
+
+    // If this is the start of a new batch or texture changed
+    if (current_batch_texture == NULL || current_batch_texture != current_strip_texture)
+    {
+      // Render previous batch if it exists
+      if (current_batch_texture != NULL && batch_width > 0)
+      {
+        SDL_FRect batch_wall_rect = {
+            .x = batch_start_x,
+            .y = batch_y,
+            .w = batch_width,
+            .h = batch_height};
+        SDL_RenderTexture(renderer, current_batch_texture, &wall_src_rect, &batch_wall_rect);
+      }
+
+      // Start new batch
+      current_batch_texture = current_strip_texture;
+      batch_start_x = scr_x;
+      batch_width = scr_strip_w;
+      batch_y = scr_offset_y;
+      batch_height = wall_strip_h;
+    }
+    else
+    {
+      // Add to current batch
+      batch_width += scr_strip_w;
+    }
+
+    if (current_batch_texture != NULL && batch_width > 0)
+    {
+      SDL_FRect final_batch_rect = {
+          .x = batch_start_x,
+          .y = batch_y,
+          .w = batch_width,
+          .h = batch_height};
+      SDL_RenderTexture(renderer, current_batch_texture, &wall_src_rect, &final_batch_rect);
+    }
+
+    clock_t draw_walls_end = clock();
+
+    printf("Traversal time: %f\n", ((double)(grid_traversal_end - grid_traversal_start)) / CLOCKS_PER_SEC);
+    printf("Screen calcs time: %f\n", ((double)(screen_calc_end - screen_calc_start)) / CLOCKS_PER_SEC);
+    printf("Draw floors time: %f\n", ((double)(draw_floors_end - draw_floors_start)) / CLOCKS_PER_SEC);
+    printf("Draw walls time: %f\n", ((double)(draw_walls_end - draw_walls_start)) / CLOCKS_PER_SEC);
   }
+  // exit(EXIT_SUCCESS);
+
+  // Need to handle the last batch at the end of ray casting loop
+  // Add this after your ray casting loop:
 }
 
 void draw_player(void)
@@ -667,22 +732,11 @@ void run_game_loop(void)
       }
     }
 
-    clock_t anim_start = clock();
     process_texture_animations(delta_time);
-    clock_t anim_end = clock();
 
-    clock_t move_start = clock();
     handle_player_movement(delta_time);
-    clock_t move_end = clock();
 
-    clock_t display_start = clock();
     update_display();
-    clock_t display_end = clock();
-
-    // printf("Animation time: %f\n", ((double)(anim_end - anim_start)) / CLOCKS_PER_SEC);
-    // printf("Movement time: %f\n", ((double)(move_end - move_start)) / CLOCKS_PER_SEC);
-    // printf("Display time: %f\n", ((double)(display_end - display_start)) / CLOCKS_PER_SEC);
-    // exit(EXIT_SUCCESS);
   }
 }
 

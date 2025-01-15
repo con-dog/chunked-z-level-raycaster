@@ -16,3 +16,9 @@ connor in ~/Code/C/raycaster_with_jagged_arrays on trig-luts λ ./main
 cpu_time: 0.000018
 connor in ~/Code/C/raycaster_with_jagged_arrays on trig-luts λ ./main
 cpu_time: 0.000019
+
+
+
+Screen calcs time: 0.000001
+Draw floors time: 0.000000
+Draw walls time: 0.000001
