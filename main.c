@@ -657,6 +657,34 @@ int main()
   floor_grid = read_grid_csv_file("./assets/levels/4/f.csv");
   wall_grid = read_grid_csv_file("./assets/levels/4/w.csv");
 
+  SDL_AudioSpec spec;
+  int audio_open = 0;
+  spec.freq = MIX_DEFAULT_FREQUENCY;
+  spec.format = MIX_DEFAULT_FORMAT;
+  spec.channels = MIX_DEFAULT_CHANNELS;
+  /* Open the audio device */
+  if (!Mix_OpenAudio(0, &spec))
+  {
+    SDL_Log("Couldn't open audio: %s\n", SDL_GetError());
+  }
+  else
+  {
+    Mix_QuerySpec(&spec.freq, &spec.format, &spec.channels);
+    SDL_Log("Opened audio at %d Hz %d bit%s %s", spec.freq,
+            (spec.format & 0xFF),
+            (SDL_AUDIO_ISFLOAT(spec.format) ? " (float)" : ""),
+            (spec.channels > 2) ? "surround" : (spec.channels > 1) ? "stereo"
+                                                                   : "mono");
+  }
+  audio_open = 1;
+  static Mix_Chunk *g_wave = NULL;
+  g_wave = Mix_LoadWAV("./assets/sounds/thunder.wav");
+  if (g_wave == NULL)
+  {
+    SDL_Log("Couldn't load %s: %s\n", "wav", SDL_GetError());
+  }
+  Mix_PlayChannel(0, g_wave, 10);
+
   player_init();
   keyboard_state = SDL_GetKeyboardState(NULL);
   run_game_loop();
