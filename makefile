@@ -1,7 +1,7 @@
 # Compiler and flags
 CC = gcc
 CFLAGS = -Wall -Wextra $(shell pkg-config sdl3 sdl3-ttf sdl3-image libcjson --cflags)
-LIBS = $(shell pkg-config sdl3 sdl3-ttf sdl3-image libcjson --libs)
+LIBS = $(shell pkg-config sdl3 sdl3-ttf sdl3-image sdl3-mixer libcjson --libs)
 
 # Directory structure
 ASSETS_DIR = assets
