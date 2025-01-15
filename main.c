@@ -1,3 +1,6 @@
+#define ANGLE_TO_LUT_INDEX (1.0f / 0.3f)
+#define TOTAL_LUT_ANGLES 1200
+
 #include "main.h"
 
 /* ******************
@@ -11,9 +14,27 @@ Jagged_Grid *wall_grid;
 Player player;
 SDL_Texture *rod;
 const bool *keyboard_state;
+static float cos_lut[TOTAL_LUT_ANGLES];
+static float sin_lut[TOTAL_LUT_ANGLES];
 /* ******************
  * GLOBALS (END)
  ****************** */
+
+void init_trig_luts(void)
+{
+  for (int i = 0; i < TOTAL_LUT_ANGLES; i++)
+  {
+    float angle_rad = (i * 0.3f) * (M_PI / 180.0f);
+    cos_lut[i] = cosf(angle_rad);
+    sin_lut[i] = sinf(angle_rad);
+  }
+}
+
+int get_angle_index(float angle_deg)
+{
+  int index = (int)(angle_deg * ANGLE_TO_LUT_INDEX) % TOTAL_LUT_ANGLES;
+  return (index < 0) ? index + TOTAL_LUT_ANGLES : index;
+}
 
 static void player_init(void)
 {
@@ -75,11 +96,11 @@ static void draw_player_direction(void)
 static void draw_player_rect(void) { SDL_RenderRect(renderer, &player.rect); }
 
 static Scalar calculate_ray_perpendicular_distance(Line_2D *ray,
-                                                   Radians theta)
+                                                   int lut_index)
 {
   Scalar ray_length = sqrt(pow(ray->start.x - ray->end.x, 2) +
                            pow(ray->start.y - ray->end.y, 2));
-  return ray_length * cos(theta);
+  return ray_length * cos_lut[lut_index];
 }
 
 static void cast_rays_from_player(void)
@@ -99,13 +120,16 @@ static void cast_rays_from_player(void)
 
     Radians curr_angle_rads = convert_deg_to_rads(curr_angle_deg);
     Radians theta = convert_deg_to_rads(curr_angle_deg - player.angle);
+    int curr_lut_index = get_angle_index(curr_angle_deg);
+    int theta_lut_index = get_angle_index(curr_angle_deg - player.angle);
 
     ray.start.x = player.rect.x + (PLAYER_W / 2);
     ray.start.y = player.rect.y + (PLAYER_H / 2);
 
     IPoint_1D grid_x = floorf(ray.start.x / GRID_CELL_SIZE);
     Point_1D norm_x = ray.start.x / GRID_CELL_SIZE;
-    Vector_1D x_dir = cos(curr_angle_rads);
+    // Vector_1D x_dir = cos(curr_angle_rads);
+    Vector_1D x_dir = cos_lut[curr_lut_index];
     IVector_1D step_x = (x_dir >= 0) ? 1 : -1;
     Vector_1D delta_x = fabs(1.0f / x_dir);
     Vector_1D norm_x_dist_cell_edge = (x_dir < 0)
@@ -114,7 +138,8 @@ static void cast_rays_from_player(void)
 
     IPoint_1D grid_y = floorf(ray.start.y / GRID_CELL_SIZE);
     Point_1D norm_y = ray.start.y / GRID_CELL_SIZE;
-    Vector_1D y_dir = sin(curr_angle_rads);
+    Vector_1D y_dir = sin_lut[curr_lut_index];
+    // Vector_1D y_dir = sin(curr_angle_rads);
     IVector_1D step_y = (y_dir >= 0) ? 1 : -1;
     Vector_1D delta_y = fabs(1.0f / y_dir);
     Vector_1D norm_y_dist_cell_edge = (y_dir < 0)
@@ -179,7 +204,7 @@ static void cast_rays_from_player(void)
     /*
      * Screen calculations
      */
-    Scalar perp_distance = calculate_ray_perpendicular_distance(&ray, theta);
+    Scalar perp_distance = calculate_ray_perpendicular_distance(&ray, theta_lut_index);
     Point_1D scr_x =
         ((curr_angle_deg - start_angle_deg) / PLAYER_FOV_DEG) * (WINDOW_W / 2) +
         WINDOW_W / 4;
@@ -197,9 +222,9 @@ static void cast_rays_from_player(void)
       Scalar distance =
           ((WINDOW_H / 2.0f) / (scr_y - WINDOW_H / 2.0f)) * GRID_CELL_SIZE;
       Point_1D floor_world_x =
-          (player.rect.x) + (x_dir / cos(theta)) * distance;
+          (player.rect.x) + (x_dir / cos_lut[theta_lut_index]) * distance;
       Point_1D floor_world_y =
-          (player.rect.y) + (y_dir / cos(theta)) * distance;
+          (player.rect.y) + (y_dir / cos_lut[theta_lut_index]) * distance;
 
       IPoint_1D floor_grid_y = floorf(floor_world_y / GRID_CELL_SIZE);
 
@@ -652,38 +677,12 @@ int main()
   setup_sdl(title, WINDOW_W, WINDOW_H, SDL_WINDOW_RESIZABLE, &window,
             &renderer);
 
+  init_trig_luts();
+
   world_objects_container =
       setup_engine_textures(renderer, "./manifests/texture_manifest.json");
   floor_grid = read_grid_csv_file("./assets/levels/4/f.csv");
   wall_grid = read_grid_csv_file("./assets/levels/4/w.csv");
-
-  SDL_AudioSpec spec;
-  int audio_open = 0;
-  spec.freq = MIX_DEFAULT_FREQUENCY;
-  spec.format = MIX_DEFAULT_FORMAT;
-  spec.channels = MIX_DEFAULT_CHANNELS;
-  /* Open the audio device */
-  if (!Mix_OpenAudio(0, &spec))
-  {
-    SDL_Log("Couldn't open audio: %s\n", SDL_GetError());
-  }
-  else
-  {
-    Mix_QuerySpec(&spec.freq, &spec.format, &spec.channels);
-    SDL_Log("Opened audio at %d Hz %d bit%s %s", spec.freq,
-            (spec.format & 0xFF),
-            (SDL_AUDIO_ISFLOAT(spec.format) ? " (float)" : ""),
-            (spec.channels > 2) ? "surround" : (spec.channels > 1) ? "stereo"
-                                                                   : "mono");
-  }
-  audio_open = 1;
-  static Mix_Chunk *g_wave = NULL;
-  g_wave = Mix_LoadWAV("./assets/sounds/thunder.wav");
-  if (g_wave == NULL)
-  {
-    SDL_Log("Couldn't load %s: %s\n", "wav", SDL_GetError());
-  }
-  Mix_PlayChannel(0, g_wave, 10);
 
   player_init();
   keyboard_state = SDL_GetKeyboardState(NULL);
