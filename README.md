@@ -3,16 +3,17 @@
 A brand-new, old-school game-engine inspired by the likes of [Wolfenstein 3D (1992)](https://en.wikipedia.org/wiki/Wolfenstein_3D) and [Ultima Underworld: The Stygian Abyss (1992)](https://en.wikipedia.org/wiki/Ultima_Underworld:_The_Stygian_Abyss). Uses simple raycasting techniques and a uniform cell grid to render 3D.
 
 ## Currently in Phase 5:
-Animated textures, floor/wall collisions, walk through doors, and just for fun - sprites - fishing.
+Animated textures, floor/wall collisions based on surface manifest, walk through doors, and just for fun - sprites - fishing.
 ![Enter doorways](https://github.com/con-dog/2.5D-raycasting-engine/blob/bbd244dfad4aa5922a7ad20163d3f4f63874540f/_media/phase-5/doors.gif)
 ![Phase 5 fishing gif](https://github.com/con-dog/2.5D-raycasting-engine/blob/35efbffc349788171c625aecd9ae6a6f2db17518/_media/phase-5/fishing-time.gif)
 ![Phase 5 gif](https://github.com/con-dog/2.5D-raycasting-engine/blob/3e8615c0fbabc73b51672c1551a10ede91257603/_media/phase-5/phase-5.gif)
 ![Phase 5 image](https://github.com/con-dog/2.5D-raycasting-engine/blob/6f3023fa86f8d4a3338c96a77d64b92d55bdabc6/_media/phase-5/fishing-time.png)
 
 ## Future Goals
-- Remake / Demake a Pokemon town in this engine
-- Texture transparency (ray pass-through to next texture)
-- Texture collision enabled bitfield for floor wall or ceiling via 0bXXX (similar to texture surface type) so you can have hitbox detection for walls, floors, and ceilings
+- Remake / Demake a Pokemon town in this "engine"
+- Add 8bit audio, music blocks/textures that make a sounds on collision
+- Procedurally generated worlds
+- Texture transparency (ray pass-through to next texture, for things like windows etc)
 - Sprites are all square/rectangular like minecraft and always face the player, but can "change direction" by changing the texture currently displayed
 - Separate drawing/raycasting logic from window width and height
 
