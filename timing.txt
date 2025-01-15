@@ -22,3 +22,15 @@ cpu_time: 0.000019
 Screen calcs time: 0.000001
 Draw floors time: 0.000000
 Draw walls time: 0.000001
+
+
+connor in ~/Code/C/raycaster_with_jagged_arrays on trig-luts λ ./main
+Animation time: 0.000011
+Movement time: 0.000003
+Display time: 0.004878
+
+
+connor in ~/Code/C/raycaster_with_jagged_arrays on trig-luts λ ./main
+Animation time: 0.000008
+Movement time: 0.000000
+Display time: 0.013513

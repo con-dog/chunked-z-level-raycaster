@@ -228,12 +228,17 @@ static void cast_rays_from_player(void)
     Scalar scr_offset_y = (WINDOW_H - wall_strip_h) / 2;
     clock_t screen_calc_end = clock();
 
-    /*
-     * Draw Floors
-     */
-
     clock_t draw_floors_start = clock();
     Scalar floor_start_y = scr_offset_y + wall_strip_h;
+
+    SDL_Texture *floor_batch_texture = NULL;
+    float floor_batch_start_x = scr_x;
+    float floor_batch_width = 0;
+    float floor_batch_y = 0;
+    float floor_batch_height = 1; // Floor strips are always 1 pixel high
+
+    SDL_FRect floor_src_rect;
+
     for (int scr_y = floor_start_y; scr_y < WINDOW_H; scr_y++)
     {
       Scalar distance =
@@ -244,14 +249,16 @@ static void cast_rays_from_player(void)
           (player.rect.y) + (y_dir / cos_lut[theta_lut_index]) * distance;
 
       IPoint_1D floor_grid_y = floorf(floor_world_y / GRID_CELL_SIZE);
-
       IPoint_1D floor_grid_x = floorf(floor_world_x / GRID_CELL_SIZE);
 
       Point_1D texture_x = (int)(floor_world_x) % TEXTURE_PIXEL_W;
       Point_1D texture_y = (int)(floor_world_y) % TEXTURE_PIXEL_H;
 
-      SDL_FRect src_rect = {.x = texture_x, .y = texture_y, .w = 1, .h = 1};
-      SDL_FRect dst_rect = {.x = scr_x, .y = scr_y, .w = scr_strip_w, .h = 1};
+      SDL_Texture *current_strip_texture = NULL;
+      floor_src_rect.x = texture_x;
+      floor_src_rect.y = texture_y;
+      floor_src_rect.w = 1;
+      floor_src_rect.h = 1;
 
       // bounds check
       if (floor_grid_y < floor_grid->length &&
@@ -290,16 +297,53 @@ static void cast_rays_from_player(void)
                   continue;
                 }
 
-                SDL_RenderTexture(renderer,
-                                  world_objects_container->data[i]
-                                      ->textures.data[current_frame_index],
-                                  &src_rect, &dst_rect);
+                current_strip_texture = world_objects_container->data[i]
+                                            ->textures.data[current_frame_index];
                 break;
               }
             }
           }
         }
       }
+
+      // If this is the start of a new batch or texture changed
+      if (floor_batch_texture == NULL ||
+          floor_batch_texture != current_strip_texture ||
+          floor_batch_y != scr_y)
+      {
+        // Render previous batch if it exists
+        if (floor_batch_texture != NULL && floor_batch_width > 0)
+        {
+          SDL_FRect batch_floor_rect = {
+              .x = floor_batch_start_x,
+              .y = floor_batch_y,
+              .w = floor_batch_width,
+              .h = floor_batch_height};
+          SDL_RenderTexture(renderer, floor_batch_texture, &floor_src_rect, &batch_floor_rect);
+        }
+
+        // Start new batch
+        floor_batch_texture = current_strip_texture;
+        floor_batch_start_x = scr_x;
+        floor_batch_width = scr_strip_w;
+        floor_batch_y = scr_y;
+      }
+      else
+      {
+        // Add to current batch
+        floor_batch_width += scr_strip_w;
+      }
+    }
+
+    // Handle final batch
+    if (floor_batch_texture != NULL && floor_batch_width > 0)
+    {
+      SDL_FRect final_batch_rect = {
+          .x = floor_batch_start_x,
+          .y = floor_batch_y,
+          .w = floor_batch_width,
+          .h = floor_batch_height};
+      SDL_RenderTexture(renderer, floor_batch_texture, &floor_src_rect, &final_batch_rect);
     }
     clock_t draw_floors_end = clock();
 
@@ -392,10 +436,10 @@ static void cast_rays_from_player(void)
 
     clock_t draw_walls_end = clock();
 
-    printf("Traversal time: %f\n", ((double)(grid_traversal_end - grid_traversal_start)) / CLOCKS_PER_SEC);
-    printf("Screen calcs time: %f\n", ((double)(screen_calc_end - screen_calc_start)) / CLOCKS_PER_SEC);
-    printf("Draw floors time: %f\n", ((double)(draw_floors_end - draw_floors_start)) / CLOCKS_PER_SEC);
-    printf("Draw walls time: %f\n", ((double)(draw_walls_end - draw_walls_start)) / CLOCKS_PER_SEC);
+    // printf("Traversal time: %f\n", ((double)(grid_traversal_end - grid_traversal_start)) / CLOCKS_PER_SEC);
+    // printf("Screen calcs time: %f\n", ((double)(screen_calc_end - screen_calc_start)) / CLOCKS_PER_SEC);
+    // // printf("Draw floors time: %f\n", ((double)(draw_floors_end - draw_floors_start)) / CLOCKS_PER_SEC);
+    // printf("Draw walls time: %f\n", ((double)(draw_walls_end - draw_walls_start)) / CLOCKS_PER_SEC);
   }
   // exit(EXIT_SUCCESS);
 
@@ -713,6 +757,9 @@ void process_texture_animations(float delta_time)
 
 void run_game_loop(void)
 {
+  uint32_t frame_count = 0;
+  uint32_t fps_last_time = SDL_GetTicks();
+  uint32_t current_fps = 0;
   bool loopShouldStop = false;
   uint64_t previous_time = SDL_GetTicks();
 
@@ -732,11 +779,32 @@ void run_game_loop(void)
       }
     }
 
+    clock_t anim_start = clock();
     process_texture_animations(delta_time);
+    clock_t anim_end = clock();
 
+    clock_t move_start = clock();
     handle_player_movement(delta_time);
+    clock_t move_end = clock();
 
+    clock_t display_start = clock();
     update_display();
+    frame_count++;
+    uint32_t current_time_fps = SDL_GetTicks();
+    clock_t display_end = clock();
+
+    if (current_time_fps - fps_last_time >= 1000)
+    { // Every second
+      current_fps = frame_count;
+      frame_count = 0;
+      fps_last_time = current_time_fps;
+      printf("Current FPS: %u\n", current_fps);
+    }
+
+    // printf("Animation time: %f\n", ((double)(anim_end - anim_start)) / CLOCKS_PER_SEC);
+    // printf("Movement time: %f\n", ((double)(move_end - move_start)) / CLOCKS_PER_SEC);
+    // printf("Display time: %f\n", ((double)(display_end - display_start)) / CLOCKS_PER_SEC);
+    // exit(EXIT_SUCCESS);
   }
 }
 
