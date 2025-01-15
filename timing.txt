@@ -1,0 +1,18 @@
+single ray with LUT 20x10^-6 seconds (20 microseconds)
+
+connor in ~/Code/C/raycaster_with_jagged_arrays on trig-luts λ ./main
+cpu_time: 0.000037
+connor in ~/Code/C/raycaster_with_jagged_arrays on trig-luts λ ./main
+cpu_time: 0.000022
+connor in ~/Code/C/raycaster_with_jagged_arrays on trig-luts λ ./main
+cpu_time: 0.000025
+connor in ~/Code/C/raycaster_with_jagged_arrays on trig-luts λ ./main
+cpu_time: 0.000022
+connor in ~/Code/C/raycaster_with_jagged_arrays on trig-luts λ ./main
+cpu_time: 0.000021
+connor in ~/Code/C/raycaster_with_jagged_arrays on trig-luts λ ./main
+cpu_time: 0.000022
+connor in ~/Code/C/raycaster_with_jagged_arrays on trig-luts λ ./main
+cpu_time: 0.000018
+connor in ~/Code/C/raycaster_with_jagged_arrays on trig-luts λ ./main
+cpu_time: 0.000019

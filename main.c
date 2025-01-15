@@ -1,6 +1,8 @@
 #define ANGLE_TO_LUT_INDEX (1.0f / 0.3f)
 #define TOTAL_LUT_ANGLES 1200
 
+#include <time.h>
+
 #include "main.h"
 
 /* ******************
@@ -114,12 +116,13 @@ static void cast_rays_from_player(void)
     /*
      * Ray Setup logic
      */
+
     Line_2D ray;
     Jagged_Row *curr_floor_grid_row = NULL;
     Jagged_Row *curr_wall_grid_row = NULL;
 
-    Radians curr_angle_rads = convert_deg_to_rads(curr_angle_deg);
-    Radians theta = convert_deg_to_rads(curr_angle_deg - player.angle);
+    // Radians curr_angle_rads = convert_deg_to_rads(curr_angle_deg);
+    // Radians theta = convert_deg_to_rads(curr_angle_deg - player.angle);
     int curr_lut_index = get_angle_index(curr_angle_deg);
     int theta_lut_index = get_angle_index(curr_angle_deg - player.angle);
 
@@ -664,10 +667,22 @@ void run_game_loop(void)
       }
     }
 
-    // HANDLE ANIMATIONS PROCESSING HERE?
+    clock_t anim_start = clock();
     process_texture_animations(delta_time);
+    clock_t anim_end = clock();
+
+    clock_t move_start = clock();
     handle_player_movement(delta_time);
+    clock_t move_end = clock();
+
+    clock_t display_start = clock();
     update_display();
+    clock_t display_end = clock();
+
+    // printf("Animation time: %f\n", ((double)(anim_end - anim_start)) / CLOCKS_PER_SEC);
+    // printf("Movement time: %f\n", ((double)(move_end - move_start)) / CLOCKS_PER_SEC);
+    // printf("Display time: %f\n", ((double)(display_end - display_start)) / CLOCKS_PER_SEC);
+    // exit(EXIT_SUCCESS);
   }
 }
 
@@ -681,8 +696,8 @@ int main()
 
   world_objects_container =
       setup_engine_textures(renderer, "./manifests/texture_manifest.json");
-  floor_grid = read_grid_csv_file("./assets/levels/4/f.csv");
-  wall_grid = read_grid_csv_file("./assets/levels/4/w.csv");
+  floor_grid = read_grid_csv_file("./assets/levels/3/f.csv");
+  wall_grid = read_grid_csv_file("./assets/levels/3/w.csv");
 
   player_init();
   keyboard_state = SDL_GetKeyboardState(NULL);
