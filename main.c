@@ -87,7 +87,6 @@ bool do_hash_insert(Chunk *chunk, Wall *wall, uint16_t index)
 
 Wall *get_wall(Chunk *chunk, uint8_t x, uint8_t y, uint8_t z)
 {
-  uint16_t loops = 0;
   uint16_t idx = do_hash_coords(x, y, z);
   uint16_t start_idx = idx;
   uint16_t coord = (x << 8) | (y << 4) | z;
@@ -97,9 +96,7 @@ Wall *get_wall(Chunk *chunk, uint8_t x, uint8_t y, uint8_t z)
     {
       return &chunk->walls[idx];
     }
-    printf("LOOPING: %d\n", loops);
     idx = (idx + 1) & 0x3FF;
-    loops++;
     if (idx == start_idx)
       return NULL; // Not found
   }
@@ -116,6 +113,44 @@ static void player_init(void)
   Radians radians = convert_deg_to_rads(player.angle);
   player.delta.x = cos(radians) * PLAYER_MOTION_DELTA_MULTIPLIER;
   player.delta.y = sin(radians) * PLAYER_MOTION_DELTA_MULTIPLIER;
+}
+
+static void draw_chunk_level(Chunk *chunk, uint8_t z_level)
+{
+  if (chunk == NULL)
+  {
+    exit(1);
+  }
+  SDL_FRect black_rects[CHUNK_X * CHUNK_Y];
+  SDL_FRect white_rects[CHUNK_X * CHUNK_Y];
+  int w_count = 0;
+  int b_count = 0;
+  for (uint8_t x = 0; x < CHUNK_X; x++)
+  {
+    for (uint8_t y = 0; y < CHUNK_Y; y++)
+    {
+      SDL_FRect rect;
+      rect.h = GRID_CELL_SIZE;
+      rect.w = GRID_CELL_SIZE;
+      rect.x = (x * GRID_CELL_SIZE);
+      rect.y = (y * GRID_CELL_SIZE);
+      Wall *wall = get_wall(chunk, x, y, z_level);
+      if (wall == NULL)
+      {
+        white_rects[w_count++] = rect;
+        continue;
+      }
+      if (get_wall(chunk, x, y, z_level)->texture_id == 1)
+      {
+        black_rects[b_count++] = rect;
+      }
+    }
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    SDL_RenderFillRects(renderer, white_rects, w_count);
+
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_RenderFillRects(renderer, black_rects, b_count);
+  }
 }
 
 static void draw_player_rect(void)
@@ -231,17 +266,18 @@ bool do_initialize_world(Chunk *chunk)
   return result;
 }
 
-void update_display(void)
+void update_display(Chunk *chunk)
 {
   SDL_SetRenderDrawColor(renderer, 30, 0, 30, 255);
   SDL_RenderClear(renderer);
+  draw_chunk_level(chunk, 3);
   draw_player_rect();
   // cast_rays_from_player();
 
   SDL_RenderPresent(renderer);
 }
 
-void run_game_loop(void)
+void run_game_loop(Chunk *chunk)
 {
   bool loopShouldStop = false;
   uint64_t previous_time = SDL_GetTicks();
@@ -263,7 +299,7 @@ void run_game_loop(void)
     }
 
     handle_player_movement(delta_time);
-    update_display();
+    update_display(chunk);
   }
 }
 
@@ -278,7 +314,7 @@ int main()
 
   player_init();
   keyboard_state = SDL_GetKeyboardState(NULL);
-  run_game_loop();
+  run_game_loop(&chunk);
 
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
