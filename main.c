@@ -121,10 +121,18 @@ static void draw_chunk_level(Chunk *chunk, uint8_t z_level)
   {
     exit(1);
   }
-  SDL_FRect black_rects[CHUNK_X * CHUNK_Y];
   SDL_FRect white_rects[CHUNK_X * CHUNK_Y];
+  SDL_FRect black_rects[CHUNK_X * CHUNK_Y];
+  SDL_FRect red_rects[CHUNK_X * CHUNK_Y];
+  SDL_FRect green_rects[CHUNK_X * CHUNK_Y];
+  SDL_FRect blue_rects[CHUNK_X * CHUNK_Y];
+
   int w_count = 0;
+  int blk_count = 0;
+  int r_count = 0;
+  int g_count = 0;
   int b_count = 0;
+
   for (uint8_t x = 0; x < CHUNK_X; x++)
   {
     for (uint8_t y = 0; y < CHUNK_Y; y++)
@@ -142,14 +150,35 @@ static void draw_chunk_level(Chunk *chunk, uint8_t z_level)
       }
       if (get_wall(chunk, x, y, z_level)->texture_id == 1)
       {
-        black_rects[b_count++] = rect;
+        black_rects[blk_count++] = rect;
+      }
+      else if (get_wall(chunk, x, y, z_level)->texture_id == 2)
+      {
+        red_rects[r_count++] = rect;
+      }
+      else if (get_wall(chunk, x, y, z_level)->texture_id == 3)
+      {
+        green_rects[g_count++] = rect;
+      }
+      else if (get_wall(chunk, x, y, z_level)->texture_id == 4)
+      {
+        blue_rects[b_count++] = rect;
       }
     }
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     SDL_RenderFillRects(renderer, white_rects, w_count);
 
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    SDL_RenderFillRects(renderer, black_rects, b_count);
+    SDL_RenderFillRects(renderer, black_rects, blk_count);
+
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+    SDL_RenderFillRects(renderer, red_rects, r_count);
+
+    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+    SDL_RenderFillRects(renderer, green_rects, g_count);
+
+    SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+    SDL_RenderFillRects(renderer, blue_rects, b_count);
   }
 }
 
@@ -240,16 +269,31 @@ bool do_initialize_chunk(Chunk *chunk)
       {
         if (z & (1 << k))
         {
-          // Default texture for now, and solid wall and floor
           uint8_t flags = 0b0011;
           uint16_t coord = (flags << 12) | (i << 8) | (j << 4) | k;
-
+          int texture_id = 0;
+          switch (k)
+          {
+          case 0:
+            texture_id = 1;
+            break;
+          case 1:
+            texture_id = 2;
+            break;
+          case 2:
+            texture_id = 3;
+            break;
+          case 3:
+            texture_id = 4;
+            break;
+          default:
+            texture_id = 0;
+          }
           Wall wall = {
               .coord = coord,
-              .texture_id = 1,
+              .texture_id = texture_id,
           };
           uint16_t index = do_hash_coords(i, j, k);
-
           bool result = do_hash_insert(chunk, &wall, index);
         }
       }
@@ -270,7 +314,7 @@ void update_display(Chunk *chunk)
 {
   SDL_SetRenderDrawColor(renderer, 30, 0, 30, 255);
   SDL_RenderClear(renderer);
-  draw_chunk_level(chunk, 3);
+  draw_chunk_level(chunk, 4);
   draw_player_rect();
   // cast_rays_from_player();
 
