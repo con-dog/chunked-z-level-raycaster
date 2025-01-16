@@ -7,7 +7,6 @@
 
 #include "main.h"
 
-uint16_t indices[240] = {0};
 typedef struct Wall
 {
   uint16_t coord;      // coords in chunk - [4 flags/unused][4 bits x][4 bits y][4 bits z]
@@ -27,7 +26,7 @@ typedef struct World
   size_t length;        // Number of chunks
 } World;
 
-uint16_t do_hash_chunk_coords(uint8_t x, uint8_t y, uint8_t z)
+uint16_t do_hash_coords(uint8_t x, uint8_t y, uint8_t z)
 {
   // Since x,y,z are 0-15, we can use bit shifts
   uint32_t hash = (x << 8) | (y << 4) | z;
@@ -54,20 +53,26 @@ bool do_hash_insert(Chunk *chunk, Wall *wall, uint16_t index)
   return true;
 }
 
-// // Lookup
-// uint16_t idx = hash_coords(x, y, z);
-// uint16_t start_idx = idx;
-// while (hash_table[idx] != 0)
-// {
-//   if (walls[hash_table[idx]].coords == target_coords)
-//   {
-//     return &walls[hash_table[idx]];
-//   }
-//   idx = (idx + 1) & 0x3FF;
-//   if (idx == start_idx)
-//     return NULL; // Not found
-// }
-// return NULL;
+Wall *get_wall(Chunk *chunk, uint8_t x, uint8_t y, uint8_t z)
+{
+  uint16_t loops = 0;
+  uint16_t idx = do_hash_coords(x, y, z);
+  uint16_t start_idx = idx;
+  uint16_t coord = (x << 8) | (y << 4) | z;
+  while (chunk->walls[idx].texture_id != 0)
+  {
+    if ((chunk->walls[idx].coord & 0x0FFF) == coord)
+    {
+      return &chunk->walls[idx];
+    }
+    printf("LOOPING: %d\n", loops);
+    idx = (idx + 1) & 0x3FF;
+    loops++;
+    if (idx == start_idx)
+      return NULL; // Not found
+  }
+  return NULL;
+}
 
 /* ******************
  * GLOBALS (START)
@@ -106,7 +111,6 @@ uint16_t map_chunk[CHUNK_X][CHUNK_Y] = { // 0x000F means z [0-3] has walls, z [3
 
 bool do_initialize_chunk(Chunk *chunk)
 {
-  int ticker = 0;
   for (uint8_t i = 0; i < CHUNK_X; i++)
   {
     for (uint8_t j = 0; j < CHUNK_Y; j++)
@@ -119,13 +123,13 @@ bool do_initialize_chunk(Chunk *chunk)
           // Default texture for now, and solid wall and floor
           uint8_t flags = 0b0011;
           uint16_t coord = (flags << 12) | (i << 8) | (j << 4) | k;
+
           Wall wall = {
               .coord = coord,
               .texture_id = 1,
           };
-          uint16_t index = do_hash_chunk_coords(i, j, k);
-          indices[ticker] = index;
-          ticker++;
+          uint16_t index = do_hash_coords(i, j, k);
+
           bool result = do_hash_insert(chunk, &wall, index);
         }
       }
@@ -175,6 +179,15 @@ int main()
 
   Chunk chunk = {0};
   do_initialize_world(&chunk);
+  Wall *wall = get_wall(&chunk, 15, 15, 3);
+  if (wall == NULL)
+  {
+    printf("No wall found\n");
+  }
+  else
+  {
+    printf("WALL texture id: %d", wall->texture_id);
+  }
 
   // player_init();
   keyboard_state = SDL_GetKeyboardState(NULL);
