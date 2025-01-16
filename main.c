@@ -26,14 +26,46 @@ typedef struct World
   size_t length;        // Number of chunks
 } World;
 
+/* ******************
+ * GLOBALS (START)
+ ****************** */
+SDL_Window *window;
+SDL_Renderer *renderer;
+World_Objects_Container *world_objects_container;
+Jagged_Grid *floor_grid;
+Jagged_Grid *wall_grid;
+Player player;
+SDL_Texture *rod;
+const bool *keyboard_state;
+
+// This is a walled area 4 z - levels high, 16x by 16y
+uint16_t map_chunk[CHUNK_X][CHUNK_Y] = { // 0x000F means z [0-3] has walls, z [3-15] has no walls
+    {0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F},
+    {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
+    {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
+    {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
+    {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
+    {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
+    {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
+    {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
+    {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
+    {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
+    {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
+    {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
+    {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
+    {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
+    {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
+    {0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F}};
+
+/* ******************
+ * GLOBALS (END)
+ ****************** */
+
 uint16_t do_hash_coords(uint8_t x, uint8_t y, uint8_t z)
 {
-  // Since x,y,z are 0-15, we can use bit shifts
   uint32_t hash = (x << 8) | (y << 4) | z;
-
   // Multiply by large prime
   hash *= 2654435761u;
-
   // Take bits 16-25 for better distribution
   return (hash >> 16) & 0x3FF;
 }
@@ -74,40 +106,93 @@ Wall *get_wall(Chunk *chunk, uint8_t x, uint8_t y, uint8_t z)
   return NULL;
 }
 
-/* ******************
- * GLOBALS (START)
- ****************** */
-SDL_Window *window;
-SDL_Renderer *renderer;
-World_Objects_Container *world_objects_container;
-Jagged_Grid *floor_grid;
-Jagged_Grid *wall_grid;
-Player player;
-SDL_Texture *rod;
-const bool *keyboard_state;
+static void player_init(void)
+{
+  player.rect.x = 72.0f;
+  player.rect.y = 72.0f;
+  player.rect.w = PLAYER_W;
+  player.rect.h = PLAYER_H;
+  player.angle = 0.0f;
+  Radians radians = convert_deg_to_rads(player.angle);
+  player.delta.x = cos(radians) * PLAYER_MOTION_DELTA_MULTIPLIER;
+  player.delta.y = sin(radians) * PLAYER_MOTION_DELTA_MULTIPLIER;
+}
 
-// This is a walled area 4 z - levels high, 16x by 16y
-uint16_t map_chunk[CHUNK_X][CHUNK_Y] = { // 0x000F means z [0-3] has walls, z [3-15] has no walls
-    {0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F},
-    {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
-    {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
-    {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
-    {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
-    {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
-    {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
-    {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
-    {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
-    {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
-    {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
-    {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
-    {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
-    {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
-    {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
-    {0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F}};
+static void draw_player_rect(void)
+{
+  SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+  SDL_RenderRect(renderer, &player.rect);
+}
 
-/* ******************
- * GLOBALS (END)
- ****************** */
+void rotate_player(Rotation_Type rotation, float delta_time)
+{
+  player.angle = player.angle + (rotation * PLAYER_ROTATION_STEP *
+                                 PLAYER_ROTATION_SPEED * delta_time);
+  player.angle = (player.angle < 0)     ? 360
+                 : (player.angle > 360) ? 0
+                                        : player.angle;
+  Radians radians = convert_deg_to_rads(player.angle);
+  player.delta.x = cos(radians) * PLAYER_MOTION_DELTA_MULTIPLIER;
+  player.delta.y = sin(radians) * PLAYER_MOTION_DELTA_MULTIPLIER;
+}
+
+void move_player(float direction, bool is_sprinting, float delta_time)
+{
+  Point_2D new_pos = {
+      .x = player.rect.x +
+           (direction * player.delta.x *
+            (PLAYER_SPEED + (is_sprinting ? SPRINT_SPEED_INCREASE : 0)) *
+            delta_time),
+      .y = player.rect.y +
+           (direction * player.delta.y *
+            (PLAYER_SPEED + (is_sprinting ? SPRINT_SPEED_INCREASE : 0)) *
+            delta_time),
+  };
+
+  player.rect.x = new_pos.x;
+  player.rect.y = new_pos.y;
+}
+
+uint8_t get_kb_arrow_input_state(void)
+{
+  uint8_t state = 0b0;
+  if (keyboard_state[SDL_SCANCODE_UP])
+    state |= KEY_UP;
+  if (keyboard_state[SDL_SCANCODE_DOWN])
+    state |= KEY_DOWN;
+  if (keyboard_state[SDL_SCANCODE_LEFT])
+    state |= KEY_LEFT;
+  if (keyboard_state[SDL_SCANCODE_RIGHT])
+    state |= KEY_RIGHT;
+  return state;
+}
+
+void handle_player_movement(float delta_time)
+{
+  uint8_t arrows_state = get_kb_arrow_input_state();
+  bool is_sprinting = false;
+  if (keyboard_state[SDL_SCANCODE_LSHIFT] ||
+      keyboard_state[SDL_SCANCODE_RSHIFT])
+  {
+    is_sprinting = true;
+  }
+  if (arrows_state & KEY_LEFT)
+  {
+    rotate_player(ANTI_CLOCKWISE, delta_time);
+  }
+  if (arrows_state & KEY_RIGHT)
+  {
+    rotate_player(CLOCKWISE, delta_time);
+  }
+  if (arrows_state & KEY_UP)
+  {
+    move_player(FORWARDS, is_sprinting, delta_time);
+  }
+  if (arrows_state & KEY_DOWN)
+  {
+    move_player(BACKWARDS, is_sprinting, delta_time);
+  }
+}
 
 bool do_initialize_chunk(Chunk *chunk)
 {
@@ -146,30 +231,41 @@ bool do_initialize_world(Chunk *chunk)
   return result;
 }
 
-// void run_game_loop(void)
-// {
-//   bool loopShouldStop = false;
-//   uint64_t previous_time = SDL_GetTicks();
+void update_display(void)
+{
+  SDL_SetRenderDrawColor(renderer, 30, 0, 30, 255);
+  SDL_RenderClear(renderer);
+  draw_player_rect();
+  // cast_rays_from_player();
 
-//   while (!loopShouldStop)
-//   {
-//     uint64_t current_time = SDL_GetTicks();
-//     float delta_time =
-//         (current_time - previous_time) / 1000.0f; // Convert to seconds
-//     previous_time = current_time;
+  SDL_RenderPresent(renderer);
+}
 
-//     SDL_Event event;
-//     while (SDL_PollEvent(&event))
-//     {
-//       if (event.type == SDL_EVENT_QUIT)
-//       {
-//         loopShouldStop = true;
-//       }
-//     }
+void run_game_loop(void)
+{
+  bool loopShouldStop = false;
+  uint64_t previous_time = SDL_GetTicks();
 
-//     update_display();
-//   }
-// }
+  while (!loopShouldStop)
+  {
+    uint64_t current_time = SDL_GetTicks();
+    float delta_time =
+        (current_time - previous_time) / 1000.0f; // Convert to seconds
+    previous_time = current_time;
+
+    SDL_Event event;
+    while (SDL_PollEvent(&event))
+    {
+      if (event.type == SDL_EVENT_QUIT)
+      {
+        loopShouldStop = true;
+      }
+    }
+
+    handle_player_movement(delta_time);
+    update_display();
+  }
+}
 
 int main()
 {
@@ -179,19 +275,10 @@ int main()
 
   Chunk chunk = {0};
   do_initialize_world(&chunk);
-  Wall *wall = get_wall(&chunk, 15, 15, 3);
-  if (wall == NULL)
-  {
-    printf("No wall found\n");
-  }
-  else
-  {
-    printf("WALL texture id: %d", wall->texture_id);
-  }
 
-  // player_init();
+  player_init();
   keyboard_state = SDL_GetKeyboardState(NULL);
-  // run_game_loop();
+  run_game_loop();
 
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
