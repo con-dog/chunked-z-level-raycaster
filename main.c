@@ -51,7 +51,7 @@ uint16_t map_chunk[CHUNK_X][CHUNK_Y] = { // 0x000F means z [0-3] has walls, z [3
     {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
     {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
     {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
-    {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0002, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
+    {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
     {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
     {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
     {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
@@ -406,15 +406,10 @@ void do_raycasting(Chunk *chunk)
      * Wall collision logic
      */
     bool is_wall_hit = false;
-    const uint8_t max_x_steps = 16;
-    const uint8_t max_y_steps = 16;
-    uint8_t x_step_count = 0;
-    uint8_t y_step_count = 0;
     Point_2D wall_intxn_point;
     Plane hit_plane;
-    Wall *hit_walls[3] = {NULL, NULL, NULL};
-    // uint8_t count = 8;
-    // while (count != 0)
+    Wall *walls[4] = {NULL, NULL, NULL, NULL};
+    uint16_t ray_zmask = 0xFFF0;
     while (!is_wall_hit) // TODO ! Maybe add some ray distance logic too, so rays don't go forever
     {
       /*
@@ -428,7 +423,6 @@ void do_raycasting(Chunk *chunk)
         wall_intxn_point.y = ray.start.y + (wall_intxn_point.x - ray.start.x) * y_dirv / x_dirv;
         nworld_x_edge_dist += x_deltav;
         map_x_idx += x_stepv;
-        x_step_count++;
         hit_plane = X_PLANE; // eg: a vertical edge
       }
       else
@@ -439,7 +433,6 @@ void do_raycasting(Chunk *chunk)
         wall_intxn_point.x = ray.start.x + (wall_intxn_point.y - ray.start.y) * x_dirv / y_dirv;
         nworld_y_edge_dist += y_deltav;
         map_y_idx += y_stepv;
-        y_step_count++;
         hit_plane = Y_PLANE; // eg: a horizontal edge
       }
 
@@ -455,28 +448,43 @@ void do_raycasting(Chunk *chunk)
 
       if (!(z_lvls & z_mask))
       {
-        printf("NO WALL: z_lvls: %X z_max: %d map_x : %d map_y : %d\n", z_lvls, z_max, map_x_idx, map_y_idx);
         continue;
       }
 
-      printf("WALL: z_lvls: %X z_max: %d map_x : %d map_y : %d\n", z_lvls, z_max, map_x_idx, map_y_idx);
+      // for each z in z_lvls
+      // for (uint8_t z = 0; z < CHUNK_Z; z++)
+      // {
+      //   // If there is a wall for this z
+      //   if (z_lvls & (1 << z))
+      //   {
+      //     Wall *wall = get_wall(chunk, map_x_idx, map_y_idx, z);
+      //     if (wall != NULL && wall->texture_id != 0)
+      //     {
+      //       walls[z] = wall;
+      //       ray_zmask = !ray_zmask & (1 << z);
+      //     }
+      //   }
+      // }
 
-      /*
-       * Check this chunk for the coordinates and if has texture_id -> if found we have a collision
-       */
-      // TODO! Figure out how many total walls they could see in z plane above horizon.
-      Wall *wall = get_wall(chunk, map_x_idx, map_y_idx, 3); // ! TODO handle more z-levels
+      // /*
+      //  * Check this chunk for the coordinates and if has texture_id -> if found we have a collision
+      //  */
+      // // TODO! Figure out how many total walls they could see in z plane above horizon.
+      // Wall *wall = get_wall(chunk, map_x_idx, map_y_idx, 3); // ! TODO handle more z-levels
       Wall *wall_z0 = get_wall(chunk, map_x_idx, map_y_idx, 0);
       Wall *wall_z1 = get_wall(chunk, map_x_idx, map_y_idx, 1);
       Wall *wall_z2 = get_wall(chunk, map_x_idx, map_y_idx, 2);
+      Wall *wall_z3 = get_wall(chunk, map_x_idx, map_y_idx, 3);
 
       if ((wall_z0 != NULL && wall_z0->texture_id != 0) ||
           (wall_z1 != NULL && wall_z1->texture_id != 0) ||
-          (wall_z2 != NULL && wall_z2->texture_id != 0))
+          (wall_z2 != NULL && wall_z2->texture_id != 0) ||
+          (wall_z3 != NULL && wall_z3->texture_id != 0))
       {
-        hit_walls[0] = wall_z0;
-        hit_walls[1] = wall_z1;
-        hit_walls[2] = wall_z2;
+        walls[0] = wall_z0;
+        walls[1] = wall_z1;
+        walls[2] = wall_z2;
+        walls[2] = wall_z3;
         is_wall_hit = true;
         break;
       }
@@ -496,7 +504,7 @@ void do_raycasting(Chunk *chunk)
     /*
      * Render Walls
      */
-    for (int z = 2; z >= 0; z--)
+    for (int z = 3; z >= 0; z--)
     {
       Scalar wall_bottom_y = z * WORLD_CELL_SIZE;
       Scalar wall_top_y = (z + 1) * WORLD_CELL_SIZE;
