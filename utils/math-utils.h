@@ -9,8 +9,8 @@
 #include <math.h>
 
 typedef int Rotation_Type;
-typedef double Degrees;
-typedef double Radians;
+typedef float Degrees;
+typedef float Radians;
 
 extern Radians convert_deg_to_rads(Degrees degrees);
 

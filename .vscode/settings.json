@@ -15,13 +15,7 @@
     "__locale": "c",
     "string": "c",
     "string_view": "c",
-    "array": "c"
-  },
-  "editor.semanticTokenColorCustomizations": {
-    "rules": {
-      "enumMember": {
-        "underline": true
-      }
-    }
+    "array": "c",
+    "algebraic-types.h": "c"
   },
 }

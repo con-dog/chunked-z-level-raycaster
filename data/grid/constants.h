@@ -1,7 +1,7 @@
 #ifndef GRID_CONSTANTS_H
 #define GRID_CONSTANTS_H
 
-#define EMPTY_GRID_CELL_VALUE "EMPTY"
-#define GRID_CELL_SIZE 64.0f
+#define EMPTY_CELL_VALUE "EMPTY"
+#define WORLD_CELL_SIZE 64.0f
 
 #endif

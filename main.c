@@ -2,6 +2,8 @@
 #define CHUNK_Y 16
 #define CHUNK_Z 16
 #define WALL_HASH_SIZE 1024
+#define ANGLE_TO_LUT_INDEX (1.0f / 3.0f)
+#define LUT_SIZE 1200
 
 #include <time.h>
 
@@ -37,6 +39,8 @@ Jagged_Grid *wall_grid;
 Player player;
 SDL_Texture *rod;
 const bool *keyboard_state;
+float cos_lut[LUT_SIZE];
+float sin_lut[LUT_SIZE];
 
 // This is a walled area 4 z - levels high, 16x by 16y
 uint16_t map_chunk[CHUNK_X][CHUNK_Y] = { // 0x000F means z [0-3] has walls, z [3-15] has no walls
@@ -60,6 +64,24 @@ uint16_t map_chunk[CHUNK_X][CHUNK_Y] = { // 0x000F means z [0-3] has walls, z [3
 /* ******************
  * GLOBALS (END)
  ****************** */
+
+void do_initialize_trig_lut(void)
+{
+  for (size_t i = 0; i < LUT_SIZE; i++)
+  {
+    Radians angle = (i * PLAYER_HOZ_FOV_DEG_STEP) * (M_PI / 180.f);
+    cos_lut[i] = cosf(angle);
+    sin_lut[i] = sinf(angle);
+  }
+}
+
+int get_lut_index(Degrees angle)
+{
+  int index = (int)(angle * ANGLE_TO_LUT_INDEX) % LUT_SIZE;
+  return index >= 0
+             ? index
+             : index + LUT_SIZE;
+}
 
 uint16_t do_hash_coords(uint8_t x, uint8_t y, uint8_t z)
 {
@@ -138,10 +160,10 @@ static void draw_chunk_level(Chunk *chunk, uint8_t z_level)
     for (uint8_t y = 0; y < CHUNK_Y; y++)
     {
       SDL_FRect rect;
-      rect.h = GRID_CELL_SIZE;
-      rect.w = GRID_CELL_SIZE;
-      rect.x = (x * GRID_CELL_SIZE);
-      rect.y = (y * GRID_CELL_SIZE);
+      rect.h = WORLD_CELL_SIZE;
+      rect.w = WORLD_CELL_SIZE;
+      rect.x = (x * WORLD_CELL_SIZE);
+      rect.y = (y * WORLD_CELL_SIZE);
       Wall *wall = get_wall(chunk, x, y, z_level);
       if (wall == NULL)
       {
@@ -310,13 +332,65 @@ bool do_initialize_world(Chunk *chunk)
   return result;
 }
 
+float get_player_x_centered(Player *player)
+{
+  return player->rect.x - player->rect.w / 2;
+}
+
+float get_player_y_centered(Player *player)
+{
+  return player->rect.y - player->rect.h / 2;
+}
+
+static void do_raycasting(void)
+{
+  Degrees start_ang = player.angle - PLAYER_HOZ_FOV_DEG / 2;
+  Degrees stop_ang = player.angle + PLAYER_HOZ_FOV_DEG / 2;
+
+  Point_1D player_x_center = get_player_x_centered(&player);
+  Point_1D player_y_center = get_player_y_centered(&player);
+
+  for (Degrees curr_ang = start_ang; curr_ang <= stop_ang; curr_ang += PLAYER_HOZ_FOV_DEG_STEP)
+  {
+    /*
+     * Horizontal ray setup
+     */
+    int ang_lut_idx = get_lut_index(curr_ang);
+    int theta_lut_idx = get_lut_index(curr_ang - player.angle);
+
+    Line_2D ray = {
+        .start.x = player_x_center,
+        .start.y = player_y_center,
+    };
+
+    // grid_x now called map_x same for grid_y
+    Index map_x_idx = floorf(ray.start.x / WORLD_CELL_SIZE); // x index in map chunk array
+    Index map_y_idx = floorf(ray.start.y / WORLD_CELL_SIZE); // y index in map chunk array
+    Point_1D nworld_x = ray.start.x / WORLD_CELL_SIZE;       // x point in world normalized
+    Point_1D nworld_y = ray.start.y / WORLD_CELL_SIZE;       // y point in world normalized
+    Vector_1D x_dirv = cos_lut[ang_lut_idx];                 // x direction vector
+    Vector_1D y_dirv = sin_lut[ang_lut_idx];                 // y direction vector
+    Vector_1D x_stepv = x_dirv >= 0 ? 1 : -1;                // x-axis step vector
+    Vector_1D y_stepv = y_dirv >= 0 ? 1 : -1;                // y-axis step vector
+    Vector_1D x_deltav = fabs(1.0f / x_dirv);
+    Vector_1D y_deltav = fabs(1.0f / y_dirv);
+
+    Vector_1D nworld_x_edge_dist = x_dirv >= 0                                 // Normalized distance to next vertical edge
+                                       ? (map_x_idx + 1 - nworld_x) * x_deltav // Facing to the right/east next edge eg: |  *-->  |
+                                       : (nworld_x - map_x_idx) * x_deltav;    // Facing to the left/west previous edge eg: |  <--*  |
+    Vector_1D nworld_y_edge_dist = y_dirv >= 0                                 // Normalized distance to next horizontal edge
+                                       ? (map_y_idx + 1 - nworld_y) * y_deltav // Facing south
+                                       : (nworld_y - map_y_idx) * y_deltav;    // Facing north
+  }
+}
+
 void update_display(Chunk *chunk)
 {
   SDL_SetRenderDrawColor(renderer, 30, 0, 30, 255);
   SDL_RenderClear(renderer);
   draw_chunk_level(chunk, 4);
   draw_player_rect();
-  // cast_rays_from_player();
+  do_raycasting();
 
   SDL_RenderPresent(renderer);
 }
@@ -353,6 +427,7 @@ int main()
   setup_sdl(title, WINDOW_W, WINDOW_H, SDL_WINDOW_RESIZABLE, &window,
             &renderer);
 
+  do_initialize_trig_lut();
   Chunk chunk = {0};
   do_initialize_world(&chunk);
 

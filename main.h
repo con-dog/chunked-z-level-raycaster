@@ -35,6 +35,7 @@
 #include "./objects/player/constants.h"
 #include "./objects/player/types.h"
 #include "./types/algebraic-types.h"
+#include "./types/types.h"
 #include "./utils/math-utils.h"
 
 #endif
