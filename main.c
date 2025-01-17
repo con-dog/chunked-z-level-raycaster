@@ -44,7 +44,7 @@ float sin_lut[LUT_SIZE];
 
 // This is a walled area 4 z - levels high, 16x by 16y
 uint16_t map_chunk[CHUNK_X][CHUNK_Y] = { // 0x000F means z [0-3] has walls, z [3-15] has no walls
-    {0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F},
+    {0x000F, 0x000F, 0x000F, 0x000F, 0x0004, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F},
     {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
     {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
     {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
@@ -362,12 +362,6 @@ Scalar calculate_ray_length(Line_2D *ray)
   return sqrtf(powf(ray->start.x - ray->end.x, 2) + powf(ray->start.y - ray->end.y, 2));
 }
 
-// Scalar calculate_ray_perpendicular_distance(Line_2D *ray, int lut_index)
-// {
-//   Scalar ray_length = sqrt(pow(ray->start.x - ray->end.x, 2) + pow(ray->start.y - ray->end.y, 2));
-//   return ray_length * cos_lut[lut_index];
-// }
-
 void do_raycasting(Chunk *chunk)
 {
   Degrees start_ang = player.angle - PLAYER_HLF_HOZ_FOV_DEG;
@@ -468,39 +462,33 @@ void do_raycasting(Chunk *chunk)
     /*
      * Screen conversions
      */
-    Scalar ray_length = calculate_ray_length(&ray);
-    Scalar ray_perp_dist = ray_length * cos_lut[theta_lut_idx];
+    const Scalar ray_length = calculate_ray_length(&ray);
+    const Scalar ray_perp_dist = ray_length * cos_lut[theta_lut_idx];
+    const Scalar wall_w = WINDOW_HLF_W / (delta_ang * PLAYER_HOZ_FOV_DEG_STEP_INV);
+    const Scalar x_screen_offset = ((curr_ang - start_ang) * PLAYER_HOZ_FOV_DEG_INV) * WINDOW_HLF_W + WINDOW_QRT_W; // WINDOW_HLF_W + WINDOW_QRT_W center the x coord in the screen
+    const Scalar PLAYER_EYE_HEIGHT = 0.5f * WORLD_CELL_SIZE;
+    const Scalar VERT_FOV_RAD = convert_deg_to_rads(PLAYER_VERT_FOV_DEG);
+    const Scalar VERT_SCALE = (WINDOW_H / VERT_FOV_RAD) * 0.5;
 
     /*
      * Render Walls
      */
-
-    Scalar projection_plane_height = 2 * tanf(PLAYER_VERT_FOV_DEG / 2);
-    Scalar z_scale = WINDOW_H / projection_plane_height;
-    Plane_1D screen_center_y = WINDOW_HLF_H;
     for (int z = 2; z >= 0; z--)
     {
-      Scalar perceived_dist = sqrtf(powf(ray_length, 2) + powf(WORLD_CELL_SIZE * (z - 0.5), 2));
-      Scalar wall_h = WORLD_CELL_SIZE * z_scale / perceived_dist;
+      Scalar wall_bottom_y = z * WORLD_CELL_SIZE;
+      Scalar wall_top_y = (z + 1) * WORLD_CELL_SIZE;
 
-      Scalar wall_w = WINDOW_HLF_W / (delta_ang * PLAYER_HOZ_FOV_DEG_STEP_INV);
-      Scalar x_screen_offset = ((curr_ang - start_ang) * PLAYER_HOZ_FOV_DEG_INV) * WINDOW_HLF_W + WINDOW_QRT_W; // WINDOW_HLF_W + WINDOW_QRT_W center the x coord in the screen
+      Scalar angle_to_bottom = atan2f(wall_bottom_y - PLAYER_EYE_HEIGHT, ray_perp_dist);
+      Scalar angle_to_top = atan2f(wall_top_y - PLAYER_EYE_HEIGHT, ray_perp_dist);
 
-      // Scalar z_diff = z - 0;                                             // wall_z - player_z
-      // Scalar base_wall_h = (WINDOW_H * WORLD_CELL_SIZE) / ray_perp_dist; // Somehow z-level needs to come into this!
-      // Scalar z_scale_factor = 1.0f / (1.0f + fabs(z_diff) * (0.5));
-      // Scalar wall_h = base_wall_h * z_scale_factor;
+      Scalar screen_y_bottom = WINDOW_HLF_H - (angle_to_bottom * VERT_SCALE);
+      Scalar screen_y_top = WINDOW_HLF_H - (angle_to_top * VERT_SCALE);
 
-      // Scalar base_y_screen_offset = (WINDOW_H - wall_h); // CENTER VERTICALLY -> But we only want to do this for current z-level
-      // Scalar z_offset = z_diff * WINDOW_H * 0.1;
-      Scalar y_screen_offset = (WORLD_CELL_SIZE * (z - 0.5)) / perceived_dist;
-
-      SDL_FRect screen_wall_rect = {
-          .w = wall_w,
-          .h = wall_h,
+      SDL_FRect wall_rect = {
           .x = x_screen_offset,
-          .y = screen_center_y,
-      };
+          .y = screen_y_top,
+          .w = wall_w,
+          .h = screen_y_bottom - screen_y_top};
 
       Wall *wall = get_wall(chunk, map_x_idx, map_y_idx, z); // ! TODO handle more z-levels
       if (wall != NULL)
@@ -509,7 +497,7 @@ void do_raycasting(Chunk *chunk)
         switch (texture_id)
         {
         case 1:
-          SDL_SetRenderDrawColor(renderer, 125, 125, 25, 255);
+          SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
           break;
         case 2:
           SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
@@ -523,7 +511,7 @@ void do_raycasting(Chunk *chunk)
         default:
           SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         }
-        SDL_RenderFillRect(renderer, &screen_wall_rect);
+        SDL_RenderRect(renderer, &wall_rect);
       }
     }
 
