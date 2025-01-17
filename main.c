@@ -367,6 +367,7 @@ static void do_raycasting(Chunk *chunk)
 {
   Degrees start_ang = player.angle - PLAYER_HLF_HOZ_FOV_DEG;
   Degrees end_ang = player.angle + PLAYER_HLF_HOZ_FOV_DEG;
+  Degrees delta_ang = end_ang - start_ang;
 
   Point_1D player_x_center = get_player_x_centered(&player);
   Point_1D player_y_center = get_player_y_centered(&player);
@@ -461,9 +462,9 @@ static void do_raycasting(Chunk *chunk)
      */
     Point_1D wall_h = (WINDOW_H * WORLD_CELL_SIZE) / ray_perp_dist;
     SDL_FRect screen_wall_rect = {
-        .w = ((WINDOW_HLF_W) / ((end_ang - start_ang) / PLAYER_HOZ_FOV_DEG_STEP)),
+        .w = WINDOW_HLF_W / (delta_ang * PLAYER_HOZ_FOV_DEG_STEP_INV),
         .h = wall_h,
-        .x = ((curr_ang - start_ang) / PLAYER_HOZ_FOV_DEG) * (WINDOW_HLF_W) + WINDOW_QRT_W,
+        .x = ((curr_ang - start_ang) * PLAYER_HOZ_FOV_DEG_INV) * WINDOW_HLF_W + WINDOW_QRT_W,
         .y = (WINDOW_H - wall_h) / 2,
     };
 
