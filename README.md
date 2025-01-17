@@ -2,7 +2,11 @@
 
 A brand-new, old-school game-engine inspired by the likes of [Wolfenstein 3D (1992)](https://en.wikipedia.org/wiki/Wolfenstein_3D) and [Ultima Underworld: The Stygian Abyss (1992)](https://en.wikipedia.org/wiki/Ultima_Underworld:_The_Stygian_Abyss). Uses simple raycasting techniques and a uniform cell grid to render 3D.
 
-## Currently in Phase 5:
+## Currently in Phase 6:
+Vertical walls, chunks, representing a wall with 1 bit, and 2 bytes representing a vertical stack of 16 walls. But, having issues with rendering logic for verticals
+![Vertical issue](https://github.com/con-dog/chunked-z-level-raycaster/blob/883aebea65de8888d64870b6493dbbdb015e74bf/_media/phase-6/vert-issue.png)
+
+
 Animated textures, floor/wall collisions based on surface manifest, walk through doors, and just for fun - sprites - fishing.
 ![Enter doorways](https://github.com/con-dog/2.5D-raycasting-engine/blob/bbd244dfad4aa5922a7ad20163d3f4f63874540f/_media/phase-5/doors.gif)
 ![Phase 5 fishing gif](https://github.com/con-dog/2.5D-raycasting-engine/blob/35efbffc349788171c625aecd9ae6a6f2db17518/_media/phase-5/fishing-time.gif)
