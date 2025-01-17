@@ -487,6 +487,10 @@ void update_display(Chunk *chunk)
 
 void run_game_loop(Chunk *chunk)
 {
+  uint32_t frame_count = 0;
+  uint32_t fps_last_time = SDL_GetTicks();
+  uint32_t current_fps = 0;
+  //
   bool loopShouldStop = false;
   uint64_t previous_time = SDL_GetTicks();
 
@@ -507,7 +511,21 @@ void run_game_loop(Chunk *chunk)
     }
 
     handle_player_movement(delta_time);
+    time_t start = clock();
     update_display(chunk);
+    frame_count++;
+    uint32_t current_time_fps = SDL_GetTicks();
+    time_t end = clock();
+
+    if (current_time_fps - fps_last_time >= 1000)
+    { // Every second
+      current_fps = frame_count;
+      frame_count = 0;
+      fps_last_time = current_time_fps;
+      printf("Current FPS: %u\n", current_fps);
+    }
+
+    // printf("Frame time %f\n", (end - start) / CLOCKS_PER_SEC);
   }
 }
 
