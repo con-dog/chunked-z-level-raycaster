@@ -468,7 +468,7 @@ void do_raycasting(Chunk *chunk)
     const Scalar x_screen_offset = ((curr_ang - start_ang) * PLAYER_HOZ_FOV_DEG_INV) * WINDOW_HLF_W + WINDOW_QRT_W; // WINDOW_HLF_W + WINDOW_QRT_W center the x coord in the screen
     const Scalar PLAYER_EYE_HEIGHT = 0.5f * WORLD_CELL_SIZE;
     const Scalar VERT_FOV_RAD = convert_deg_to_rads(PLAYER_VERT_FOV_DEG);
-    const Scalar VERT_SCALE = (WINDOW_H / VERT_FOV_RAD) * 0.5;
+    const Scalar VERT_SCALE = (WINDOW_H / VERT_FOV_RAD) * (PLAYER_VERT_FOV_DEG / PLAYER_HOZ_FOV_DEG); // This makes the cubes square etc
 
     /*
      * Render Walls
