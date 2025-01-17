@@ -18,4 +18,11 @@
     "array": "c",
     "algebraic-types.h": "c"
   },
+  "editor.semanticTokenColorCustomizations": {
+    "rules": {
+      "enumMember": {
+        "underline": true
+      }
+    }
+  },
 }

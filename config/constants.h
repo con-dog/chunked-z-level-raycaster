@@ -3,6 +3,9 @@
 
 #define WINDOW_W 1600
 #define WINDOW_H 800
-#define FONT_SMALL 12
+#define WINDOW_HLF_W (WINDOW_W / 2)
+#define WINDOW_HLF_H (WINDOW_H / 2)
+#define WINDOW_QRT_W (WINDOW_W / 4)
+#define WINDOW_QRT_H (WINDOW_H / 4)
 
 #endif

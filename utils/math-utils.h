@@ -11,7 +11,14 @@
 typedef int Rotation_Type;
 typedef float Degrees;
 typedef float Radians;
+typedef enum Plane
+{
+  X_PLANE,
+  Y_PLANE,
+  Z_PLANE
+} Plane;
 
-extern Radians convert_deg_to_rads(Degrees degrees);
+extern Radians
+convert_deg_to_rads(Degrees degrees);
 
 #endif

@@ -55,13 +55,13 @@ typedef struct Vector_2D
   Vector_1D y;
 } Vector_2D;
 
-typedef struct
+typedef struct Line_2D
 {
   Point_2D start;
   Point_2D end;
 } Line_2D;
 
-typedef struct
+typedef struct Rect_2D
 {
   Point_2D origin;
   Scalar w;

@@ -2,8 +2,8 @@
 #define CHUNK_Y 16
 #define CHUNK_Z 16
 #define WALL_HASH_SIZE 1024
-#define ANGLE_TO_LUT_INDEX (1.0f / 3.0f)
-#define LUT_SIZE 1200
+#define ANGLE_TO_LUT_INDEX (1.0f / PLAYER_HOZ_FOV_DEG_STEP)
+#define LUT_SIZE ((int)(360.0 / PLAYER_HOZ_FOV_DEG_STEP))
 
 #include <time.h>
 
@@ -77,10 +77,10 @@ void do_initialize_trig_lut(void)
 
 int get_lut_index(Degrees angle)
 {
-  int index = (int)(angle * ANGLE_TO_LUT_INDEX) % LUT_SIZE;
-  return index >= 0
-             ? index
-             : index + LUT_SIZE;
+  int index = fmodf(angle * ANGLE_TO_LUT_INDEX, LUT_SIZE);
+  return index < 0
+             ? index + LUT_SIZE
+             : index;
 }
 
 uint16_t do_hash_coords(uint8_t x, uint8_t y, uint8_t z)
@@ -326,6 +326,21 @@ bool do_initialize_chunk(Chunk *chunk)
   return true;
 }
 
+static void draw_player_direction(void)
+{
+  float length = 30.0f;
+  Line_2D line = {
+      .start.x = player.rect.x + PLAYER_W / 2,
+      .start.y = player.rect.y + PLAYER_H / 2,
+  };
+  Radians angle = convert_deg_to_rads(player.angle);
+  line.end.x = line.start.x + length * cosf(angle);
+  line.end.y = line.start.y + length * sinf(angle);
+
+  SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+  SDL_RenderLine(renderer, line.start.x, line.start.y, line.end.x, line.end.y);
+}
+
 bool do_initialize_world(Chunk *chunk)
 {
   bool result = do_initialize_chunk(chunk);
@@ -334,23 +349,29 @@ bool do_initialize_world(Chunk *chunk)
 
 float get_player_x_centered(Player *player)
 {
-  return player->rect.x - player->rect.w / 2;
+  return player->rect.x + player->rect.w / 2;
 }
 
 float get_player_y_centered(Player *player)
 {
-  return player->rect.y - player->rect.h / 2;
+  return player->rect.y + player->rect.h / 2;
 }
 
-static void do_raycasting(void)
+static Scalar calculate_ray_perpendicular_distance(Line_2D *ray, int lut_index)
 {
-  Degrees start_ang = player.angle - PLAYER_HOZ_FOV_DEG / 2;
-  Degrees stop_ang = player.angle + PLAYER_HOZ_FOV_DEG / 2;
+  Scalar ray_length = sqrt(pow(ray->start.x - ray->end.x, 2) + pow(ray->start.y - ray->end.y, 2));
+  return ray_length * cos_lut[lut_index];
+}
+
+static void do_raycasting(Chunk *chunk)
+{
+  Degrees start_ang = player.angle - PLAYER_HLF_HOZ_FOV_DEG;
+  Degrees end_ang = player.angle + PLAYER_HLF_HOZ_FOV_DEG;
 
   Point_1D player_x_center = get_player_x_centered(&player);
   Point_1D player_y_center = get_player_y_centered(&player);
 
-  for (Degrees curr_ang = start_ang; curr_ang <= stop_ang; curr_ang += PLAYER_HOZ_FOV_DEG_STEP)
+  for (Degrees curr_ang = start_ang; curr_ang <= end_ang; curr_ang += PLAYER_HOZ_FOV_DEG_STEP)
   {
     /*
      * Horizontal ray setup
@@ -363,7 +384,6 @@ static void do_raycasting(void)
         .start.y = player_y_center,
     };
 
-    // grid_x now called map_x same for grid_y
     Index map_x_idx = floorf(ray.start.x / WORLD_CELL_SIZE); // x index in map chunk array
     Index map_y_idx = floorf(ray.start.y / WORLD_CELL_SIZE); // y index in map chunk array
     Point_1D nworld_x = ray.start.x / WORLD_CELL_SIZE;       // x point in world normalized
@@ -374,13 +394,82 @@ static void do_raycasting(void)
     Vector_1D y_stepv = y_dirv >= 0 ? 1 : -1;                // y-axis step vector
     Vector_1D x_deltav = fabs(1.0f / x_dirv);
     Vector_1D y_deltav = fabs(1.0f / y_dirv);
+    Vector_1D nworld_x_edge_dist = x_dirv < 0                                   // Normalized distance to next vertical edge
+                                       ? (nworld_x - map_x_idx) * x_deltav      // Facing to the right/east next edge eg: |  *-->  |
+                                       : (map_x_idx + 1 - nworld_x) * x_deltav; // Facing to the left/west previous edge eg: |  <--*  |
+    Vector_1D nworld_y_edge_dist = y_dirv < 0                                   // Normalized distance to next horizontal edge
+                                       ? (nworld_y - map_y_idx) * y_deltav      // Facing south
+                                       : (map_y_idx + 1 - nworld_y) * y_deltav; // Facing north
 
-    Vector_1D nworld_x_edge_dist = x_dirv >= 0                                 // Normalized distance to next vertical edge
-                                       ? (map_x_idx + 1 - nworld_x) * x_deltav // Facing to the right/east next edge eg: |  *-->  |
-                                       : (nworld_x - map_x_idx) * x_deltav;    // Facing to the left/west previous edge eg: |  <--*  |
-    Vector_1D nworld_y_edge_dist = y_dirv >= 0                                 // Normalized distance to next horizontal edge
-                                       ? (map_y_idx + 1 - nworld_y) * y_deltav // Facing south
-                                       : (nworld_y - map_y_idx) * y_deltav;    // Facing north
+    /*
+     * Wall collision logic
+     */
+    bool is_wall_hit = false;
+    Point_2D wall_intxn_point;
+    Plane hit_plane;
+    while (!is_wall_hit) // TODO ! Maybe add some ray distance logic too, so rays don't go forever
+    {
+      /*
+       * DDA axis choice
+       */
+      if (nworld_x_edge_dist < nworld_y_edge_dist)
+      {
+        wall_intxn_point.x = x_dirv < 0
+                                 ? map_x_idx * WORLD_CELL_SIZE
+                                 : (map_x_idx + 1) * WORLD_CELL_SIZE;
+        wall_intxn_point.y = ray.start.y + (wall_intxn_point.x - ray.start.x) * y_dirv / x_dirv;
+        nworld_x_edge_dist += x_deltav;
+        map_x_idx += x_stepv;
+        hit_plane = X_PLANE; // eg: a vertical edge
+      }
+      else
+      {
+        wall_intxn_point.y = y_dirv < 0
+                                 ? map_y_idx * WORLD_CELL_SIZE
+                                 : (map_y_idx + 1) * WORLD_CELL_SIZE;
+        wall_intxn_point.x = ray.start.x + (wall_intxn_point.y - ray.start.y) * x_dirv / y_dirv;
+        nworld_y_edge_dist += y_deltav;
+        map_y_idx += y_stepv;
+        hit_plane = Y_PLANE; // eg: a horizontal edge
+      }
+
+      ray.end.x = wall_intxn_point.x;
+      ray.end.y = wall_intxn_point.y;
+
+      /*
+       * Check this chunk for the coordinates and if has texture_id -> if found we have a collision
+       */
+      Wall *wall = get_wall(chunk, map_x_idx, map_y_idx, 0); // ! TODO handle more z-levels
+      if (wall == NULL)
+      {
+        continue;
+      }
+      else
+      {
+        SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+        SDL_RenderLine(renderer, ray.start.x, ray.start.y, ray.end.x, ray.end.y);
+        is_wall_hit = true;
+        break;
+      }
+    }
+
+    /*
+     * Screen conversions
+     */
+    // Scalar ray_perp_dist = calculate_ray_perpendicular_distance(&ray, theta_lut_idx);
+    // Rect_2D screen_wall_rect = {
+    //     .w = (WINDOW_HLF_W) / ((end_ang - start_ang) / PLAYER_HOZ_FOV_DEG_STEP),
+    //     .h = (WINDOW_H * WORLD_CELL_SIZE) / ray_perp_dist,
+    //     .origin.x = ((curr_ang - start_ang) / PLAYER_HOZ_FOV_DEG) * (WINDOW_HLF_W) + WINDOW_QRT_W,
+    //     .origin.y = (WINDOW_H - screen_wall_rect.h) / 2,
+    // };
+
+    /*
+     * Render Walls
+     */
+    // Point_1D nwall_x = hit_plane == X_PLANE
+    //                        ? wall_intxn_point.y / WORLD_CELL_SIZE
+    //                        : wall_intxn_point.x / WORLD_CELL_SIZE;
   }
 }
 
@@ -388,10 +477,11 @@ void update_display(Chunk *chunk)
 {
   SDL_SetRenderDrawColor(renderer, 30, 0, 30, 255);
   SDL_RenderClear(renderer);
-  draw_chunk_level(chunk, 4);
+  draw_chunk_level(chunk, 0);
   draw_player_rect();
-  do_raycasting();
-
+  draw_player_direction();
+  do_raycasting(chunk);
+  // exit(EXIT_SUCCESS);
   SDL_RenderPresent(renderer);
 }
 
