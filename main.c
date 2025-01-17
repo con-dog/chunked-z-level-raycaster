@@ -357,13 +357,18 @@ float get_player_y_centered(Player *player)
   return player->rect.y + player->rect.h / 2;
 }
 
-static Scalar calculate_ray_perpendicular_distance(Line_2D *ray, int lut_index)
+Scalar calculate_ray_length(Line_2D *ray)
 {
-  Scalar ray_length = sqrt(pow(ray->start.x - ray->end.x, 2) + pow(ray->start.y - ray->end.y, 2));
-  return ray_length * cos_lut[lut_index];
+  return sqrtf(powf(ray->start.x - ray->end.x, 2) + powf(ray->start.y - ray->end.y, 2));
 }
 
-static void do_raycasting(Chunk *chunk)
+// Scalar calculate_ray_perpendicular_distance(Line_2D *ray, int lut_index)
+// {
+//   Scalar ray_length = sqrt(pow(ray->start.x - ray->end.x, 2) + pow(ray->start.y - ray->end.y, 2));
+//   return ray_length * cos_lut[lut_index];
+// }
+
+void do_raycasting(Chunk *chunk)
 {
   Degrees start_ang = player.angle - PLAYER_HLF_HOZ_FOV_DEG;
   Degrees end_ang = player.angle + PLAYER_HLF_HOZ_FOV_DEG;
@@ -408,6 +413,7 @@ static void do_raycasting(Chunk *chunk)
     bool is_wall_hit = false;
     Point_2D wall_intxn_point;
     Plane hit_plane;
+    Wall *hit_walls[3] = {NULL, NULL, NULL};
     while (!is_wall_hit) // TODO ! Maybe add some ray distance logic too, so rays don't go forever
     {
       /*
@@ -440,13 +446,20 @@ static void do_raycasting(Chunk *chunk)
       /*
        * Check this chunk for the coordinates and if has texture_id -> if found we have a collision
        */
-      Wall *wall = get_wall(chunk, map_x_idx, map_y_idx, 0); // ! TODO handle more z-levels
-      if (wall == NULL)
+      // TODO! Figure out how many total walls they could see in z plane above horizon.
+      // Wall *wall = get_wall(chunk, map_x_idx, map_y_idx, 3); // ! TODO handle more z-levels
+      Wall *wall_z0 = get_wall(chunk, map_x_idx, map_y_idx, 0);
+      Wall *wall_z1 = get_wall(chunk, map_x_idx, map_y_idx, 1);
+      Wall *wall_z2 = get_wall(chunk, map_x_idx, map_y_idx, 2);
+
+      if ((wall_z0 != NULL && wall_z0->texture_id != 0) ||
+          (wall_z1 != NULL && wall_z1->texture_id != 0) ||
+          (wall_z2 != NULL && wall_z2->texture_id != 0))
       {
-        continue;
-      }
-      else
-      {
+        hit_walls[0] = wall_z0;
+        hit_walls[1] = wall_z1;
+        hit_walls[2] = wall_z2;
+
         is_wall_hit = true;
         break;
       }
@@ -455,27 +468,74 @@ static void do_raycasting(Chunk *chunk)
     /*
      * Screen conversions
      */
-    Scalar ray_perp_dist = calculate_ray_perpendicular_distance(&ray, theta_lut_idx);
+    Scalar ray_length = calculate_ray_length(&ray);
+    Scalar ray_perp_dist = ray_length * cos_lut[theta_lut_idx];
 
     /*
      * Render Walls
      */
-    Point_1D wall_h = (WINDOW_H * WORLD_CELL_SIZE) / ray_perp_dist;
-    SDL_FRect screen_wall_rect = {
-        .w = WINDOW_HLF_W / (delta_ang * PLAYER_HOZ_FOV_DEG_STEP_INV),
-        .h = wall_h,
-        .x = ((curr_ang - start_ang) * PLAYER_HOZ_FOV_DEG_INV) * WINDOW_HLF_W + WINDOW_QRT_W,
-        .y = (WINDOW_H - wall_h) / 2,
-    };
 
-    SDL_SetRenderDrawColor(renderer, 100, 0, 100, 255);
-    SDL_RenderFillRect(renderer, &screen_wall_rect);
+    Scalar projection_plane_height = 2 * tanf(PLAYER_VERT_FOV_DEG / 2);
+    Scalar z_scale = WINDOW_H / projection_plane_height;
+    Plane_1D screen_center_y = WINDOW_HLF_H;
+    for (int z = 2; z >= 0; z--)
+    {
+      Scalar perceived_dist = sqrtf(powf(ray_length, 2) + powf(WORLD_CELL_SIZE * (z - 0.5), 2));
+      Scalar wall_h = WORLD_CELL_SIZE * z_scale / perceived_dist;
+
+      Scalar wall_w = WINDOW_HLF_W / (delta_ang * PLAYER_HOZ_FOV_DEG_STEP_INV);
+      Scalar x_screen_offset = ((curr_ang - start_ang) * PLAYER_HOZ_FOV_DEG_INV) * WINDOW_HLF_W + WINDOW_QRT_W; // WINDOW_HLF_W + WINDOW_QRT_W center the x coord in the screen
+
+      // Scalar z_diff = z - 0;                                             // wall_z - player_z
+      // Scalar base_wall_h = (WINDOW_H * WORLD_CELL_SIZE) / ray_perp_dist; // Somehow z-level needs to come into this!
+      // Scalar z_scale_factor = 1.0f / (1.0f + fabs(z_diff) * (0.5));
+      // Scalar wall_h = base_wall_h * z_scale_factor;
+
+      // Scalar base_y_screen_offset = (WINDOW_H - wall_h); // CENTER VERTICALLY -> But we only want to do this for current z-level
+      // Scalar z_offset = z_diff * WINDOW_H * 0.1;
+      Scalar y_screen_offset = (WORLD_CELL_SIZE * (z - 0.5)) / perceived_dist;
+
+      SDL_FRect screen_wall_rect = {
+          .w = wall_w,
+          .h = wall_h,
+          .x = x_screen_offset,
+          .y = screen_center_y,
+      };
+
+      Wall *wall = get_wall(chunk, map_x_idx, map_y_idx, z); // ! TODO handle more z-levels
+      if (wall != NULL)
+      {
+        int texture_id = wall->texture_id;
+        switch (texture_id)
+        {
+        case 1:
+          SDL_SetRenderDrawColor(renderer, 125, 125, 25, 255);
+          break;
+        case 2:
+          SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+          break;
+        case 3:
+          SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+          break;
+        case 4:
+          SDL_SetRenderDrawColor(renderer, 125, 25, 123, 255);
+          break;
+        default:
+          SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        }
+        SDL_RenderFillRect(renderer, &screen_wall_rect);
+      }
+    }
+
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_RenderLine(renderer, 0, WINDOW_HLF_H, WINDOW_W, WINDOW_HLF_H);
+    SDL_RenderLine(renderer, WINDOW_HLF_W, 0, WINDOW_HLF_W, WINDOW_H);
   }
 }
 
 void update_display(Chunk *chunk)
 {
-  SDL_SetRenderDrawColor(renderer, 30, 0, 30, 255);
+  SDL_SetRenderDrawColor(renderer, 127, 127, 127, 255);
   SDL_RenderClear(renderer);
   // draw_chunk_level(chunk, 0);
   // draw_player_rect();
