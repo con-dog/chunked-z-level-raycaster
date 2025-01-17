@@ -412,7 +412,7 @@ static void do_raycasting(Chunk *chunk)
       /*
        * DDA axis choice
        */
-      if (nworld_x_edge_dist < nworld_y_edge_dist)
+      if (nworld_x_edge_dist <= nworld_y_edge_dist)
       {
         wall_intxn_point.x = x_dirv < 0
                                  ? map_x_idx * WORLD_CELL_SIZE
@@ -446,8 +446,6 @@ static void do_raycasting(Chunk *chunk)
       }
       else
       {
-        SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-        SDL_RenderLine(renderer, ray.start.x, ray.start.y, ray.end.x, ray.end.y);
         is_wall_hit = true;
         break;
       }
@@ -456,20 +454,21 @@ static void do_raycasting(Chunk *chunk)
     /*
      * Screen conversions
      */
-    // Scalar ray_perp_dist = calculate_ray_perpendicular_distance(&ray, theta_lut_idx);
-    // Rect_2D screen_wall_rect = {
-    //     .w = (WINDOW_HLF_W) / ((end_ang - start_ang) / PLAYER_HOZ_FOV_DEG_STEP),
-    //     .h = (WINDOW_H * WORLD_CELL_SIZE) / ray_perp_dist,
-    //     .origin.x = ((curr_ang - start_ang) / PLAYER_HOZ_FOV_DEG) * (WINDOW_HLF_W) + WINDOW_QRT_W,
-    //     .origin.y = (WINDOW_H - screen_wall_rect.h) / 2,
-    // };
+    Scalar ray_perp_dist = calculate_ray_perpendicular_distance(&ray, theta_lut_idx);
 
     /*
      * Render Walls
      */
-    // Point_1D nwall_x = hit_plane == X_PLANE
-    //                        ? wall_intxn_point.y / WORLD_CELL_SIZE
-    //                        : wall_intxn_point.x / WORLD_CELL_SIZE;
+    Point_1D wall_h = (WINDOW_H * WORLD_CELL_SIZE) / ray_perp_dist;
+    SDL_FRect screen_wall_rect = {
+        .w = ((WINDOW_HLF_W) / ((end_ang - start_ang) / PLAYER_HOZ_FOV_DEG_STEP)),
+        .h = wall_h,
+        .x = ((curr_ang - start_ang) / PLAYER_HOZ_FOV_DEG) * (WINDOW_HLF_W) + WINDOW_QRT_W,
+        .y = (WINDOW_H - wall_h) / 2,
+    };
+
+    SDL_SetRenderDrawColor(renderer, 100, 0, 100, 255);
+    SDL_RenderFillRect(renderer, &screen_wall_rect);
   }
 }
 
@@ -477,9 +476,9 @@ void update_display(Chunk *chunk)
 {
   SDL_SetRenderDrawColor(renderer, 30, 0, 30, 255);
   SDL_RenderClear(renderer);
-  draw_chunk_level(chunk, 0);
-  draw_player_rect();
-  draw_player_direction();
+  // draw_chunk_level(chunk, 0);
+  // draw_player_rect();
+  // draw_player_direction();
   do_raycasting(chunk);
   // exit(EXIT_SUCCESS);
   SDL_RenderPresent(renderer);
