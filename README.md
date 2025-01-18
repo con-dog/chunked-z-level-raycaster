@@ -64,8 +64,15 @@ full_chunk = 4 bytes x 512 bytes
            = 2.048 Kilobytes
 ```
 
+So a full map of 100x100x10 full chunks is ~204.8mB without compression. 
+
+Realistically however, most chunks ~80-90% will be sky (completely empty) and myabe each chunk on average utilises about 1-10% of its total space with walls. So that will look more like:
+100x100x10x(0.01 | 0.1) =~ 2.048 <-> 20.48 mB uncompressed.
+
+
 
 ## Future Goals
+- 100x100x10 chunks maps
 - Texture Atlas, different tetxures per side of wall
 - Lighting system
 - Thin walls
