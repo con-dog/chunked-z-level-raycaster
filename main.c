@@ -591,7 +591,7 @@ void run_game_loop(Chunk *chunk)
       printf("Current FPS: %u\n", current_fps);
     }
 
-    // printf("Frame time %f\n", (end - start) / CLOCKS_PER_SEC);
+    printf("Frame time %f\n", (end - start) / CLOCKS_PER_SEC);
   }
 }
 
