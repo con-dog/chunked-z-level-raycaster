@@ -4,7 +4,10 @@ A brand-new, old-school game-engine inspired by the likes of [Wolfenstein 3D (19
 
 ## Currently in Phase 6:
 Vertical walls, chunks, representing a wall with 1 bit, and 2 bytes representing a vertical stack of 16 walls. But, having issues with rendering logic for verticals
-![Vertical issue](https://github.com/con-dog/chunked-z-level-raycaster/blob/883aebea65de8888d64870b6493dbbdb015e74bf/_media/phase-6/vert-issue.png)
+
+![Almost, still have pathing issue](https://github.com/con-dog/chunked-z-level-raycaster/blob/40ce926e33ba22ae65f028dcd8b1114dda974217/_media/phase-6/2.png)
+![Drawing but not raycasting the full length](https://github.com/con-dog/chunked-z-level-raycaster/blob/40ce926e33ba22ae65f028dcd8b1114dda974217/_media/phase-6/3.png)
+![Drawing in wrong order](https://github.com/con-dog/chunked-z-level-raycaster/blob/40ce926e33ba22ae65f028dcd8b1114dda974217/_media/phase-6/6.png)
 
 
 Animated textures, floor/wall collisions based on surface manifest, walk through doors, and just for fun - sprites - fishing.
