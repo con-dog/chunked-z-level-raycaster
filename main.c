@@ -362,6 +362,11 @@ Scalar calculate_ray_length(Line_2D *ray)
   return sqrtf(powf(ray->start.x - ray->end.x, 2) + powf(ray->start.y - ray->end.y, 2));
 }
 
+bool is_bit_set(uint16_t mask, uint8_t idx)
+{
+  return (mask >> idx) & 1;
+}
+
 void do_raycasting(Chunk *chunk)
 {
   Degrees start_ang = player.angle - PLAYER_HLF_HOZ_FOV_DEG;
@@ -469,7 +474,7 @@ void do_raycasting(Chunk *chunk)
         if (z_lvls & (1 << z))
         {
           Wall *wall = get_wall(chunk, map_x_idx, map_y_idx, z);
-          if (wall != NULL && wall->texture_id != 0)
+          if (wall != NULL && wall->texture_id != 0 && !(is_bit_set(ray_zmask, z)))
           {
 
             ray_zmask |= (1 << z);
