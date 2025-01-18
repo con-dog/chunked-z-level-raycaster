@@ -96,7 +96,7 @@ And just for completeness, here is the World data structure. Note that it only s
 ```
 typedef struct World
 {
-  Chunk chunks[CHUNK_HASH_SIZE]; // Hased chunks coords 
+  Chunk chunks[CHUNK_HASH_SIZE]; // Hashed chunks coords 
   size_t length;                 // Number of chunks with walls, probably same as CHUNK_HASH_SIZE
   Point_3D extent;               // Max [x, y, z] of chunks
 } World;
