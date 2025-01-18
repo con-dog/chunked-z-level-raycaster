@@ -68,4 +68,11 @@ typedef struct Rect_2D
   Scalar h;
 } Rect_2D;
 
+typedef struct Point3D
+{
+  Point_1D x;
+  Point_1D y;
+  Point_1D z;
+} Point3D;
+
 #endif
