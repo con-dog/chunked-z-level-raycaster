@@ -457,8 +457,6 @@ void do_raycasting(Chunk *chunk)
         continue;
       }
 
-      // const Scalar ray_length = calculate_ray_length(&ray);
-      // const Scalar ray_perp_dist = ray_length * cos_lut[theta_lut_idx];
       const Scalar wall_w = WINDOW_HLF_W / (delta_ang * PLAYER_HOZ_FOV_DEG_STEP_INV);
       const Scalar x_screen_offset = ((curr_ang - start_ang) * PLAYER_HOZ_FOV_DEG_INV) * WINDOW_HLF_W + WINDOW_QRT_W; // WINDOW_HLF_W + WINDOW_QRT_W center the x coord in the screen
       const Scalar PLAYER_EYE_HEIGHT = 0.5f * WORLD_CELL_SIZE;
