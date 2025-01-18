@@ -10,13 +10,10 @@ Vertical walls, chunks, representing a wall with 1 bit, and 2 bytes representing
 ![Drawing in wrong order](https://github.com/con-dog/chunked-z-level-raycaster/blob/40ce926e33ba22ae65f028dcd8b1114dda974217/_media/phase-6/6.png)
 
 
-Animated textures, floor/wall collisions based on surface manifest, walk through doors, and just for fun - sprites - fishing.
-![Enter doorways](https://github.com/con-dog/2.5D-raycasting-engine/blob/bbd244dfad4aa5922a7ad20163d3f4f63874540f/_media/phase-5/doors.gif)
-![Phase 5 fishing gif](https://github.com/con-dog/2.5D-raycasting-engine/blob/35efbffc349788171c625aecd9ae6a6f2db17518/_media/phase-5/fishing-time.gif)
-![Phase 5 gif](https://github.com/con-dog/2.5D-raycasting-engine/blob/3e8615c0fbabc73b51672c1551a10ede91257603/_media/phase-5/phase-5.gif)
-![Phase 5 image](https://github.com/con-dog/2.5D-raycasting-engine/blob/6f3023fa86f8d4a3338c96a77d64b92d55bdabc6/_media/phase-5/fishing-time.png)
-
 ## Future Goals
+- Texture Atlas, different tetxures per side of wall
+- Lighting system
+- Thin walls
 - Remake / Demake a Pokemon town in this "engine"
 - Add 8bit audio, music blocks/textures that make a sounds on collision
 - Procedurally generated worlds
@@ -25,6 +22,15 @@ Animated textures, floor/wall collisions based on surface manifest, walk through
 - Separate drawing/raycasting logic from window width and height
 
 ## Previous phases
+### Phase 5
+
+Animated textures, floor/wall collisions based on surface manifest, walk through doors, and just for fun - sprites - fishing.
+![Enter doorways](https://github.com/con-dog/2.5D-raycasting-engine/blob/bbd244dfad4aa5922a7ad20163d3f4f63874540f/_media/phase-5/doors.gif)
+![Phase 5 fishing gif](https://github.com/con-dog/2.5D-raycasting-engine/blob/35efbffc349788171c625aecd9ae6a6f2db17518/_media/phase-5/fishing-time.gif)
+![Phase 5 gif](https://github.com/con-dog/2.5D-raycasting-engine/blob/3e8615c0fbabc73b51672c1551a10ede91257603/_media/phase-5/phase-5.gif)
+![Phase 5 image](https://github.com/con-dog/2.5D-raycasting-engine/blob/6f3023fa86f8d4a3338c96a77d64b92d55bdabc6/_media/phase-5/fishing-time.png)
+
+
 ### Phase 4 
 
 ![Phase 4 gif](https://github.com/con-dog/2.5D-raycasting-engine/blob/1401433f57d4c0c732b924adf9c13507f07d32c8/_media/phase-4/phase-4.gif)
