@@ -14,6 +14,7 @@ Vertical walls, chunks, representing a wall with 1 bit, and 2 bytes representing
 - Texture Atlas, different tetxures per side of wall
 - Lighting system
 - Thin walls
+- Destructible walls/buildable walls
 - Remake / Demake a Pokemon town in this "engine"
 - Add 8bit audio, music blocks/textures that make a sounds on collision
 - Procedurally generated worlds
