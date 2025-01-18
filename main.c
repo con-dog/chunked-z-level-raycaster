@@ -423,6 +423,9 @@ void do_raycasting(Chunk *chunk)
     Plane hit_plane;
     WallBuffer wall_buff[4];
     uint16_t ray_zmask = 0xFFF0;
+
+    // distance based logic instead
+    // has this y-range aready been drawn to? If so, skip/occlude (front to back)
     while (ray_zmask != 0xFFFF) // TODO ! Maybe add some ray distance logic too, so rays don't go forever
     {
       /*
