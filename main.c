@@ -15,6 +15,18 @@ typedef struct Wall
   uint16_t texture_id; // Texture ID -> Value of 0 means this isn't a wall, its empty
 } Wall;
 
+typedef struct WallContainer
+{
+  Wall wall;
+  SDL_FRect rect;
+} WallContainer;
+
+typedef struct Node
+{
+  struct Node *next;
+  WallContainer value; // Contains Wall and Wall Rect
+} Node;
+
 typedef struct Chunk
 {
   uint16_t coord;             // coords in world - [8 flags/unused][8 bits x][8 bits y][8 bits z]
@@ -124,6 +136,38 @@ Wall *get_wall(Chunk *chunk, uint8_t x, uint8_t y, uint8_t z)
       return NULL; // Not found
   }
   return NULL;
+}
+
+/*
+ * Inserts new values at the start of the list
+ */
+Node *do_prepend_to_list(Node *list, WallContainer value)
+{
+  Node *new_node;
+
+  new_node = malloc(sizeof(Node));
+  if (new_node == NULL)
+  {
+    fprintf(stderr, "Error: malloc failed in do_insert_into_list\n");
+    exit(EXIT_FAILURE);
+  }
+
+  new_node->value = value;
+  new_node->next = list;
+  return new_node;
+}
+
+bool do_free_list(Node *list)
+{
+  Node *current = list;
+  Node *next;
+  while (current != NULL)
+  {
+    next = current->next;
+    free(current);
+    current = next;
+  }
+  return true;
 }
 
 static void player_init(void)
@@ -410,24 +454,22 @@ void do_raycasting(Chunk *chunk)
                                        ? (nworld_y - map_y_idx) * y_deltav      // Facing south
                                        : (map_y_idx + 1 - nworld_y) * y_deltav; // Facing north
 
-    typedef struct WallBuffer
-    {
-      Wall *wall; // Wall
-      SDL_FRect rect;
-    } WallBuffer;
-
     /*
      * Wall collision logic
      */
     bool is_wall_hit = false;
     Point_2D wall_intxn_point;
     Plane hit_plane;
-    WallBuffer wall_buff[4];
+    // WallBuffer wall_buff[256]; // TODO! Convert to doubly linked list with head and
     uint16_t ray_zmask = 0xFFF0;
+    Node *wall_list = NULL;
 
-    // distance based logic instead
+    uint8_t x_steps = 0;
+    uint8_t y_steps = 0;
+
     // has this y-range aready been drawn to? If so, skip/occlude (front to back)
-    while (ray_zmask != 0xFFFF) // TODO ! Maybe add some ray distance logic too, so rays don't go forever
+    // && (ray_zmask != 0xFFFF) is another condition to check
+    while ((x_steps < CHUNK_X) && (y_steps < CHUNK_Y))
     {
       /*
        * DDA axis choice
@@ -441,6 +483,7 @@ void do_raycasting(Chunk *chunk)
         nworld_x_edge_dist += x_deltav;
         map_x_idx += x_stepv;
         hit_plane = X_PLANE; // eg: a vertical edge
+        x_steps++;
       }
       else
       {
@@ -451,6 +494,7 @@ void do_raycasting(Chunk *chunk)
         nworld_y_edge_dist += y_deltav;
         map_y_idx += y_stepv;
         hit_plane = Y_PLANE; // eg: a horizontal edge
+        y_steps++;
       }
 
       ray.end.x = wall_intxn_point.x;
@@ -459,11 +503,15 @@ void do_raycasting(Chunk *chunk)
       const Scalar ray_length = calculate_ray_length(&ray);
       const Scalar ray_perp_dist = ray_length * cos_lut[theta_lut_idx];
 
+      // Out of bounds check
+      if (map_x_idx >= CHUNK_X || map_y_idx >= CHUNK_Y)
+      {
+        do_free_list(wall_list);
+        break;
+      }
       uint16_t z_lvls = map_chunk[map_x_idx][map_y_idx];
       uint16_t z_max = 1 + floorf((32.0f + ray_perp_dist * tanf(convert_deg_to_rads(15))) / WORLD_CELL_SIZE); // eg for z_max = 3;
       uint16_t z_mask = (1 << z_max + 1) - 1;                                                                 // z_mask = 0b1111; only check the first 4 levels (from 0) up to z = 3
-
-      // printf("map_x: %d map_y: %d z_max: %d\n", map_x_idx, map_y_idx, z_max);
 
       if (!(z_lvls & z_mask))
       {
@@ -477,7 +525,7 @@ void do_raycasting(Chunk *chunk)
       const Scalar VERT_SCALE = (WINDOW_H / VERT_FOV_RAD) * (PLAYER_VERT_FOV_DEG / PLAYER_HOZ_FOV_DEG); // This makes the cubes square etc
 
       // for each z in z_lvls
-      for (uint8_t z = 0; z < CHUNK_Z; z++)
+      for (uint8_t z = 0; z <= z_max; z++)
       {
         if (z_lvls & (1 << z))
         {
@@ -501,41 +549,72 @@ void do_raycasting(Chunk *chunk)
                 .w = wall_w,
                 .h = screen_y_bottom - screen_y_top};
 
-            wall_buff[z].rect = rect;
-            wall_buff[z].wall = wall;
+            WallContainer wall_container = {
+                .rect = rect,
+                .wall = *wall,
+            };
+
+            wall_list = do_prepend_to_list(wall_list, wall_container);
           }
         }
       }
     }
 
+    Node *current = wall_list;
+    Node *next;
+    while (current != NULL)
+    {
+      int texture_id = current->value.wall.texture_id;
+      switch (texture_id)
+      {
+      case 1:
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+        break;
+      case 2:
+        SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+        break;
+      case 3:
+        SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+        break;
+      case 4:
+        SDL_SetRenderDrawColor(renderer, 125, 25, 123, 255);
+        break;
+      default:
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+      }
+      SDL_RenderRect(renderer, &current->value.rect);
+      next = current->next;
+      current = next;
+    }
+
     // exit(1);
 
-    for (int i = 3; i >= 0; i--)
-    {
-      WallBuffer wall_b = wall_buff[i];
-      if (wall_b.wall != NULL && wall_b.wall->texture_id != 0)
-      {
-        int texture_id = wall_b.wall->texture_id;
-        switch (texture_id)
-        {
-        case 1:
-          SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-          break;
-        case 2:
-          SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-          break;
-        case 3:
-          SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
-          break;
-        case 4:
-          SDL_SetRenderDrawColor(renderer, 125, 25, 123, 255);
-          break;
-        default:
-          SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        }
-        SDL_RenderRect(renderer, &wall_b.rect);
-      }
-    }
+    // for (int i = 3; i >= 0; i--)
+    // {
+    //   WallBuffer wall_b = wall_buff[i];
+    //   if (wall_b.wall != NULL && wall_b.wall->texture_id != 0)
+    //   {
+    //     int texture_id = wall_b.wall->texture_id;
+    //     switch (texture_id)
+    //     {
+    //     case 1:
+    //       SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+    //       break;
+    //     case 2:
+    //       SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+    //       break;
+    //     case 3:
+    //       SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+    //       break;
+    //     case 4:
+    //       SDL_SetRenderDrawColor(renderer, 125, 25, 123, 255);
+    //       break;
+    //     default:
+    //       SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    //     }
+    //     SDL_RenderRect(renderer, &wall_b.rect);
+    //   }
+    // }
 
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderLine(renderer, 0, WINDOW_HLF_H, WINDOW_W, WINDOW_HLF_H);
