@@ -57,17 +57,47 @@ This is the memory footprint of 1 Wall:
 wall_memory = 4 bytes
 ```
 
+Then there is the question of the actual Chunk that stores the walls. Theoretically each chunk could store 16x16x16 = 4096 individual walls. But that memory footprint is 4bytes x 4096 = 16.384kB per chunk! But in reality, most chunks will be very sparse (sky etc empty cells) so most chunks will only need to store ~0-512 walls (just over 10% of the max). Knowing this, we can use a much smaller fixed sized array as a hash map for the actual walls in this chunk, only storing walls with data (non-empty). 
+
+For now I'm just using a fixed sized array given by `WALL_HASH_SIZE`, and hashing the given walls x-y-z wall coordinates with a hash function to determine an appropriate bounded index in the array to place the Wall. This hash does have collisions, so on item insertion I just keep incrementing the index until you find an empty index. 
+```c
+typedef struct Chunk
+{
+  uint16_t coord;             // coords in world - [8 flags/unused][8 bits x][8 bits y][8 bits z]
+  Wall walls[WALL_HASH_SIZE]; // Flat Array of entries, use hash_value as index into walls array
+  size_t length;              // Number of non-empty walls, same as WALL_HASH_SIZE
+} Chunk;
+
+uint16_t do_hash_coords(uint8_t x, uint8_t y, uint8_t z)
+{
+  uint32_t hash = (x << 8) | (y << 4) | z;
+  // Multiply by large prime
+  hash *= 2654435761u;
+  // Take bits 16-25 for better distribution
+  return (hash >> 16) & 0x3FF;
+}
+```
+
+Why do I use a fast hash map instead of a variable sized sorted array? Because I'm potentially going to be rendering a shitload of walls in one scene, I need instantaneous look-up times for walls within chunks and this method on average is `O(1)` access whereas binary search is `Olog2(n)` or a linked-list implementation is `O(n)`
+
+
+
+I use a fixed sized Wall array as a hash_map
+
 That means that a chunk completely full of walls takes:
 ```plaintext
-full_chunk = 4 bytes x 512 bytes
-           = 2048 bytes
-           = 2.048 Kilobytes
+full_chunk = (4 bytes x (16 x 16 x 16) / 8)
+           ~= 2048 bytes
+           ~= 2.048 Kilobytes
 ```
 
 So a full map of 100x100x10 full chunks is ~204.8mB without compression. 
 
 Realistically however, most chunks ~80-90% will be sky (completely empty) and myabe each chunk on average utilises about 1-10% of its total space with walls. So that will look more like:
 100x100x10x(0.01 | 0.1) =~ 2.048 <-> 20.48 mB uncompressed.
+
+
+
 
 
 
