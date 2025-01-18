@@ -50,9 +50,9 @@ uint16_t map_chunk[CHUNK_X][CHUNK_Y] = { // 0x000F means z [0-3] has walls, z [3
     {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
     {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
     {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
-    {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
-    {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
-    {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
+    {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0001, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
+    {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0002, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
+    {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0004, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
     {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
     {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
     {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
@@ -402,15 +402,21 @@ void do_raycasting(Chunk *chunk)
                                        ? (nworld_y - map_y_idx) * y_deltav      // Facing south
                                        : (map_y_idx + 1 - nworld_y) * y_deltav; // Facing north
 
+    typedef struct WallBuffer
+    {
+      Wall *wall; // Wall
+      SDL_FRect rect;
+    } WallBuffer;
+
     /*
      * Wall collision logic
      */
     bool is_wall_hit = false;
     Point_2D wall_intxn_point;
     Plane hit_plane;
-    Wall *walls[4] = {NULL, NULL, NULL, NULL};
+    WallBuffer wall_buff[4];
     uint16_t ray_zmask = 0xFFF0;
-    while (!is_wall_hit) // TODO ! Maybe add some ray distance logic too, so rays don't go forever
+    while (ray_zmask != 0xFFFF) // TODO ! Maybe add some ray distance logic too, so rays don't go forever
     {
       /*
        * DDA axis choice
@@ -451,80 +457,104 @@ void do_raycasting(Chunk *chunk)
         continue;
       }
 
+      // const Scalar ray_length = calculate_ray_length(&ray);
+      // const Scalar ray_perp_dist = ray_length * cos_lut[theta_lut_idx];
+      const Scalar wall_w = WINDOW_HLF_W / (delta_ang * PLAYER_HOZ_FOV_DEG_STEP_INV);
+      const Scalar x_screen_offset = ((curr_ang - start_ang) * PLAYER_HOZ_FOV_DEG_INV) * WINDOW_HLF_W + WINDOW_QRT_W; // WINDOW_HLF_W + WINDOW_QRT_W center the x coord in the screen
+      const Scalar PLAYER_EYE_HEIGHT = 0.5f * WORLD_CELL_SIZE;
+      const Scalar VERT_FOV_RAD = convert_deg_to_rads(PLAYER_VERT_FOV_DEG);
+      const Scalar VERT_SCALE = (WINDOW_H / VERT_FOV_RAD) * (PLAYER_VERT_FOV_DEG / PLAYER_HOZ_FOV_DEG); // This makes the cubes square etc
+
       // for each z in z_lvls
-      // for (uint8_t z = 0; z < CHUNK_Z; z++)
-      // {
-      //   // If there is a wall for this z
-      //   if (z_lvls & (1 << z))
-      //   {
-      //     Wall *wall = get_wall(chunk, map_x_idx, map_y_idx, z);
-      //     if (wall != NULL && wall->texture_id != 0)
-      //     {
-      //       walls[z] = wall;
-      //       ray_zmask = !ray_zmask & (1 << z);
-      //     }
-      //   }
-      // }
+      for (uint8_t z = 0; z < CHUNK_Z; z++)
+      {
+        if (z_lvls & (1 << z))
+        {
+          Wall *wall = get_wall(chunk, map_x_idx, map_y_idx, z);
+          if (wall != NULL && wall->texture_id != 0)
+          {
+
+            ray_zmask |= (1 << z);
+
+            Scalar wall_bottom_y = z * WORLD_CELL_SIZE;
+            Scalar wall_top_y = (z + 1) * WORLD_CELL_SIZE;
+
+            Scalar angle_to_bottom = atan2f(wall_bottom_y - PLAYER_EYE_HEIGHT, ray_perp_dist);
+            Scalar angle_to_top = atan2f(wall_top_y - PLAYER_EYE_HEIGHT, ray_perp_dist);
+
+            Scalar screen_y_bottom = WINDOW_HLF_H - (angle_to_bottom * VERT_SCALE);
+            Scalar screen_y_top = WINDOW_HLF_H - (angle_to_top * VERT_SCALE);
+
+            SDL_FRect rect = {
+                .x = x_screen_offset,
+                .y = screen_y_top,
+                .w = wall_w,
+                .h = screen_y_bottom - screen_y_top};
+
+            printf("z: %d\n", z);
+            wall_buff[z].rect = rect;
+            wall_buff[z].wall = wall;
+
+            // walls[z]->wall = wall;
+            // walls[z]->rect = rect;
+
+            // Wall *wall = get_wall(chunk, map_x_idx, map_y_idx, z); // ! TODO handle more z-levels
+            // if (wall != NULL)
+            // {
+            //   int texture_id = wall->texture_id;
+            //   switch (texture_id)
+            //   {
+            //   case 1:
+            //     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+            //     break;
+            //   case 2:
+            //     SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+            //     break;
+            //   case 3:
+            //     SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+            //     break;
+            //   case 4:
+            //     SDL_SetRenderDrawColor(renderer, 125, 25, 123, 255);
+            //     break;
+            //   default:
+            //     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+            //   }
+            //   SDL_RenderRect(renderer, &wall_rect);
+            // }
+          }
+        }
+      }
 
       // /*
       //  * Check this chunk for the coordinates and if has texture_id -> if found we have a collision
       //  */
       // // TODO! Figure out how many total walls they could see in z plane above horizon.
       // Wall *wall = get_wall(chunk, map_x_idx, map_y_idx, 3); // ! TODO handle more z-levels
-      Wall *wall_z0 = get_wall(chunk, map_x_idx, map_y_idx, 0);
-      Wall *wall_z1 = get_wall(chunk, map_x_idx, map_y_idx, 1);
-      Wall *wall_z2 = get_wall(chunk, map_x_idx, map_y_idx, 2);
-      Wall *wall_z3 = get_wall(chunk, map_x_idx, map_y_idx, 3);
+      // Wall *wall_z0 = get_wall(chunk, map_x_idx, map_y_idx, 0);
+      // Wall *wall_z1 = get_wall(chunk, map_x_idx, map_y_idx, 1);
+      // Wall *wall_z2 = get_wall(chunk, map_x_idx, map_y_idx, 2);
+      // Wall *wall_z3 = get_wall(chunk, map_x_idx, map_y_idx, 3);
 
-      if ((wall_z0 != NULL && wall_z0->texture_id != 0) ||
-          (wall_z1 != NULL && wall_z1->texture_id != 0) ||
-          (wall_z2 != NULL && wall_z2->texture_id != 0) ||
-          (wall_z3 != NULL && wall_z3->texture_id != 0))
-      {
-        walls[0] = wall_z0;
-        walls[1] = wall_z1;
-        walls[2] = wall_z2;
-        walls[2] = wall_z3;
-        is_wall_hit = true;
-        break;
-      }
+      // if ((wall_z0 != NULL && wall_z0->texture_id != 0) ||
+      //     (wall_z1 != NULL && wall_z1->texture_id != 0) ||
+      //     (wall_z2 != NULL && wall_z2->texture_id != 0) ||
+      //     (wall_z3 != NULL && wall_z3->texture_id != 0))
+      // {
+      //   walls[0] = wall_z0;
+      //   walls[1] = wall_z1;
+      //   walls[2] = wall_z2;
+      //   walls[2] = wall_z3;
+      //   is_wall_hit = true;
+      //   break;
+      // }
     }
 
-    /*
-     * Screen conversions
-     */
-    const Scalar ray_length = calculate_ray_length(&ray);
-    const Scalar ray_perp_dist = ray_length * cos_lut[theta_lut_idx];
-    const Scalar wall_w = WINDOW_HLF_W / (delta_ang * PLAYER_HOZ_FOV_DEG_STEP_INV);
-    const Scalar x_screen_offset = ((curr_ang - start_ang) * PLAYER_HOZ_FOV_DEG_INV) * WINDOW_HLF_W + WINDOW_QRT_W; // WINDOW_HLF_W + WINDOW_QRT_W center the x coord in the screen
-    const Scalar PLAYER_EYE_HEIGHT = 0.5f * WORLD_CELL_SIZE;
-    const Scalar VERT_FOV_RAD = convert_deg_to_rads(PLAYER_VERT_FOV_DEG);
-    const Scalar VERT_SCALE = (WINDOW_H / VERT_FOV_RAD) * (PLAYER_VERT_FOV_DEG / PLAYER_HOZ_FOV_DEG); // This makes the cubes square etc
-
-    /*
-     * Render Walls
-     */
-    for (int z = 3; z >= 0; z--)
+    for (int i = 3; i >= 0; i--)
     {
-      Scalar wall_bottom_y = z * WORLD_CELL_SIZE;
-      Scalar wall_top_y = (z + 1) * WORLD_CELL_SIZE;
-
-      Scalar angle_to_bottom = atan2f(wall_bottom_y - PLAYER_EYE_HEIGHT, ray_perp_dist);
-      Scalar angle_to_top = atan2f(wall_top_y - PLAYER_EYE_HEIGHT, ray_perp_dist);
-
-      Scalar screen_y_bottom = WINDOW_HLF_H - (angle_to_bottom * VERT_SCALE);
-      Scalar screen_y_top = WINDOW_HLF_H - (angle_to_top * VERT_SCALE);
-
-      SDL_FRect wall_rect = {
-          .x = x_screen_offset,
-          .y = screen_y_top,
-          .w = wall_w,
-          .h = screen_y_bottom - screen_y_top};
-
-      Wall *wall = get_wall(chunk, map_x_idx, map_y_idx, z); // ! TODO handle more z-levels
-      if (wall != NULL)
+      WallBuffer wall_b = wall_buff[i];
+      if (wall_b.wall != NULL && wall_b.wall->texture_id != 0)
       {
-        int texture_id = wall->texture_id;
+        int texture_id = wall_b.wall->texture_id;
         switch (texture_id)
         {
         case 1:
@@ -542,9 +572,65 @@ void do_raycasting(Chunk *chunk)
         default:
           SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         }
-        SDL_RenderRect(renderer, &wall_rect);
+        SDL_RenderRect(renderer, &wall_b.rect);
       }
     }
+
+    /*
+     * Screen conversions
+     */
+    // const Scalar ray_length = calculate_ray_length(&ray);
+    // const Scalar ray_perp_dist = ray_length * cos_lut[theta_lut_idx];
+    // const Scalar wall_w = WINDOW_HLF_W / (delta_ang * PLAYER_HOZ_FOV_DEG_STEP_INV);
+    // const Scalar x_screen_offset = ((curr_ang - start_ang) * PLAYER_HOZ_FOV_DEG_INV) * WINDOW_HLF_W + WINDOW_QRT_W; // WINDOW_HLF_W + WINDOW_QRT_W center the x coord in the screen
+    // const Scalar PLAYER_EYE_HEIGHT = 0.5f * WORLD_CELL_SIZE;
+    // const Scalar VERT_FOV_RAD = convert_deg_to_rads(PLAYER_VERT_FOV_DEG);
+    // const Scalar VERT_SCALE = (WINDOW_H / VERT_FOV_RAD) * (PLAYER_VERT_FOV_DEG / PLAYER_HOZ_FOV_DEG); // This makes the cubes square etc
+
+    /*
+     * Render Walls
+     */
+    // for (int z = 3; z >= 0; z--)
+    // {
+    //   Scalar wall_bottom_y = z * WORLD_CELL_SIZE;
+    //   Scalar wall_top_y = (z + 1) * WORLD_CELL_SIZE;
+
+    //   Scalar angle_to_bottom = atan2f(wall_bottom_y - PLAYER_EYE_HEIGHT, ray_perp_dist);
+    //   Scalar angle_to_top = atan2f(wall_top_y - PLAYER_EYE_HEIGHT, ray_perp_dist);
+
+    //   Scalar screen_y_bottom = WINDOW_HLF_H - (angle_to_bottom * VERT_SCALE);
+    //   Scalar screen_y_top = WINDOW_HLF_H - (angle_to_top * VERT_SCALE);
+
+    //   SDL_FRect wall_rect = {
+    //       .x = x_screen_offset,
+    //       .y = screen_y_top,
+    //       .w = wall_w,
+    //       .h = screen_y_bottom - screen_y_top};
+
+    //   Wall *wall = get_wall(chunk, map_x_idx, map_y_idx, z); // ! TODO handle more z-levels
+    //   if (wall != NULL)
+    //   {
+    //     int texture_id = wall->texture_id;
+    //     switch (texture_id)
+    //     {
+    //     case 1:
+    //       SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+    //       break;
+    //     case 2:
+    //       SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+    //       break;
+    //     case 3:
+    //       SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+    //       break;
+    //     case 4:
+    //       SDL_SetRenderDrawColor(renderer, 125, 25, 123, 255);
+    //       break;
+    //     default:
+    //       SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    //     }
+    //     SDL_RenderRect(renderer, &wall_rect);
+    //   }
+    // }
 
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderLine(renderer, 0, WINDOW_HLF_H, WINDOW_W, WINDOW_HLF_H);
