@@ -25,7 +25,8 @@ typedef struct Chunk
 typedef struct World
 {
   struct Chunk *chunks; // Flat Array of chunks, only chunks with walls
-  size_t length;        // Number of chunks
+  size_t length;        // Number of chunks with walls
+  Point_2D extent;      // Max [x, y] of chunks
 } World;
 
 /* ******************
