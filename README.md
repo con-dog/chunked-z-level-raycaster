@@ -91,6 +91,17 @@ So a full map of 100x100x10 full chunks is ~204.8mB without compression.
 
 Realistically however, most chunks (~80-90%) will be completely empty (sky , open areas etc) and so the final memory footprint is more like 204.8mB x 0.1 ~= 20.48mB on average. Pretty good! And then for chunks that aren't near the player, they can probably be compressed, getting further memory savings. 
 
+And just for completeness, here is the World data structure. Note that it only stores chunks that have content.
+
+```
+typedef struct World
+{
+  Chunk chunks[CHUNK_HASH_SIZE]; // Hased chunks coords 
+  size_t length;                 // Number of chunks with walls, probably same as CHUNK_HASH_SIZE
+  Point_3D extent;               // Max [x, y, z] of chunks
+} World;
+```
+
 
 ## Future Goals
 - 100x100x10 chunks maps
