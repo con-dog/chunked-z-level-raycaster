@@ -68,11 +68,11 @@ uint16_t map_chunk[CHUNK_X][CHUNK_Y] = { // 0x000F means z [0-3] has walls, z [3
     {0x000F, 0x0000, 0x0000, 0x0001, 0x0001, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
     {0x000F, 0x0000, 0x0000, 0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
     {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
-    {0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x0000, 0x0001, 0x0006, 0x0000, 0x0000, 0x000F},
+    {0x000F, 0x0000, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x0000, 0x0001, 0x0006, 0x0000, 0x0000, 0x000F},
     {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0002, 0x0005, 0x0000, 0x0000, 0x000F},
     {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0004, 0x0004, 0x0000, 0x0000, 0x000F},
     {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
-    {0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F}};
+    {0x000F, 0xFFFF, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F}};
 
 /* ******************
  * GLOBALS (END)
@@ -405,10 +405,12 @@ void do_raycasting(Chunk *chunk)
   Point_1D player_y_center = get_player_y_centered(&player);
 
   for (Degrees curr_ang = start_ang; curr_ang <= end_ang; curr_ang += PLAYER_HOZ_FOV_DEG_STEP)
+  // for (int i = 0; i < 1; i++)
   {
     /*
      * Horizontal ray setup
      */
+    // Degrees curr_ang = player.angle;
 
     int ang_lut_idx = get_lut_index(curr_ang);
     int theta_lut_idx = get_lut_index(curr_ang - player.angle);
@@ -483,18 +485,27 @@ void do_raycasting(Chunk *chunk)
 
       const Scalar ray_length = calculate_ray_length(&ray);
       const Scalar ray_perp_dist = ray_length * cos_lut[theta_lut_idx];
+      const Scalar PLAYER_EYE_HEIGHT = 0.5f * WORLD_CELL_SIZE;
+
+      float maxHeight = PLAYER_EYE_HEIGHT + ray_perp_dist * tanf(PLAYER_VERT_FOV_RAD / 2.0f);
+
+      // Convert to cell units
+      uint16_t z_max = ceilf(maxHeight * WORLD_CELL_SIZE_INV) * WINDOW_W / WINDOW_H;
 
       uint16_t z_lvls = map_chunk[map_x_idx][map_y_idx];
-      uint16_t z_max = 1 + floorf((32.0f + ray_length * tanf(convert_deg_to_rads(15))) * WORLD_CELL_SIZE_INV); // eg for z_max = 3;
-      uint16_t z_mask = (1 << (z_max + 1)) - 1;                                                                // z_mask = 0b1111; only check the first 4 levels (from 0) up to z = 3
+      // uint16_t z_max = 1 + floorf((PLAYER_EYE_HEIGHT + ray_perp_dist * PLAYER_VERT_FOV_HLF_TAN) * WORLD_CELL_SIZE_INV); // (WINDOW_H / VERT_FOV_RAD)
+      // uint16_t z_mask = (1 << (z_max + 1)) - 1;                                                             // z_mask = 0b1111; only check the first 4 levels (from 0) up to z = 3
 
+      if (z_max > 0)
+      {
+        printf("z_max :%d\n", z_max);
+      }
       const Scalar wall_w = WINDOW_HLF_W / (delta_ang * PLAYER_HOZ_FOV_DEG_STEP_INV);
       const Scalar x_screen_offset = ((curr_ang - start_ang) * PLAYER_HOZ_FOV_DEG_INV) * WINDOW_HLF_W + WINDOW_QRT_W; // WINDOW_HLF_W + WINDOW_QRT_W center the x coord in the screen
-      const Scalar PLAYER_EYE_HEIGHT = 0.5f * WORLD_CELL_SIZE;
-      const Scalar VERT_FOV_RAD = convert_deg_to_rads(PLAYER_VERT_FOV_DEG);
-      const Scalar VERT_SCALE = (WINDOW_H / VERT_FOV_RAD) * (PLAYER_VERT_FOV_DEG / PLAYER_HOZ_FOV_DEG); // This makes the cubes square etc
+      // const Scalar VERT_SCALE = (WINDOW_H / PLAYER_VERT_FOV_RAD);                                                     //  * (PLAYER_VERT_FOV_DEG / PLAYER_HOZ_FOV_DEG);        // This makes the cubes square etc
+      const Scalar VERT_SCALE = ((WINDOW_H / 2.0f) / tanf(PLAYER_VERT_FOV_RAD / 2.0f)) * WINDOW_H / WINDOW_W;
 
-      for (uint8_t z = 0; z <= CHUNK_Z; z++)
+      for (uint8_t z = 0; z <= z_max; z++)
       {
         if (z_lvls & (1 << z))
         {
@@ -526,6 +537,8 @@ void do_raycasting(Chunk *chunk)
         }
       }
     }
+
+    // exit(1);
 
     if (wall_list != NULL)
     {
