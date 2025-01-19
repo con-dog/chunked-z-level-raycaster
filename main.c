@@ -502,14 +502,8 @@ void do_raycasting(Chunk *chunk)
       const Scalar ray_length = calculate_ray_length(&ray);
       const Scalar ray_perp_dist = ray_length * cos_lut[theta_lut_idx];
 
-      // Out of bounds check
-      if (map_x_idx >= CHUNK_X || map_y_idx >= CHUNK_Y)
-      {
-        // printf("map_x: %d map_y: %d\n", map_x_idx, map_y_idx);
-        //   do_free_list(wall_list);
-        //   wall_list = NULL;
-        //   break;
-      }
+      // TODO! Out of bounds check
+
       uint16_t z_lvls = map_chunk[map_x_idx][map_y_idx];
       uint16_t z_max = 1 + floorf((32.0f + ray_perp_dist * tanf(convert_deg_to_rads(15))) / WORLD_CELL_SIZE); // eg for z_max = 3;
       uint16_t z_mask = (1 << (z_max + 1)) - 1;                                                               // z_mask = 0b1111; only check the first 4 levels (from 0) up to z = 3
@@ -531,7 +525,7 @@ void do_raycasting(Chunk *chunk)
         if (z_lvls & (1 << z))
         {
           Wall *wall = get_wall(chunk, map_x_idx, map_y_idx, z);
-          if (wall != NULL && wall->texture_id != 0 && !(is_bit_set(ray_zmask, z)))
+          if (wall != NULL && wall->texture_id != 0) // && !(is_bit_set(ray_zmask, z)
           {
             ray_zmask |= (1 << z);
 
