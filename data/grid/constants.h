@@ -3,5 +3,6 @@
 
 #define EMPTY_CELL_VALUE "EMPTY"
 #define WORLD_CELL_SIZE 64.0f
+#define WORLD_CELL_SIZE_INV (1.0f / WORLD_CELL_SIZE)
 
 #endif

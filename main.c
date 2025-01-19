@@ -418,14 +418,14 @@ void do_raycasting(Chunk *chunk)
         .start.y = player_y_center,
     };
 
-    Index map_x_idx = floorf(ray.start.x / WORLD_CELL_SIZE); // x index in map chunk array
-    Index map_y_idx = floorf(ray.start.y / WORLD_CELL_SIZE); // y index in map chunk array
-    Point_1D nworld_x = ray.start.x / WORLD_CELL_SIZE;       // x point in world normalized
-    Point_1D nworld_y = ray.start.y / WORLD_CELL_SIZE;       // y point in world normalized
-    Vector_1D x_dirv = cos_lut[ang_lut_idx];                 // x direction vector
-    Vector_1D y_dirv = sin_lut[ang_lut_idx];                 // y direction vector
-    Vector_1D x_stepv = x_dirv >= 0 ? 1 : -1;                // x-axis step vector
-    Vector_1D y_stepv = y_dirv >= 0 ? 1 : -1;                // y-axis step vector
+    Index map_x_idx = floorf(ray.start.x * WORLD_CELL_SIZE_INV); // x index in map chunk array
+    Index map_y_idx = floorf(ray.start.y * WORLD_CELL_SIZE_INV); // y index in map chunk array
+    Point_1D nworld_x = ray.start.x * WORLD_CELL_SIZE_INV;       // x point in world normalized
+    Point_1D nworld_y = ray.start.y * WORLD_CELL_SIZE_INV;       // y point in world normalized
+    Vector_1D x_dirv = cos_lut[ang_lut_idx];                     // x direction vector
+    Vector_1D y_dirv = sin_lut[ang_lut_idx];                     // y direction vector
+    Vector_1D x_stepv = x_dirv >= 0 ? 1 : -1;                    // x-axis step vector
+    Vector_1D y_stepv = y_dirv >= 0 ? 1 : -1;                    // y-axis step vector
     Vector_1D x_deltav = fabs(1.0f / x_dirv);
     Vector_1D y_deltav = fabs(1.0f / y_dirv);
     Vector_1D nworld_x_edge_dist = x_dirv < 0                                   // Normalized distance to next vertical edge
@@ -485,8 +485,8 @@ void do_raycasting(Chunk *chunk)
       const Scalar ray_perp_dist = ray_length * cos_lut[theta_lut_idx];
 
       uint16_t z_lvls = map_chunk[map_x_idx][map_y_idx];
-      uint16_t z_max = 1 + floorf((32.0f + ray_length * tanf(convert_deg_to_rads(15))) / WORLD_CELL_SIZE); // eg for z_max = 3;
-      uint16_t z_mask = (1 << (z_max + 1)) - 1;                                                            // z_mask = 0b1111; only check the first 4 levels (from 0) up to z = 3
+      uint16_t z_max = 1 + floorf((32.0f + ray_length * tanf(convert_deg_to_rads(15))) * WORLD_CELL_SIZE_INV); // eg for z_max = 3;
+      uint16_t z_mask = (1 << (z_max + 1)) - 1;                                                                // z_mask = 0b1111; only check the first 4 levels (from 0) up to z = 3
 
       const Scalar wall_w = WINDOW_HLF_W / (delta_ang * PLAYER_HOZ_FOV_DEG_STEP_INV);
       const Scalar x_screen_offset = ((curr_ang - start_ang) * PLAYER_HOZ_FOV_DEG_INV) * WINDOW_HLF_W + WINDOW_QRT_W; // WINDOW_HLF_W + WINDOW_QRT_W center the x coord in the screen
@@ -562,35 +562,6 @@ void do_raycasting(Chunk *chunk)
       do_free_list(wall_list);
     }
 
-    // exit(1);
-
-    // for (int i = 3; i >= 0; i--)
-    // {
-    //   WallBuffer wall_b = wall_buff[i];
-    //   if (wall_b.wall != NULL && wall_b.wall->texture_id != 0)
-    //   {
-    //     int texture_id = wall_b.wall->texture_id;
-    //     switch (texture_id)
-    //     {
-    //     case 1:
-    //       SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-    //       break;
-    //     case 2:
-    //       SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-    //       break;
-    //     case 3:
-    //       SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
-    //       break;
-    //     case 4:
-    //       SDL_SetRenderDrawColor(renderer, 125, 25, 123, 255);
-    //       break;
-    //     default:
-    //       SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    //     }
-    //     SDL_RenderRect(renderer, &wall_b.rect);
-    //   }
-    // }
-
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderLine(renderer, 0, WINDOW_HLF_H, WINDOW_W, WINDOW_HLF_H);
     SDL_RenderLine(renderer, WINDOW_HLF_W, 0, WINDOW_HLF_W, WINDOW_H);
@@ -647,6 +618,7 @@ void run_game_loop(Chunk *chunk)
       frame_count = 0;
       fps_last_time = current_time_fps;
       printf("Current FPS: %u\n", current_fps);
+      printf("Size of Wall: %zu\n", sizeof(struct Wall));
     }
 
     // printf("Frame time %f\n", (end - start) / CLOCKS_PER_SEC);
