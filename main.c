@@ -72,7 +72,7 @@ uint16_t map_chunk[CHUNK_X][CHUNK_Y] = { // 0x000F means z [0-3] has walls, z [3
     {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0002, 0x0005, 0x0000, 0x0000, 0x000F},
     {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0004, 0x0004, 0x0000, 0x0000, 0x000F},
     {0x000F, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x000F},
-    {0x000F, 0xFFFF, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F}};
+    {0x000F, 0xFFFF, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0x000F, 0xFFFF}};
 
 /* ******************
  * GLOBALS (END)
@@ -487,13 +487,10 @@ void do_raycasting(Chunk *chunk)
       const Scalar ray_perp_dist = ray_length * cos_lut[theta_lut_idx];
       const Scalar PLAYER_EYE_HEIGHT = 0.5f * WORLD_CELL_SIZE;
 
-      float maxHeight = PLAYER_EYE_HEIGHT + ray_perp_dist * tanf(PLAYER_VERT_FOV_RAD / 2.0f);
-
-      // Convert to cell units
-      uint16_t z_max = ceilf(maxHeight * WORLD_CELL_SIZE_INV) * WINDOW_W / WINDOW_H;
+      float maxHeight = PLAYER_EYE_HEIGHT + ray_perp_dist * tanf((PLAYER_VERT_FOV_RAD / 2.0f) * WINDOW_W / WINDOW_H);
+      uint16_t z_max = ceilf(maxHeight * WORLD_CELL_SIZE_INV);
 
       uint16_t z_lvls = map_chunk[map_x_idx][map_y_idx];
-      // uint16_t z_max = 1 + floorf((PLAYER_EYE_HEIGHT + ray_perp_dist * PLAYER_VERT_FOV_HLF_TAN) * WORLD_CELL_SIZE_INV); // (WINDOW_H / VERT_FOV_RAD)
       // uint16_t z_mask = (1 << (z_max + 1)) - 1;                                                             // z_mask = 0b1111; only check the first 4 levels (from 0) up to z = 3
 
       if (z_max > 0)
@@ -502,7 +499,6 @@ void do_raycasting(Chunk *chunk)
       }
       const Scalar wall_w = WINDOW_HLF_W / (delta_ang * PLAYER_HOZ_FOV_DEG_STEP_INV);
       const Scalar x_screen_offset = ((curr_ang - start_ang) * PLAYER_HOZ_FOV_DEG_INV) * WINDOW_HLF_W + WINDOW_QRT_W; // WINDOW_HLF_W + WINDOW_QRT_W center the x coord in the screen
-      // const Scalar VERT_SCALE = (WINDOW_H / PLAYER_VERT_FOV_RAD);                                                     //  * (PLAYER_VERT_FOV_DEG / PLAYER_HOZ_FOV_DEG);        // This makes the cubes square etc
       const Scalar VERT_SCALE = ((WINDOW_H / 2.0f) / tanf(PLAYER_VERT_FOV_RAD / 2.0f)) * WINDOW_H / WINDOW_W;
 
       for (uint8_t z = 0; z <= z_max; z++)
@@ -538,8 +534,6 @@ void do_raycasting(Chunk *chunk)
       }
     }
 
-    // exit(1);
-
     if (wall_list != NULL)
     {
       Node *current = wall_list;
@@ -574,6 +568,8 @@ void do_raycasting(Chunk *chunk)
 
       do_free_list(wall_list);
     }
+
+    // exit(1);
 
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderLine(renderer, 0, WINDOW_HLF_H, WINDOW_W, WINDOW_HLF_H);
