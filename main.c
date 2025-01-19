@@ -361,7 +361,7 @@ bool do_initialize_chunk(Chunk *chunk)
               .texture_id = texture_id,
           };
           uint16_t index = do_hash_coords(i, j, k);
-          bool result = do_hash_insert(chunk, &wall, index);
+          do_hash_insert(chunk, &wall, index);
         }
       }
     }
@@ -455,18 +455,20 @@ void do_raycasting(Chunk *chunk)
     /*
      * Wall collision logic
      */
-    bool is_wall_hit = false;
     Point_2D wall_intxn_point;
     Plane hit_plane;
     uint16_t ray_zmask = 0xFFF0;
     Node *wall_list = NULL;
 
-    uint8_t x_steps = 0;
-    uint8_t y_steps = 0;
+    uint8_t x_steps = 0; // Draw distance
+    uint8_t y_steps = 0; // Draw distance
+    uint8_t z_step = 0;
 
     // has this y-range aready been drawn to? If so, skip/occlude (front to back)
     // && (ray_zmask != 0xFFFF) is another condition to check
-    while ((x_steps < CHUNK_X) && (y_steps < CHUNK_Y))
+    // while ((x_steps < CHUNK_X) && (y_steps < CHUNK_Y))
+    // Prevent ray going outside chunk
+    while (map_x_idx < CHUNK_X && map_x_idx >= 0 && map_y_idx < CHUNK_Y && map_y_idx >= 0)
     {
       /*
        * DDA axis choice
@@ -503,13 +505,14 @@ void do_raycasting(Chunk *chunk)
       // Out of bounds check
       if (map_x_idx >= CHUNK_X || map_y_idx >= CHUNK_Y)
       {
-        do_free_list(wall_list);
-        wall_list = NULL;
-        break;
+        // printf("map_x: %d map_y: %d\n", map_x_idx, map_y_idx);
+        //   do_free_list(wall_list);
+        //   wall_list = NULL;
+        //   break;
       }
       uint16_t z_lvls = map_chunk[map_x_idx][map_y_idx];
       uint16_t z_max = 1 + floorf((32.0f + ray_perp_dist * tanf(convert_deg_to_rads(15))) / WORLD_CELL_SIZE); // eg for z_max = 3;
-      uint16_t z_mask = (1 << z_max + 1) - 1;                                                                 // z_mask = 0b1111; only check the first 4 levels (from 0) up to z = 3
+      uint16_t z_mask = (1 << (z_max + 1)) - 1;                                                               // z_mask = 0b1111; only check the first 4 levels (from 0) up to z = 3
 
       if (!(z_lvls & z_mask))
       {
@@ -523,7 +526,7 @@ void do_raycasting(Chunk *chunk)
       const Scalar VERT_SCALE = (WINDOW_H / VERT_FOV_RAD) * (PLAYER_VERT_FOV_DEG / PLAYER_HOZ_FOV_DEG); // This makes the cubes square etc
 
       // for each z in z_lvls
-      for (uint8_t z = 0; z <= z_max; z++)
+      for (uint8_t z = 0; z <= CHUNK_Z; z++)
       {
         if (z_lvls & (1 << z))
         {
