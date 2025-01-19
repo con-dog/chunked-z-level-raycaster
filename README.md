@@ -7,6 +7,8 @@ See previous versions of this project at: [v1](https://github.com/con-dog/sdl-te
 ## Currently in Phase 6:
 Vertical walls, chunks, representing a wall with 1 bit, and 2 bytes representing a vertical stack of 16 walls. Huge performance boosts (memory and speed) - But, having issues with rendering logic for verticals
 
+![working, dumb implementation](https://github.com/con-dog/chunked-z-level-raycaster/blob/15a22c0a897bb04c690373b16496a26c1086f70c/_media/phase-6/working-but-slow-and-stupid.png)
+![working, very unoptimised - it draws everything](https://github.com/con-dog/chunked-z-level-raycaster/blob/15a22c0a897bb04c690373b16496a26c1086f70c/_media/phase-6/working-dumb.png)
 ![Almost, still have pathing issue](https://github.com/con-dog/chunked-z-level-raycaster/blob/40ce926e33ba22ae65f028dcd8b1114dda974217/_media/phase-6/2.png)
 ![Drawing but not raycasting the full length](https://github.com/con-dog/chunked-z-level-raycaster/blob/40ce926e33ba22ae65f028dcd8b1114dda974217/_media/phase-6/3.png)
 ![Drawing in wrong order](https://github.com/con-dog/chunked-z-level-raycaster/blob/40ce926e33ba22ae65f028dcd8b1114dda974217/_media/phase-6/6.png)
