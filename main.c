@@ -485,13 +485,8 @@ void do_raycasting(Chunk *chunk)
       const Scalar ray_perp_dist = ray_length * cos_lut[theta_lut_idx];
 
       uint16_t z_lvls = map_chunk[map_x_idx][map_y_idx];
-      uint16_t z_max = 1 + floorf((32.0f + ray_perp_dist * tanf(convert_deg_to_rads(15))) / WORLD_CELL_SIZE); // eg for z_max = 3;
-      uint16_t z_mask = (1 << (z_max + 1)) - 1;                                                               // z_mask = 0b1111; only check the first 4 levels (from 0) up to z = 3
-
-      if (!(z_lvls & z_mask))
-      {
-        continue;
-      }
+      uint16_t z_max = 1 + floorf((32.0f + ray_length * tanf(convert_deg_to_rads(15))) / WORLD_CELL_SIZE); // eg for z_max = 3;
+      uint16_t z_mask = (1 << (z_max + 1)) - 1;                                                            // z_mask = 0b1111; only check the first 4 levels (from 0) up to z = 3
 
       const Scalar wall_w = WINDOW_HLF_W / (delta_ang * PLAYER_HOZ_FOV_DEG_STEP_INV);
       const Scalar x_screen_offset = ((curr_ang - start_ang) * PLAYER_HOZ_FOV_DEG_INV) * WINDOW_HLF_W + WINDOW_QRT_W; // WINDOW_HLF_W + WINDOW_QRT_W center the x coord in the screen
@@ -499,7 +494,6 @@ void do_raycasting(Chunk *chunk)
       const Scalar VERT_FOV_RAD = convert_deg_to_rads(PLAYER_VERT_FOV_DEG);
       const Scalar VERT_SCALE = (WINDOW_H / VERT_FOV_RAD) * (PLAYER_VERT_FOV_DEG / PLAYER_HOZ_FOV_DEG); // This makes the cubes square etc
 
-      // for each z in z_lvls
       for (uint8_t z = 0; z <= CHUNK_Z; z++)
       {
         if (z_lvls & (1 << z))
