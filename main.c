@@ -422,12 +422,10 @@ void do_raycasting(Chunk *chunk)
   Point_1D player_y_center = get_player_y_centered(&player);
 
   for (Degrees curr_ang = start_ang; curr_ang <= end_ang; curr_ang += PLAYER_HOZ_FOV_DEG_STEP)
-  // for (int i = 0; i < 1; i++)
   {
     /*
      * Horizontal ray setup
      */
-    // Degrees curr_ang = player.angle;
 
     int ang_lut_idx = get_lut_index(curr_ang);
     int theta_lut_idx = get_lut_index(curr_ang - player.angle);
@@ -460,7 +458,6 @@ void do_raycasting(Chunk *chunk)
     bool is_wall_hit = false;
     Point_2D wall_intxn_point;
     Plane hit_plane;
-    // WallBuffer wall_buff[256]; // TODO! Convert to doubly linked list with head and
     uint16_t ray_zmask = 0xFFF0;
     Node *wall_list = NULL;
 
@@ -507,6 +504,7 @@ void do_raycasting(Chunk *chunk)
       if (map_x_idx >= CHUNK_X || map_y_idx >= CHUNK_Y)
       {
         do_free_list(wall_list);
+        wall_list = NULL;
         break;
       }
       uint16_t z_lvls = map_chunk[map_x_idx][map_y_idx];
@@ -560,31 +558,36 @@ void do_raycasting(Chunk *chunk)
       }
     }
 
-    Node *current = wall_list;
-    Node *next;
-    while (current != NULL)
+    if (wall_list != NULL)
     {
-      int texture_id = current->value.wall.texture_id;
-      switch (texture_id)
+      Node *current = wall_list;
+      Node *next;
+      while (current != NULL)
       {
-      case 1:
-        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-        break;
-      case 2:
-        SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-        break;
-      case 3:
-        SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
-        break;
-      case 4:
-        SDL_SetRenderDrawColor(renderer, 125, 25, 123, 255);
-        break;
-      default:
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        int texture_id = current->value.wall.texture_id;
+        switch (texture_id)
+        {
+        case 1:
+          SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+          break;
+        case 2:
+          SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+          break;
+        case 3:
+          SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+          break;
+        case 4:
+          SDL_SetRenderDrawColor(renderer, 125, 25, 123, 255);
+          break;
+        default:
+          SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        }
+        SDL_RenderRect(renderer, &current->value.rect);
+        next = current->next;
+        current = next;
       }
-      SDL_RenderRect(renderer, &current->value.rect);
-      next = current->next;
-      current = next;
+
+      do_free_list(wall_list);
     }
 
     // exit(1);
@@ -674,7 +677,7 @@ void run_game_loop(Chunk *chunk)
       printf("Current FPS: %u\n", current_fps);
     }
 
-    printf("Frame time %f\n", (end - start) / CLOCKS_PER_SEC);
+    // printf("Frame time %f\n", (end - start) / CLOCKS_PER_SEC);
   }
 }
 
