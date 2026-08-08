@@ -5,6 +5,7 @@ A brand-new, old-school game-engine inspired by the likes of [Wolfenstein 3D (19
 See previous versions of this project at: [v1](https://github.com/con-dog/sdl-test) [v2](https://github.com/con-dog/sdl-textured) [v3](https://github.com/con-dog/2.5D-raycasting-engine)
 
 ## Currently in Phase 6:
+
 Vertical walls, chunks, representing a wall with 1 bit, and 2 bytes representing a vertical stack of 16 walls. Huge performance boosts (memory and speed) - But, having issues with rendering logic for verticals
 
 ![working, dumb implementation](https://github.com/con-dog/chunked-z-level-raycaster/blob/15a22c0a897bb04c690373b16496a26c1086f70c/_media/phase-6/working-but-slow-and-stupid.png)
@@ -14,6 +15,7 @@ Vertical walls, chunks, representing a wall with 1 bit, and 2 bytes representing
 ![Drawing in wrong order](https://github.com/con-dog/chunked-z-level-raycaster/blob/40ce926e33ba22ae65f028dcd8b1114dda974217/_media/phase-6/6.png)
 
 ### Optimisations in Phase 6
+
 Example of a 16x16x16 chunk of a map, where a bit '1' in binary represents a wall, where '0' represents no wall
 
 ```c
@@ -61,9 +63,10 @@ This is the memory footprint of 1 Wall:
 wall_memory = 4 bytes
 ```
 
-Then there is the question of the actual Chunk that stores the walls. Theoretically each chunk could store 16x16x16 = 4096 individual walls. But that memory footprint is 4bytes x 4096 = 16.384kB per chunk! But in reality, most chunks will be very sparse (sky etc empty cells) so most chunks will only need to store ~0-512 walls (just over 10% of the max). Knowing this, we can use a much smaller fixed sized array as a hash map for the actual walls in this chunk, only storing walls with data (non-empty). 
+Then there is the question of the actual Chunk that stores the walls. Theoretically each chunk could store 16x16x16 = 4096 individual walls. But that memory footprint is 4bytes x 4096 = 16.384kB per chunk! But in reality, most chunks will be very sparse (sky etc empty cells) so most chunks will only need to store ~0-512 walls (just over 10% of the max). Knowing this, we can use a much smaller fixed sized array as a hash map for the actual walls in this chunk, only storing walls with data (non-empty).
 
-For now I'm just using a fixed sized array given by `WALL_HASH_SIZE`, and hashing the given walls x-y-z wall coordinates with a hash function to determine an appropriate bounded index in the array to place the Wall. This hash does have collisions, so on item insertion I just keep incrementing the index until you find an empty index. 
+For now I'm just using a fixed sized array given by `WALL_HASH_SIZE`, and hashing the given walls x-y-z wall coordinates with a hash function to determine an appropriate bounded index in the array to place the Wall. This hash does have collisions, so on item insertion I just keep incrementing the index until you find an empty index.
+
 ```c
 typedef struct Chunk
 {
@@ -85,29 +88,30 @@ uint16_t do_hash_coords(uint8_t x, uint8_t y, uint8_t z)
 Why do I use a fast hash map instead of a variable sized sorted array? Because I'm potentially going to be rendering a shitload of walls in one scene, I need instantaneous look-up times for walls within chunks and this method on average is `O(1)` access whereas binary search is `Olog2(n)` or a linked-list implementation is `O(n)`
 
 That means on average, a chunk memory footprint is:
+
 ```plaintext
 chunk = 4 bytes x 512 entries + (size_t + 2 bytes)
            ~= 2048 bytes
            ~= 2.048 Kilobytes
 ```
 
-So a full map of 100x100x10 full chunks is ~204.8mB without compression. 
+So a full map of 100x100x10 full chunks is ~204.8mB without compression.
 
-Realistically however, most chunks (~80-90%) will be completely empty (sky , open areas etc) and so the final memory footprint is more like 204.8mB x 0.1 ~= 20.48mB on average. Pretty good! And then for chunks that aren't near the player, they can probably be compressed, getting further memory savings. 
+Realistically however, most chunks (~80-90%) will be completely empty (sky , open areas etc) and so the final memory footprint is more like 204.8mB x 0.1 ~= 20.48mB on average. Pretty good! And then for chunks that aren't near the player, they can probably be compressed, getting further memory savings.
 
 And just for completeness, here is the World data structure. Note that it only stores chunks that have content.
 
 ```
 typedef struct World
 {
-  Chunk chunks[CHUNK_HASH_SIZE]; // Hashed chunks coords 
+  Chunk chunks[CHUNK_HASH_SIZE]; // Hashed chunks coords
   size_t length;                 // Number of chunks with walls, probably same as CHUNK_HASH_SIZE
   Point_3D extent;               // Max [x, y, z] of chunks
 } World;
 ```
 
-
 ## Future Goals
+
 - 100x100x10 chunks maps
 - Texture Atlas, different tetxures per side of wall
 - Lighting system
@@ -121,16 +125,16 @@ typedef struct World
 - Separate drawing/raycasting logic from window width and height
 
 ## Previous phases
+
 ### Phase 5
 
 Animated textures, floor/wall collisions based on surface manifest, walk through doors, and just for fun - sprites - fishing.
-![Enter doorways](https://github.com/con-dog/2.5D-raycasting-engine/blob/bbd244dfad4aa5922a7ad20163d3f4f63874540f/_media/phase-5/doors.gif)
-![Phase 5 fishing gif](https://github.com/con-dog/2.5D-raycasting-engine/blob/35efbffc349788171c625aecd9ae6a6f2db17518/_media/phase-5/fishing-time.gif)
-![Phase 5 gif](https://github.com/con-dog/2.5D-raycasting-engine/blob/3e8615c0fbabc73b51672c1551a10ede91257603/_media/phase-5/phase-5.gif)
-![Phase 5 image](https://github.com/con-dog/2.5D-raycasting-engine/blob/6f3023fa86f8d4a3338c96a77d64b92d55bdabc6/_media/phase-5/fishing-time.png)
+![Enter doorways](./_media/phase-5/doors-loop.png)
+![Phase 5 fishing gif](./_media/phase-5/fishing-time-loop.png)
+![Phase 5 gif](./_media/phase-5/phase-5-loop.png)
+![Phase 5 image](./_media/phase-5/fishing-time.png)
 
-
-### Phase 4 
+### Phase 4
 
 ![Phase 4 gif](https://github.com/con-dog/2.5D-raycasting-engine/blob/1401433f57d4c0c732b924adf9c13507f07d32c8/_media/phase-4/phase-4.gif)
 ![Phase 4 image](https://github.com/con-dog/2.5D-raycasting-engine/blob/1401433f57d4c0c732b924adf9c13507f07d32c8/_media/phase-4/phase-4.png)
