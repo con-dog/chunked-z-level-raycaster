@@ -6,6 +6,8 @@ See previous versions of this project at: [v1](https://github.com/con-dog/sdl-te
 
 ## Currently in Phase 6:
 
+![vertical levels](./_media/chunked-raycaster-fast-small-loop.png)
+
 Vertical walls, chunks, representing a wall with 1 bit, and 2 bytes representing a vertical stack of 16 walls. Huge performance boosts (memory and speed) - But, having issues with rendering logic for verticals
 
 |                                                                                       |                                                                                   |
