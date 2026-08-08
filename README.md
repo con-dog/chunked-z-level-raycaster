@@ -8,11 +8,10 @@ See previous versions of this project at: [v1](https://github.com/con-dog/sdl-te
 
 Vertical walls, chunks, representing a wall with 1 bit, and 2 bytes representing a vertical stack of 16 walls. Huge performance boosts (memory and speed) - But, having issues with rendering logic for verticals
 
-![working, dumb implementation](https://github.com/con-dog/chunked-z-level-raycaster/blob/15a22c0a897bb04c690373b16496a26c1086f70c/_media/phase-6/working-but-slow-and-stupid.png)
-![working, very unoptimised - it draws everything](https://github.com/con-dog/chunked-z-level-raycaster/blob/15a22c0a897bb04c690373b16496a26c1086f70c/_media/phase-6/working-dumb.png)
-![Almost, still have pathing issue](https://github.com/con-dog/chunked-z-level-raycaster/blob/40ce926e33ba22ae65f028dcd8b1114dda974217/_media/phase-6/2.png)
-![Drawing but not raycasting the full length](https://github.com/con-dog/chunked-z-level-raycaster/blob/40ce926e33ba22ae65f028dcd8b1114dda974217/_media/phase-6/3.png)
-![Drawing in wrong order](https://github.com/con-dog/chunked-z-level-raycaster/blob/40ce926e33ba22ae65f028dcd8b1114dda974217/_media/phase-6/6.png)
+|                                                                                       |                                                                                   |
+| ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| ![working, very unoptimised - it draws everything](./_media/phase-6/working-dumb.png) | ![working, dumb implementation](./_media/phase-6/working-but-slow-and-stupid.png) |
+| ![Almost, still have pathing issue](./_media/phase-6/2.png)                           | ![Drawing but not raycasting the full length](./_media/phase-6/3.png)             |
 
 ### Optimisations in Phase 6
 
@@ -129,6 +128,7 @@ typedef struct World
 ### Phase 5
 
 Animated textures, floor/wall collisions based on surface manifest, walk through doors, and just for fun - sprites - fishing.
+
 ![Enter doorways](./_media/phase-5/doors-loop.png)
 ![Phase 5 fishing gif](./_media/phase-5/fishing-time-loop.png)
 ![Phase 5 gif](./_media/phase-5/phase-5-loop.png)
@@ -148,14 +148,14 @@ Animated textures, floor/wall collisions based on surface manifest, walk through
 
 ### Phase 3
 
-![Phase 3 gif](https://github.com/con-dog/2.5D-raycasting-engine/blob/5c857ba532ab42b13a76408c7c08f4a9628c7d98/_media/phase-3/Screen%20Recording%202025-01-06%20at%207.53.50%E2%80%AFPM.gif)
-![Phase 3 image](https://github.com/con-dog/2.5D-raycasting-engine/blob/5c857ba532ab42b13a76408c7c08f4a9628c7d98/_media/phase-3/phase-3.png)
+![Phase 3 gif](./_media/phase-3/phase-3-loop.png)
+![Phase 3 image](./_media/phase-3/phase-3-static.png)
 
 - Fixed visual artifacts and pixel densities
 
 ### Phase 2
 
-![Phase 2 gif](https://github.com/con-dog/2.5D-raycasting-engine/blob/5c857ba532ab42b13a76408c7c08f4a9628c7d98/_media/phase-2/phase-2.gif)
+![Phase 2 gif](./_media/phase-2/phase-2-loop.png)
 
 - Wall collision detection
 - Basic texture mapping for walls
@@ -163,8 +163,8 @@ Animated textures, floor/wall collisions based on surface manifest, walk through
 
 ### Phase 1
 
-![Phase 1 gif](https://github.com/con-dog/2.5D-raycasting-engine/blob/5c857ba532ab42b13a76408c7c08f4a9628c7d98/_media/phase-1/phase-1.gif)
-![Phase 1 image](https://github.com/con-dog/2.5D-raycasting-engine/blob/5c857ba532ab42b13a76408c7c08f4a9628c7d98/_media/phase-1/phase-1.png)
+![Phase 1 gif](./_media/phase-1/phase-1-loop.png)
+![Phase 1 image](./_media/phase-1/phase-1-static.png)
 
 - Very basic ray-casting
 - No collision detection
