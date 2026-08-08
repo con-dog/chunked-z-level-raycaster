@@ -136,9 +136,9 @@ Animated textures, floor/wall collisions based on surface manifest, walk through
 
 ### Phase 4
 
-![Phase 4 gif](https://github.com/con-dog/2.5D-raycasting-engine/blob/1401433f57d4c0c732b924adf9c13507f07d32c8/_media/phase-4/phase-4.gif)
-![Phase 4 image](https://github.com/con-dog/2.5D-raycasting-engine/blob/1401433f57d4c0c732b924adf9c13507f07d32c8/_media/phase-4/phase-4.png)
-![Example level](https://github.com/con-dog/2.5D-raycasting-engine/blob/5c857ba532ab42b13a76408c7c08f4a9628c7d98/_media/phase-4/example-level.png)
+![Phase 4 gif](./_media/phase-4/phase-4-loop.png)
+![Phase 4 image](./_media/phase-4/phase-4-static.png)
+![Example level](./_media/phase-4/example-level.png)
 
 - Levels are represented in memory as Jagged Arrays (to save memory)
 - Wall and Floor maps are just CSV's (So I can quickly make levels in Excel/LibreOffice)
