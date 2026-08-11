@@ -57,6 +57,10 @@ endif()
 
 if(EMSCRIPTEN)
   set_target_properties(raycaster PROPERTIES SUFFIX ".html")
+  set_property(
+    TARGET raycaster
+    APPEND PROPERTY LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/web/shell.html"
+  )
 
   target_link_options(raycaster PRIVATE
     "--shell-file=${CMAKE_CURRENT_SOURCE_DIR}/web/shell.html"

@@ -85,6 +85,17 @@
         image-rendering: pixelated;
       }
 
+      .viewport:fullscreen {
+        display: grid;
+        place-items: center;
+        border: 0;
+        border-radius: 0;
+      }
+
+      .viewport:fullscreen canvas {
+        width: min(100vw, 200vh);
+      }
+
       .status {
         position: absolute;
         inset: 0;
@@ -154,6 +165,11 @@
 
       canvas.addEventListener("click", () => canvas.focus());
       canvas.addEventListener("contextmenu", (event) => event.preventDefault());
+      window.addEventListener("keydown", (event) => {
+        if (document.activeElement === canvas && event.key.startsWith("Arrow")) {
+          event.preventDefault();
+        }
+      });
 
       fullscreen.addEventListener("click", async () => {
         if (document.fullscreenElement) {
@@ -189,6 +205,9 @@
       Module.setStatus("Downloading engine…");
       window.addEventListener("error", (event) => {
         Module.setStatus(`Could not start: ${event.message}`);
+      });
+      window.addEventListener("unhandledrejection", (event) => {
+        Module.setStatus(`Could not start: ${event.reason}`);
       });
     </script>
     {{{ SCRIPT }}}
