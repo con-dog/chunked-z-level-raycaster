@@ -34,7 +34,9 @@ cmake --build build-web
 python3 -m http.server 8000 --directory build-web
 ```
 
-Open [http://localhost:8000/raycaster.html](http://localhost:8000/raycaster.html). Serve the files over HTTP rather than opening the HTML with `file://`. A release build produces `raycaster.html`, `raycaster.js`, and `raycaster.wasm`; deploy those together on any static host that serves `.wasm` as `application/wasm`.
+Open [http://localhost:8000/](http://localhost:8000/). Serve the files over HTTP rather than opening the HTML with `file://`. A release build produces `index.html`, `index.js`, `index.wasm`, the web manifest, icon, and social preview image; deploy those together on any static host that serves `.wasm` as `application/wasm`.
+
+The generated metadata and canonical links target this repository's GitHub Pages project URL, [https://con-dog.github.io/chunked-z-level-raycaster/](https://con-dog.github.io/chunked-z-level-raycaster/). Update those URLs in `web/shell.html` if the site moves to a custom domain.
 
 The current chunk and colours are compiled into the executable, so runtime assets are excluded from the default download. To expose the repository's `assets/` and `manifests/` paths through Emscripten's virtual filesystem for the texture/level loaders, configure with:
 
@@ -44,7 +46,7 @@ emcmake cmake -S . -B build-web \
   -DRAYCASTER_WEB_PRELOAD_ASSETS=ON
 ```
 
-This adds `raycaster.data` to the files that must be deployed.
+This adds `index.data` to the files that must be deployed.
 
 Controls: use the arrow keys to move and turn, and hold Shift to sprint. The browser shell scales the fixed 1024×512 logical view to its container and includes a fullscreen control.
 
@@ -60,7 +62,7 @@ chromium --headless=new \
 
 # In another terminal:
 node scripts/smoke-web.mjs \
-  http://127.0.0.1:8000/raycaster.html \
+  http://127.0.0.1:8000/ \
   http://127.0.0.1:9222
 ```
 

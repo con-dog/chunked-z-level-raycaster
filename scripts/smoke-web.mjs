@@ -1,4 +1,4 @@
-const pageUrl = process.argv[2] ?? "http://127.0.0.1:8000/raycaster.html";
+const pageUrl = process.argv[2] ?? "http://127.0.0.1:8000/";
 const devtoolsUrl = process.argv[3] ?? "http://127.0.0.1:9222";
 
 const delay = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
@@ -66,6 +66,16 @@ function canvasIsReady(state) {
   );
 }
 
+function metadataIsReady(state) {
+  return (
+    state?.title?.length > 0 &&
+    state.description?.length > 0 &&
+    state.canonical?.startsWith("https://") &&
+    state.ogImage?.startsWith("https://") &&
+    state.manifest?.endsWith("site.webmanifest")
+  );
+}
+
 await Promise.all([
   command("Page.enable"),
   command("Runtime.enable"),
@@ -84,6 +94,11 @@ for (let attempt = 0; attempt < 50; attempt++) {
         statusHidden: Boolean(status?.hidden),
         canvasWidth: canvas?.width ?? 0,
         canvasHeight: canvas?.height ?? 0,
+        title: document.title,
+        description: document.querySelector('meta[name="description"]')?.content ?? "",
+        canonical: document.querySelector('link[rel="canonical"]')?.href ?? "",
+        ogImage: document.querySelector('meta[property="og:image"]')?.content ?? "",
+        manifest: document.querySelector('link[rel="manifest"]')?.href ?? "",
       };
     })()`,
     returnByValue: true,
@@ -108,13 +123,32 @@ await command("Input.dispatchKeyEvent", {
   windowsVirtualKeyCode: 39,
 });
 
+const assetEvaluation = await command("Runtime.evaluate", {
+  expression: `Promise.all(
+    ["icon.svg", "site.webmanifest", "og-image.png"].map(async (path) => {
+      const response = await fetch(path);
+      return { path, ok: response.ok, contentType: response.headers.get("content-type") };
+    })
+  )`,
+  awaitPromise: true,
+  returnByValue: true,
+});
+const staticAssets = assetEvaluation.result.value;
 const screenshot = await command("Page.captureScreenshot", { format: "png" });
 const passed =
   canvasIsReady(pageState) &&
+  metadataIsReady(pageState) &&
+  staticAssets.every((asset) => asset.ok) &&
   screenshot.data.length > 2000 &&
   browserErrors.length === 0;
 
-console.log(JSON.stringify({ passed, pageState, screenshotBytes: screenshot.data.length * 0.75, browserErrors }, null, 2));
+console.log(
+  JSON.stringify(
+    { passed, pageState, staticAssets, screenshotBytes: screenshot.data.length * 0.75, browserErrors },
+    null,
+    2,
+  ),
+);
 
 socket.close();
 await fetch(`${devtoolsUrl}/json/close/${target.id}`);

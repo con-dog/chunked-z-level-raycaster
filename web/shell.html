@@ -3,8 +3,67 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="A WebAssembly 2.5D raycasting engine with chunked, bit-packed vertical levels, written in C and rendered with SDL3."
+    />
+    <meta name="author" content="Connor Talbot" />
+    <meta name="application-name" content="Chunked Z-Level Raycaster" />
+    <meta name="robots" content="index, follow" />
+    <meta name="color-scheme" content="dark" />
     <meta name="theme-color" content="#08090b" />
-    <title>2.5D Chunked Raycaster</title>
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Chunked Raycaster" />
+
+    <link rel="canonical" href="https://con-dog.github.io/chunked-z-level-raycaster/" />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link rel="manifest" href="site.webmanifest" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_NZ" />
+    <meta property="og:site_name" content="Chunked Z-Level Raycaster" />
+    <meta property="og:title" content="Chunked Z-Level Raycaster — Browser Demo" />
+    <meta
+      property="og:description"
+      content="Explore a vertical, bit-packed 2.5D world rendered by a C raycaster running in your browser via WebAssembly."
+    />
+    <meta property="og:url" content="https://con-dog.github.io/chunked-z-level-raycaster/" />
+    <meta property="og:image" content="https://con-dog.github.io/chunked-z-level-raycaster/og-image.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1023" />
+    <meta property="og:image:height" content="540" />
+    <meta property="og:image:alt" content="A colourful multi-level scene rendered by the chunked raycaster" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Chunked Z-Level Raycaster — Browser Demo" />
+    <meta
+      name="twitter:description"
+      content="A C and SDL3 raycaster with vertical chunk levels, running in the browser through WebAssembly."
+    />
+    <meta name="twitter:image" content="https://con-dog.github.io/chunked-z-level-raycaster/og-image.png" />
+    <meta name="twitter:image:alt" content="A colourful multi-level scene rendered by the chunked raycaster" />
+
+    <title>Chunked Z-Level Raycaster — Browser Demo</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "VideoGame",
+        "name": "Chunked Z-Level Raycaster",
+        "url": "https://con-dog.github.io/chunked-z-level-raycaster/",
+        "image": "https://con-dog.github.io/chunked-z-level-raycaster/og-image.png",
+        "description": "A WebAssembly 2.5D raycasting engine with chunked, bit-packed vertical levels, written in C and rendered with SDL3.",
+        "author": {
+          "@type": "Person",
+          "name": "Connor Talbot"
+        },
+        "applicationCategory": "Game",
+        "operatingSystem": "Any modern web browser",
+        "playMode": "SinglePlayer",
+        "inLanguage": "en"
+      }
+    </script>
     <style>
       :root {
         color-scheme: dark;

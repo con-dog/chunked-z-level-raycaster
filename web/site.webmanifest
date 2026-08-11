@@ -1,0 +1,20 @@
+{
+  "name": "Chunked Z-Level Raycaster",
+  "short_name": "Raycaster",
+  "description": "A WebAssembly 2.5D raycasting engine with chunked, bit-packed vertical levels.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape-primary",
+  "background_color": "#08090b",
+  "theme_color": "#08090b",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

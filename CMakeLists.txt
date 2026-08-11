@@ -56,11 +56,21 @@ if(UNIX AND NOT APPLE AND NOT EMSCRIPTEN)
 endif()
 
 if(EMSCRIPTEN)
-  set_target_properties(raycaster PROPERTIES SUFFIX ".html")
+  set_target_properties(raycaster PROPERTIES OUTPUT_NAME "index" SUFFIX ".html")
   set_property(
     TARGET raycaster
-    APPEND PROPERTY LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/web/shell.html"
+    APPEND PROPERTY LINK_DEPENDS
+      "${CMAKE_CURRENT_SOURCE_DIR}/web/shell.html"
+      "${CMAKE_CURRENT_SOURCE_DIR}/web/.nojekyll"
+      "${CMAKE_CURRENT_SOURCE_DIR}/web/icon.svg"
+      "${CMAKE_CURRENT_SOURCE_DIR}/web/site.webmanifest"
+      "${CMAKE_CURRENT_SOURCE_DIR}/_media/phase-6/working-dumb.png"
   )
+
+  configure_file(web/.nojekyll .nojekyll COPYONLY)
+  configure_file(web/icon.svg icon.svg COPYONLY)
+  configure_file(web/site.webmanifest site.webmanifest COPYONLY)
+  configure_file(_media/phase-6/working-dumb.png og-image.png COPYONLY)
 
   target_link_options(raycaster PRIVATE
     "--shell-file=${CMAKE_CURRENT_SOURCE_DIR}/web/shell.html"

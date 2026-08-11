@@ -455,7 +455,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv)
   }
   *appstate = state;
 
-  const char *title = "2.5D Raycasting Game Engine";
+  const char *title = "Chunked Z-Level Raycaster — Browser Demo";
   if (setup_sdl(title, WINDOW_W, WINDOW_H, SDL_WINDOW_RESIZABLE, &window,
                 &renderer) != 0)
   {
