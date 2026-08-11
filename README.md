@@ -4,73 +4,9 @@ A brand-new, old-school game-engine inspired by the likes of [Wolfenstein 3D (19
 
 See previous versions of this project at: [v1](https://github.com/con-dog/sdl-test) [v2](https://github.com/con-dog/sdl-textured) [v3](https://github.com/con-dog/2.5D-raycasting-engine)
 
-## Build and run
-
-### Native
-
-The native build needs a C11 compiler, CMake 3.20+, and SDL3. With SDL3 installed as a system CMake package:
-
-```sh
-cmake -S . -B build-native -DCMAKE_BUILD_TYPE=Release
-cmake --build build-native
-./build-native/raycaster
-```
-
-Pass `-DRAYCASTER_FETCH_SDL=ON` while configuring to download the pinned SDL3 release instead. The smaller Make build remains available on systems where `pkg-config sdl3` works:
-
-```sh
-make
-./main
-```
-
-### Browser / WebAssembly
-
-Install and activate the latest [Emscripten SDK](https://emscripten.org/docs/getting_started/downloads.html), then configure with its CMake wrapper. The web build fetches its own pinned SDL3 source by default.
-
-```sh
-source /path/to/emsdk/emsdk_env.sh
-emcmake cmake -S . -B build-web -DCMAKE_BUILD_TYPE=Release
-cmake --build build-web
-python3 -m http.server 8000 --directory build-web
-```
-
-Open [http://localhost:8000/](http://localhost:8000/). Serve the files over HTTP rather than opening the HTML with `file://`. A release build produces `index.html`, `index.js`, `index.wasm`, the web manifest, icon, and social preview image; deploy those together on any static host that serves `.wasm` as `application/wasm`.
-
-The generated metadata and canonical links target this repository's GitHub Pages project URL, [https://con-dog.github.io/chunked-z-level-raycaster/](https://con-dog.github.io/chunked-z-level-raycaster/). Update those URLs in `web/shell.html` if the site moves to a custom domain.
-
-### GitHub Pages deployment
-
-The Pages workflow builds and deploys the WebAssembly site whenever `master` is pushed, and it can also be started manually from the Actions tab. Before its first run, open the repository's **Settings → Pages** and set **Source** to **GitHub Actions**. The workflow uploads only the deployable files, leaving CMake and downloaded SDL build files out of the published artifact.
-
-The current chunk and colours are compiled into the executable, so runtime assets are excluded from the default download. To expose the repository's `assets/` and `manifests/` paths through Emscripten's virtual filesystem for the texture/level loaders, configure with:
-
-```sh
-emcmake cmake -S . -B build-web \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DRAYCASTER_WEB_PRELOAD_ASSETS=ON
-```
-
-This adds `index.data` to the files that must be deployed.
-
-Controls: use the arrow keys to move and turn, and hold Shift to sprint. The browser shell scales the fixed 1024×512 logical view to its container and includes a fullscreen control.
-
-### Browser smoke test
-
-[`scripts/smoke-web.mjs`](./scripts/smoke-web.mjs) checks that a served build initializes without browser errors, creates a responsive 2:1 canvas, renders a screenshot, and accepts keyboard input. Start Chrome or Chromium with a DevTools port, then run:
-
-```sh
-chromium --headless=new \
-  --remote-debugging-port=9222 \
-  --user-data-dir=/tmp/raycaster-smoke \
-  about:blank
-
-# In another terminal:
-node scripts/smoke-web.mjs \
-  http://127.0.0.1:8000/ \
-  http://127.0.0.1:9222
-```
-
 ## Currently in Phase 6:
+
+Interact with the browser-ported version here: [https://con-dog.github.io/chunked-z-level-raycaster/](https://con-dog.github.io/chunked-z-level-raycaster/)
 
 ![vertical levels](./_media/chunked-raycaster-fast-small-loop.png)
 
