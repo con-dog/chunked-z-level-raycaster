@@ -38,6 +38,10 @@ Open [http://localhost:8000/](http://localhost:8000/). Serve the files over HTTP
 
 The generated metadata and canonical links target this repository's GitHub Pages project URL, [https://con-dog.github.io/chunked-z-level-raycaster/](https://con-dog.github.io/chunked-z-level-raycaster/). Update those URLs in `web/shell.html` if the site moves to a custom domain.
 
+### GitHub Pages deployment
+
+The Pages workflow builds and deploys the WebAssembly site whenever `master` is pushed, and it can also be started manually from the Actions tab. Before its first run, open the repository's **Settings → Pages** and set **Source** to **GitHub Actions**. The workflow uploads only the deployable files, leaving CMake and downloaded SDL build files out of the published artifact.
+
 The current chunk and colours are compiled into the executable, so runtime assets are excluded from the default download. To expose the repository's `assets/` and `manifests/` paths through Emscripten's virtual filesystem for the texture/level loaders, configure with:
 
 ```sh

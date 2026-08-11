@@ -1,0 +1,68 @@
+name: Deploy WebAssembly demo to GitHub Pages
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  EM_VERSION: 6.0.6
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Emscripten
+        uses: emscripten-core/setup-emsdk@v16
+        with:
+          version: ${{ env.EM_VERSION }}
+          actions-cache-folder: emsdk-cache
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Configure WebAssembly build
+        run: emcmake cmake -S . -B build-web -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build WebAssembly site
+        run: cmake --build build-web --parallel
+
+      - name: Stage deployable site files
+        run: |
+          mkdir -p pages
+          cp build-web/index.html pages/
+          cp build-web/index.js pages/
+          cp build-web/index.wasm pages/
+          cp build-web/icon.svg pages/
+          cp build-web/site.webmanifest pages/
+          cp build-web/og-image.png pages/
+          cp build-web/.nojekyll pages/
+
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: pages
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy GitHub Pages site
+        id: deployment
+        uses: actions/deploy-pages@v4
