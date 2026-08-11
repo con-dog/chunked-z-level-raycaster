@@ -6,3 +6,4 @@
 *.o
 .~lock.*.csv*
 .DS_store
+build*/

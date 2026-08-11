@@ -9,29 +9,16 @@
 
 #include <math.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
 
-#include <cjson/cJSON.h>
 #include <SDL3/SDL.h>
-#include <SDL3/SDL_hints.h>
-#include <SDL3/SDL_keyboard.h>
 #include <SDL3/SDL_main.h>
-#include <SDL3/SDL_render.h>
-#include <SDL3/SDL_rect.h>
-#include <SDL3_image/SDL_image.h>
-#include <SDL3_ttf/SDL_ttf.h>
-#include <SDL3_mixer/SDL_mixer.h>
 
-#include "./assets/textures/constants.h"
-#include "./assets/textures/setup.h"
 #include "./config/constants.h"
 #include "./config/sdl/sdl.h"
 #include "./data/grid/constants.h"
-#include "./data/grid/types.h"
-#include "./io/level-io.h"
-#include "./objects/types.h"
 #include "./objects/player/constants.h"
 #include "./objects/player/types.h"
 #include "./types/algebraic-types.h"

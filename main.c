@@ -53,11 +53,7 @@ typedef struct AppState
  ****************** */
 SDL_Window *window;
 SDL_Renderer *renderer;
-World_Objects_Container *world_objects_container;
-Jagged_Grid *floor_grid;
-Jagged_Grid *wall_grid;
 Player player;
-SDL_Texture *rod;
 const bool *keyboard_state;
 float cos_lut[LUT_SIZE];
 float sin_lut[LUT_SIZE];
