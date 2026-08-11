@@ -3,7 +3,8 @@
 #define CHUNK_Z 16
 #define WALL_HASH_SIZE 1024
 #define ANGLE_TO_LUT_INDEX (1.0f / PLAYER_HOZ_FOV_DEG_STEP)
-#define LUT_SIZE ((int)(360.0 / PLAYER_HOZ_FOV_DEG_STEP))
+#define LUT_SIZE 960
+#define MAX_WALL_SPANS_PER_RAY ((CHUNK_X + CHUNK_Y) * CHUNK_Z)
 #define SDL_MAIN_USE_CALLBACKS 1
 
 #include "main.h"
@@ -20,12 +21,6 @@ typedef struct WallContainer
   SDL_FRect rect;
 } WallContainer;
 
-typedef struct Node
-{
-  struct Node *next;
-  WallContainer value; // Contains Wall and Wall Rect
-} Node;
-
 typedef struct Chunk
 {
   uint16_t coord;             // coords in world - [8 flags/unused][8 bits x][8 bits y][8 bits z]
@@ -33,19 +28,10 @@ typedef struct Chunk
   size_t length;              // Number of non-empty walls
 } Chunk;
 
-typedef struct World
-{
-  struct Chunk *chunks; // Flat Array of chunks, only chunks with walls, maybe reuse a hash
-  size_t length;        // Number of chunks with walls
-  Point3D extent;       // Map [x, y, z] of chunks
-} World;
-
 typedef struct AppState
 {
   Chunk chunk;
   uint64_t previous_time;
-  uint64_t fps_last_time;
-  uint32_t frame_count;
 } AppState;
 
 /* ******************
@@ -147,38 +133,6 @@ Wall *get_wall(Chunk *chunk, uint8_t x, uint8_t y, uint8_t z)
   return NULL;
 }
 
-/*
- * Inserts new values at the start of the list
- */
-Node *do_prepend_to_list(Node *list, WallContainer value)
-{
-  Node *new_node;
-
-  new_node = malloc(sizeof(Node));
-  if (new_node == NULL)
-  {
-    fprintf(stderr, "Error: malloc failed in do_insert_into_list\n");
-    exit(EXIT_FAILURE);
-  }
-
-  new_node->value = value;
-  new_node->next = list;
-  return new_node;
-}
-
-bool do_free_list(Node *list)
-{
-  Node *current = list;
-  Node *next;
-  while (current != NULL)
-  {
-    next = current->next;
-    free(current);
-    current = next;
-  }
-  return true;
-}
-
 static void player_init(void)
 {
   player.rect.x = 72.0f;
@@ -189,79 +143,6 @@ static void player_init(void)
   Radians radians = convert_deg_to_rads(player.angle);
   player.delta.x = cos(radians) * PLAYER_MOTION_DELTA_MULTIPLIER;
   player.delta.y = sin(radians) * PLAYER_MOTION_DELTA_MULTIPLIER;
-}
-
-static void draw_chunk_level(Chunk *chunk, uint8_t z_level)
-{
-  if (chunk == NULL)
-  {
-    exit(1);
-  }
-  SDL_FRect white_rects[CHUNK_X * CHUNK_Y];
-  SDL_FRect black_rects[CHUNK_X * CHUNK_Y];
-  SDL_FRect red_rects[CHUNK_X * CHUNK_Y];
-  SDL_FRect green_rects[CHUNK_X * CHUNK_Y];
-  SDL_FRect blue_rects[CHUNK_X * CHUNK_Y];
-
-  int w_count = 0;
-  int blk_count = 0;
-  int r_count = 0;
-  int g_count = 0;
-  int b_count = 0;
-
-  for (uint8_t x = 0; x < CHUNK_X; x++)
-  {
-    for (uint8_t y = 0; y < CHUNK_Y; y++)
-    {
-      SDL_FRect rect;
-      rect.h = WORLD_CELL_SIZE;
-      rect.w = WORLD_CELL_SIZE;
-      rect.x = (x * WORLD_CELL_SIZE);
-      rect.y = (y * WORLD_CELL_SIZE);
-      Wall *wall = get_wall(chunk, x, y, z_level);
-      if (wall == NULL)
-      {
-        white_rects[w_count++] = rect;
-        continue;
-      }
-      if (get_wall(chunk, x, y, z_level)->texture_id == 1)
-      {
-        black_rects[blk_count++] = rect;
-      }
-      else if (get_wall(chunk, x, y, z_level)->texture_id == 2)
-      {
-        red_rects[r_count++] = rect;
-      }
-      else if (get_wall(chunk, x, y, z_level)->texture_id == 3)
-      {
-        green_rects[g_count++] = rect;
-      }
-      else if (get_wall(chunk, x, y, z_level)->texture_id == 4)
-      {
-        blue_rects[b_count++] = rect;
-      }
-    }
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    SDL_RenderFillRects(renderer, white_rects, w_count);
-
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    SDL_RenderFillRects(renderer, black_rects, blk_count);
-
-    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-    SDL_RenderFillRects(renderer, red_rects, r_count);
-
-    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-    SDL_RenderFillRects(renderer, green_rects, g_count);
-
-    SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
-    SDL_RenderFillRects(renderer, blue_rects, b_count);
-  }
-}
-
-static void draw_player_rect(void)
-{
-  SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-  SDL_RenderRect(renderer, &player.rect);
 }
 
 void rotate_player(Rotation_Type rotation, float delta_time)
@@ -363,21 +244,6 @@ bool do_initialize_chunk(Chunk *chunk)
   return true;
 }
 
-static void draw_player_direction(void)
-{
-  float length = 30.0f;
-  Line_2D line = {
-      .start.x = player.rect.x + PLAYER_W / 2,
-      .start.y = player.rect.y + PLAYER_H / 2,
-  };
-  Radians angle = convert_deg_to_rads(player.angle);
-  line.end.x = line.start.x + length * cosf(angle);
-  line.end.y = line.start.y + length * sinf(angle);
-
-  SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
-  SDL_RenderLine(renderer, line.start.x, line.start.y, line.end.x, line.end.y);
-}
-
 bool do_initialize_world(Chunk *chunk)
 {
   bool result = do_initialize_chunk(chunk);
@@ -396,7 +262,9 @@ float get_player_y_centered(Player *player)
 
 Scalar calculate_ray_length(Line_2D *ray)
 {
-  return sqrtf(powf(ray->start.x - ray->end.x, 2) + powf(ray->start.y - ray->end.y, 2));
+  const Scalar dx = ray->start.x - ray->end.x;
+  const Scalar dy = ray->start.y - ray->end.y;
+  return sqrtf(dx * dx + dy * dy);
 }
 
 bool is_bit_set(uint16_t mask, uint8_t idx)
@@ -412,6 +280,8 @@ void do_raycasting(Chunk *chunk)
 
   Point_1D player_x_center = get_player_x_centered(&player);
   Point_1D player_y_center = get_player_y_centered(&player);
+  const Scalar wall_w = WINDOW_HLF_W / (delta_ang * PLAYER_HOZ_FOV_DEG_STEP_INV);
+  const Scalar vert_scale = ((WINDOW_H / 2.0f) / tanf(PLAYER_VERT_FOV_RAD / 2.0f)) * WINDOW_H / WINDOW_W;
 
   for (Degrees curr_ang = start_ang; curr_ang <= end_ang; curr_ang += PLAYER_HOZ_FOV_DEG_STEP)
   // for (int i = 0; i < 1; i++)
@@ -435,10 +305,10 @@ void do_raycasting(Chunk *chunk)
     Point_1D nworld_y = ray.start.y * WORLD_CELL_SIZE_INV;       // y point in world normalized
     Vector_1D x_dirv = cos_lut[ang_lut_idx];                     // x direction vector
     Vector_1D y_dirv = sin_lut[ang_lut_idx];                     // y direction vector
-    Vector_1D x_stepv = x_dirv >= 0 ? 1 : -1;                    // x-axis step vector
-    Vector_1D y_stepv = y_dirv >= 0 ? 1 : -1;                    // y-axis step vector
-    Vector_1D x_deltav = fabs(1.0f / x_dirv);
-    Vector_1D y_deltav = fabs(1.0f / y_dirv);
+    int x_stepv = x_dirv >= 0 ? 1 : -1;                          // x-axis step vector
+    int y_stepv = y_dirv >= 0 ? 1 : -1;                          // y-axis step vector
+    Vector_1D x_deltav = fabsf(1.0f / x_dirv);
+    Vector_1D y_deltav = fabsf(1.0f / y_dirv);
     Vector_1D nworld_x_edge_dist = x_dirv < 0                                   // Normalized distance to next vertical edge
                                        ? (nworld_x - map_x_idx) * x_deltav      // Facing to the right/east next edge eg: |  *-->  |
                                        : (map_x_idx + 1 - nworld_x) * x_deltav; // Facing to the left/west previous edge eg: |  <--*  |
@@ -450,17 +320,12 @@ void do_raycasting(Chunk *chunk)
      * Wall collision logic
      */
     Point_2D wall_intxn_point;
-    Plane hit_plane;
-
-    uint8_t x_steps = 0; // Draw distance
-    uint8_t y_steps = 0; // Draw distance
-    uint8_t z_step = 0;  // Draws distance
+    WallContainer wall_spans[MAX_WALL_SPANS_PER_RAY];
+    size_t wall_span_count = 0;
 
     // has this y-range aready been drawn to? If so, skip/occlude (front to back)
     // && (ray_zmask != 0xFFFF) is another condition to check
-    // while ((x_steps < CHUNK_X) && (y_steps < CHUNK_Y))
     // Prevent ray going outside chunk
-    Node *wall_list = NULL;
     while (map_x_idx < CHUNK_X && map_x_idx >= 0 && map_y_idx < CHUNK_Y && map_y_idx >= 0)
     {
       /*
@@ -474,8 +339,6 @@ void do_raycasting(Chunk *chunk)
         wall_intxn_point.y = ray.start.y + (wall_intxn_point.x - ray.start.x) * y_dirv / x_dirv;
         nworld_x_edge_dist += x_deltav;
         map_x_idx += x_stepv;
-        hit_plane = X_PLANE; // eg: a vertical edge
-        x_steps++;
       }
       else
       {
@@ -485,8 +348,11 @@ void do_raycasting(Chunk *chunk)
         wall_intxn_point.x = ray.start.x + (wall_intxn_point.y - ray.start.y) * x_dirv / y_dirv;
         nworld_y_edge_dist += y_deltav;
         map_y_idx += y_stepv;
-        hit_plane = Y_PLANE; // eg: a horizontal edge
-        y_steps++;
+      }
+
+      if (map_x_idx < 0 || map_x_idx >= CHUNK_X || map_y_idx < 0 || map_y_idx >= CHUNK_Y)
+      {
+        break;
       }
 
       ray.end.x = wall_intxn_point.x;
@@ -496,21 +362,17 @@ void do_raycasting(Chunk *chunk)
       const Scalar ray_perp_dist = ray_length * cos_lut[theta_lut_idx];
       const Scalar PLAYER_EYE_HEIGHT = 0.5f * WORLD_CELL_SIZE;
 
-      float maxHeight = PLAYER_EYE_HEIGHT + ray_perp_dist * tanf((PLAYER_VERT_FOV_RAD / 2.0f) * WINDOW_W / WINDOW_H);
-      uint16_t z_max = ceilf(maxHeight * WORLD_CELL_SIZE_INV);
+      float max_height = PLAYER_EYE_HEIGHT + ray_perp_dist * tanf((PLAYER_VERT_FOV_RAD / 2.0f) * WINDOW_W / WINDOW_H);
+      int z_max = (int)ceilf(max_height * WORLD_CELL_SIZE_INV);
+      if (z_max >= CHUNK_Z)
+      {
+        z_max = CHUNK_Z - 1;
+      }
 
       uint16_t z_lvls = map_chunk[map_x_idx][map_y_idx];
-      // uint16_t z_mask = (1 << (z_max + 1)) - 1;                                                             // z_mask = 0b1111; only check the first 4 levels (from 0) up to z = 3
-
-      if (z_max > 0)
-      {
-        printf("z_max :%d\n", z_max);
-      }
-      const Scalar wall_w = WINDOW_HLF_W / (delta_ang * PLAYER_HOZ_FOV_DEG_STEP_INV);
       const Scalar x_screen_offset = ((curr_ang - start_ang) * PLAYER_HOZ_FOV_DEG_INV) * WINDOW_HLF_W + WINDOW_QRT_W; // WINDOW_HLF_W + WINDOW_QRT_W center the x coord in the screen
-      const Scalar VERT_SCALE = ((WINDOW_H / 2.0f) / tanf(PLAYER_VERT_FOV_RAD / 2.0f)) * WINDOW_H / WINDOW_W;
 
-      for (uint8_t z = 0; z <= z_max; z++)
+      for (int z = 0; z <= z_max; z++)
       {
         if (z_lvls & (1 << z))
         {
@@ -523,8 +385,8 @@ void do_raycasting(Chunk *chunk)
             Scalar angle_to_bottom = atan2f(wall_bottom_y - PLAYER_EYE_HEIGHT, ray_perp_dist);
             Scalar angle_to_top = atan2f(wall_top_y - PLAYER_EYE_HEIGHT, ray_perp_dist);
 
-            Scalar screen_y_bottom = WINDOW_HLF_H - (angle_to_bottom * VERT_SCALE);
-            Scalar screen_y_top = WINDOW_HLF_H - (angle_to_top * VERT_SCALE);
+            Scalar screen_y_bottom = WINDOW_HLF_H - (angle_to_bottom * vert_scale);
+            Scalar screen_y_top = WINDOW_HLF_H - (angle_to_top * vert_scale);
 
             SDL_FRect rect = {
                 .x = x_screen_offset,
@@ -532,57 +394,44 @@ void do_raycasting(Chunk *chunk)
                 .w = wall_w,
                 .h = screen_y_bottom - screen_y_top};
 
-            WallContainer wall_container = {
-                .rect = rect,
-                .wall = *wall,
-            };
-
-            wall_list = do_prepend_to_list(wall_list, wall_container);
+            if (wall_span_count < MAX_WALL_SPANS_PER_RAY)
+            {
+              wall_spans[wall_span_count++] = (WallContainer){
+                  .rect = rect,
+                  .wall = *wall,
+              };
+            }
           }
         }
       }
     }
 
-    if (wall_list != NULL)
+    while (wall_span_count > 0)
     {
-      Node *current = wall_list;
-      Node *next;
-      while (current != NULL)
+      WallContainer *wall_span = &wall_spans[--wall_span_count];
+      int texture_id = wall_span->wall.texture_id;
+      switch (texture_id)
       {
-        int texture_id = current->value.wall.texture_id;
-        switch (texture_id)
-        {
-        case 1:
-          SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-          break;
-        case 2:
-          SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-          break;
-        case 3:
-          SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
-          break;
-        case 4:
-          SDL_SetRenderDrawColor(renderer, 125, 25, 123, 255);
-          break;
-        case 5:
-          SDL_SetRenderDrawColor(renderer, 200, 55, 220, 255);
-          break;
-        default:
-          SDL_SetRenderDrawColor(renderer, 30, 50, 80, 255);
-        }
-        SDL_RenderRect(renderer, &current->value.rect);
-        next = current->next;
-        current = next;
+      case 1:
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+        break;
+      case 2:
+        SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+        break;
+      case 3:
+        SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+        break;
+      case 4:
+        SDL_SetRenderDrawColor(renderer, 125, 25, 123, 255);
+        break;
+      case 5:
+        SDL_SetRenderDrawColor(renderer, 200, 55, 220, 255);
+        break;
+      default:
+        SDL_SetRenderDrawColor(renderer, 30, 50, 80, 255);
       }
-
-      do_free_list(wall_list);
+      SDL_RenderRect(renderer, &wall_span->rect);
     }
-
-    // exit(1);
-
-    // SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    // SDL_RenderLine(renderer, 0, WINDOW_HLF_H, WINDOW_W, WINDOW_HLF_H);
-    // SDL_RenderLine(renderer, WINDOW_HLF_W, 0, WINDOW_HLF_W, WINDOW_H);
   }
 }
 
@@ -590,11 +439,7 @@ void update_display(Chunk *chunk)
 {
   SDL_SetRenderDrawColor(renderer, 127, 127, 127, 255);
   SDL_RenderClear(renderer);
-  // draw_chunk_level(chunk, 0);
-  // draw_player_rect();
-  // draw_player_direction();
   do_raycasting(chunk);
-  // exit(EXIT_SUCCESS);
   SDL_RenderPresent(renderer);
 }
 
@@ -623,7 +468,6 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv)
   player_init();
   keyboard_state = SDL_GetKeyboardState(NULL);
   state->previous_time = SDL_GetTicks();
-  state->fps_last_time = state->previous_time;
 
   return SDL_APP_CONTINUE;
 }
@@ -640,18 +484,13 @@ SDL_AppResult SDL_AppIterate(void *appstate)
   uint64_t current_time = SDL_GetTicks();
   float delta_time = (current_time - state->previous_time) / 1000.0f;
   state->previous_time = current_time;
+  if (delta_time > 0.1f)
+  {
+    delta_time = 0.1f;
+  }
 
   handle_player_movement(delta_time);
   update_display(&state->chunk);
-  state->frame_count++;
-
-  if (current_time - state->fps_last_time >= 1000)
-  {
-    printf("Current FPS: %u\n", state->frame_count);
-    printf("Size of Wall: %zu\n", sizeof(struct Wall));
-    state->frame_count = 0;
-    state->fps_last_time = current_time;
-  }
 
   return SDL_APP_CONTINUE;
 }

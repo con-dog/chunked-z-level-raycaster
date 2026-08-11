@@ -18,7 +18,18 @@ extern int setup_sdl(const char *title, int width, int height, SDL_WindowFlags w
     return result;
   }
 
-  return SDL_SetRenderVSync(*out_renderer, 1) ? 0 : 3;
+  if (!SDL_SetRenderLogicalPresentation(*out_renderer, width, height, SDL_LOGICAL_PRESENTATION_LETTERBOX))
+  {
+    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't configure logical presentation: %s", SDL_GetError());
+    return 3;
+  }
+
+  if (!SDL_SetRenderVSync(*out_renderer, 1))
+  {
+    SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Couldn't enable vsync: %s", SDL_GetError());
+  }
+
+  return 0;
 }
 
 static int initialize_sdl_video()
