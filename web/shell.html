@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#08090b" />
+    <title>2.5D Chunked Raycaster</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+        background: #08090b;
+        color: #f3f0e8;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        min-height: 100%;
+        margin: 0;
+      }
+
+      body {
+        display: grid;
+        place-items: center;
+        padding: clamp(1rem, 4vw, 3rem);
+        background:
+          radial-gradient(circle at 50% 10%, #25272c 0, transparent 42rem),
+          #08090b;
+      }
+
+      main {
+        width: min(100%, 70rem);
+      }
+
+      header {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 0.75rem;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(1rem, 3vw, 1.4rem);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      button {
+        border: 1px solid #6b6d72;
+        border-radius: 0.25rem;
+        padding: 0.45rem 0.7rem;
+        background: #18191d;
+        color: inherit;
+        font: inherit;
+        cursor: pointer;
+      }
+
+      button:hover,
+      button:focus-visible {
+        border-color: #f3f0e8;
+        outline: none;
+      }
+
+      .viewport {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid #3c3e43;
+        border-radius: 0.35rem;
+        background: #000;
+        box-shadow: 0 1.5rem 5rem rgb(0 0 0 / 45%);
+      }
+
+      canvas {
+        display: block;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 2 / 1;
+        outline: none;
+        image-rendering: pixelated;
+      }
+
+      .status {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        padding: 1rem;
+        background: #111318;
+        color: #c8cad0;
+        text-align: center;
+        transition: opacity 180ms ease;
+      }
+
+      .status[hidden] {
+        display: none;
+      }
+
+      footer {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-top: 0.75rem;
+        color: #999ba1;
+        font-size: 0.78rem;
+      }
+
+      kbd {
+        border: 1px solid #55575d;
+        border-bottom-width: 2px;
+        border-radius: 0.2rem;
+        padding: 0.05rem 0.3rem;
+        background: #1c1e22;
+        color: #e4e1d9;
+        font: inherit;
+      }
+
+      @media (max-width: 35rem) {
+        footer {
+          display: block;
+          line-height: 1.8;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Chunked Raycaster</h1>
+        <button id="fullscreen" type="button">Fullscreen</button>
+      </header>
+
+      <div class="viewport" id="viewport">
+        <canvas id="canvas" tabindex="0" aria-label="2.5D raycaster game"></canvas>
+        <div class="status" id="status" role="status">Downloading engine…</div>
+      </div>
+
+      <footer>
+        <span><kbd>←</kbd> <kbd>→</kbd> turn · <kbd>↑</kbd> <kbd>↓</kbd> move</span>
+        <span>Hold <kbd>Shift</kbd> to sprint</span>
+      </footer>
+    </main>
+
+    <script>
+      const canvas = document.getElementById("canvas");
+      const status = document.getElementById("status");
+      const viewport = document.getElementById("viewport");
+      const fullscreen = document.getElementById("fullscreen");
+
+      canvas.addEventListener("click", () => canvas.focus());
+      canvas.addEventListener("contextmenu", (event) => event.preventDefault());
+
+      fullscreen.addEventListener("click", async () => {
+        if (document.fullscreenElement) {
+          await document.exitFullscreen();
+        } else {
+          await viewport.requestFullscreen();
+          canvas.focus();
+        }
+      });
+
+      document.addEventListener("fullscreenchange", () => {
+        fullscreen.textContent = document.fullscreenElement ? "Exit fullscreen" : "Fullscreen";
+      });
+
+      var Module = {
+        canvas,
+        print: (...args) => console.log(...args),
+        printErr: (...args) => console.error(...args),
+        setStatus(message) {
+          if (!message) {
+            status.hidden = true;
+            canvas.focus();
+            return;
+          }
+          status.hidden = false;
+          status.textContent = message;
+        },
+        onRuntimeInitialized() {
+          Module.setStatus("");
+        },
+      };
+
+      Module.setStatus("Downloading engine…");
+      window.addEventListener("error", (event) => {
+        Module.setStatus(`Could not start: ${event.message}`);
+      });
+    </script>
+    {{{ SCRIPT }}}
+  </body>
+</html>

@@ -4,7 +4,22 @@ project(z_level_chunked_raycaster LANGUAGES C)
 
 include(FetchContent)
 
-option(RAYCASTER_FETCH_SDL "Download and build SDL3 instead of using a system package" OFF)
+if(EMSCRIPTEN)
+  set(raycaster_fetch_sdl_default ON)
+else()
+  set(raycaster_fetch_sdl_default OFF)
+endif()
+
+option(
+  RAYCASTER_FETCH_SDL
+  "Download and build SDL3 instead of using a system package"
+  ${raycaster_fetch_sdl_default}
+)
+option(
+  RAYCASTER_WEB_PRELOAD_ASSETS
+  "Package the assets and manifests directories into the web build"
+  OFF
+)
 
 if(RAYCASTER_FETCH_SDL)
   set(SDL_SHARED OFF CACHE BOOL "" FORCE)
@@ -38,4 +53,21 @@ target_link_libraries(raycaster PRIVATE SDL3::SDL3)
 
 if(UNIX AND NOT APPLE AND NOT EMSCRIPTEN)
   target_link_libraries(raycaster PRIVATE m)
+endif()
+
+if(EMSCRIPTEN)
+  set_target_properties(raycaster PROPERTIES SUFFIX ".html")
+
+  target_link_options(raycaster PRIVATE
+    "--shell-file=${CMAKE_CURRENT_SOURCE_DIR}/web/shell.html"
+    "-sALLOW_MEMORY_GROWTH=1"
+    "-sENVIRONMENT=web"
+  )
+
+  if(RAYCASTER_WEB_PRELOAD_ASSETS)
+    target_link_options(raycaster PRIVATE
+      "--preload-file=${CMAKE_CURRENT_SOURCE_DIR}/assets@/assets"
+      "--preload-file=${CMAKE_CURRENT_SOURCE_DIR}/manifests@/manifests"
+    )
+  endif()
 endif()
