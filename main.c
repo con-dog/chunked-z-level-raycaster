@@ -4,8 +4,7 @@
 #define WALL_HASH_SIZE 1024
 #define ANGLE_TO_LUT_INDEX (1.0f / PLAYER_HOZ_FOV_DEG_STEP)
 #define LUT_SIZE ((int)(360.0 / PLAYER_HOZ_FOV_DEG_STEP))
-
-#include <time.h>
+#define SDL_MAIN_USE_CALLBACKS 1
 
 #include "main.h"
 
@@ -40,6 +39,14 @@ typedef struct World
   size_t length;        // Number of chunks with walls
   Point3D extent;       // Map [x, y, z] of chunks
 } World;
+
+typedef struct AppState
+{
+  Chunk chunk;
+  uint64_t previous_time;
+  uint64_t fps_last_time;
+  uint32_t frame_count;
+} AppState;
 
 /* ******************
  * GLOBALS (START)
@@ -595,68 +602,70 @@ void update_display(Chunk *chunk)
   SDL_RenderPresent(renderer);
 }
 
-void run_game_loop(Chunk *chunk)
+SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv)
 {
-  uint32_t frame_count = 0;
-  uint32_t fps_last_time = SDL_GetTicks();
-  uint32_t current_fps = 0;
-  //
-  bool loopShouldStop = false;
-  uint64_t previous_time = SDL_GetTicks();
+  (void)argc;
+  (void)argv;
 
-  while (!loopShouldStop)
+  AppState *state = calloc(1, sizeof(*state));
+  if (state == NULL)
   {
-    uint64_t current_time = SDL_GetTicks();
-    float delta_time =
-        (current_time - previous_time) / 1000.0f; // Convert to seconds
-    previous_time = current_time;
-
-    SDL_Event event;
-    while (SDL_PollEvent(&event))
-    {
-      if (event.type == SDL_EVENT_QUIT)
-      {
-        loopShouldStop = true;
-      }
-    }
-
-    handle_player_movement(delta_time);
-    time_t start = clock();
-    update_display(chunk);
-    frame_count++;
-    uint32_t current_time_fps = SDL_GetTicks();
-    time_t end = clock();
-
-    if (current_time_fps - fps_last_time >= 1000)
-    { // Every second
-      current_fps = frame_count;
-      frame_count = 0;
-      fps_last_time = current_time_fps;
-      printf("Current FPS: %u\n", current_fps);
-      printf("Size of Wall: %zu\n", sizeof(struct Wall));
-    }
-
-    // printf("Frame time %f\n", (end - start) / CLOCKS_PER_SEC);
+    return SDL_APP_FAILURE;
   }
-}
+  *appstate = state;
 
-int main()
-{
   const char *title = "2.5D Raycasting Game Engine";
-  setup_sdl(title, WINDOW_W, WINDOW_H, SDL_WINDOW_RESIZABLE, &window,
-            &renderer);
+  if (setup_sdl(title, WINDOW_W, WINDOW_H, SDL_WINDOW_RESIZABLE, &window,
+                &renderer) != 0)
+  {
+    return SDL_APP_FAILURE;
+  }
 
   do_initialize_trig_lut();
-  Chunk chunk = {0};
-  do_initialize_world(&chunk);
+  do_initialize_world(&state->chunk);
 
   player_init();
   keyboard_state = SDL_GetKeyboardState(NULL);
-  run_game_loop(&chunk);
+  state->previous_time = SDL_GetTicks();
+  state->fps_last_time = state->previous_time;
+
+  return SDL_APP_CONTINUE;
+}
+
+SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
+{
+  (void)appstate;
+  return event->type == SDL_EVENT_QUIT ? SDL_APP_SUCCESS : SDL_APP_CONTINUE;
+}
+
+SDL_AppResult SDL_AppIterate(void *appstate)
+{
+  AppState *state = appstate;
+  uint64_t current_time = SDL_GetTicks();
+  float delta_time = (current_time - state->previous_time) / 1000.0f;
+  state->previous_time = current_time;
+
+  handle_player_movement(delta_time);
+  update_display(&state->chunk);
+  state->frame_count++;
+
+  if (current_time - state->fps_last_time >= 1000)
+  {
+    printf("Current FPS: %u\n", state->frame_count);
+    printf("Size of Wall: %zu\n", sizeof(struct Wall));
+    state->frame_count = 0;
+    state->fps_last_time = current_time;
+  }
+
+  return SDL_APP_CONTINUE;
+}
+
+void SDL_AppQuit(void *appstate, SDL_AppResult result)
+{
+  (void)result;
 
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
   SDL_Quit();
-
-  return 0;
+  free(appstate);
 }
